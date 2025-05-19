@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ejercicios de Pronunciación - AlfaIA</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .exercise-container {
+            background: rgba(255, 255, 255, 0.95);
+            color: #333;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 20px 0;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        .pronunciation-text {
+            font-size: 2rem;
+            font-weight: bold;
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin: 20px 0;
+            letter-spacing: 0.1em;
+        }
+        .recording-btn {
+            font-size: 1.2rem;
+            padding: 15px 30px;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+        }
+        .recording-btn:hover {
+            transform: scale(1.05);
+        }
+        .recording-btn.recording {
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
+            70% { box-shadow: 0 0 0 20px rgba(220, 53, 69, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+        }
+        .feedback-box {
+            background: #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            min-height: 100px;
+        }
+        .vocal-visualization {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .vocal-item {
+            text-align: center;
+            padding: 10px;
+            margin: 5px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            min-width: 80px;
+        }
+        .vocal-count {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .vocal-letter {
+            font-size: 1.2rem;
+            margin-top: 5px;
+        }
+        .instructions-box {
+            background: linear-gradient(45deg, #56ccf2, #2f80ed);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">AlfaIA</a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="{{ url_for('ejercicios') }}">Ejercicios</a>
+                <a class="nav-link" href="{{ url_for('progreso') }}">Progreso</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="exercise-container">
+                    <div class="text-center mb-4">
+                        <h2>🎤 Ejercicio de Pronunciación</h2>
+                        <span class="badge bg-primary fs-6">Nivel {{ nivel }}</span>
+                        <span class="badge bg-success fs-6">{{ ejercicio.puntos }} puntos</span>
+                    </div>
+
+                    <!-- Instrucciones -->
+                    <div class="instructions-box">
+                        <h5>📋 Instrucciones:</h5>
+                        <p class="mb-0">{{ ejercicio.instrucciones }}</p>
+                    </div>
+
+                    <!-- Texto a pronunciar -->
+                    <div class="pronunciation-text" id="pronunciationText">
+                        {{ ejercicio.texto }}
+                    </div>
+
+                    <!-- Controles de grabación -->
+                    <div class="text-center my-4">
+                        <button class="btn btn-danger recording-btn me-3" id="startRecording">
+                            🎤 Iniciar Grabación
+                        </button>
+                        <button class="btn btn-secondary recording-btn" id="stopRecording" disabled>
+                            ⏹ Detener Grabación
+                        </button>
+                    </div>
+
+                    <!-- Reproduction -->
+                    <div class="text-center mb-4">
+                        <audio id="audioPlayback" controls style="display: none;" class="w-100"></audio>
+                    </div>
+
+                    <!-- Feedback Box -->
+                    <div class="feedback-box" id="feedbackBox">
+                        <div class="text-center">
+                            <p class="mb-0">👆 Presiona "Iniciar Grabación" cuando estés listo</p>
+                        </div>
+                    </div>
+
+                    <!-- Visualización de vocales -->
+                    <div id="vocalVisualization" style="display: none;">
+                        <h5>🔤 Vocales Detectadas:</h5>
+                        <div class="vocal-visualization" id="vocalContainer">
+                            <!-- Las vocales aparecerán aquí -->
+                        </div>
+                    </div>
+
+                    <!-- Botones de navegación -->
+                    <div class="text-center mt-4">
+                        <a href="{{ url_for('ejercicio_pronunciacion', tipo='vocales') }}"
+                           class="btn btn-outline-primary me-2">Vocales</a>
+                        <a href="{{ url_for('ejercicio_pronunciacion', tipo='consonantes') }}"
+                           class="btn btn-outline-primary me-2">Consonantes</a>
+                        <a href="{{ url_for('ejercicio_pronunciacion', tipo='silabas') }}"
+                           class="btn btn-outline-primary me-2">Sílabas</a>
+                        <a href="{{ url_for('trabalenguas') }}"
+                           class="btn btn-outline-warning">Trabalenguas</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script>
+        // Funcionalidad específica para exercicios de pronunciación
+        document.addEventListener('DOMContentLoaded', function() {
+            const feedbackBox = document.getElementById('feedbackBox');
+            const vocalVisualization = document.getElementById('vocalVisualization');
+            const vocalContainer = document.getElementById('vocalContainer');
+
+            // Escuchar eventos de procesamiento de audio
+            const originalMostrarVocalesUnaPorUna = window.mostrarVocalesUnaPorUna;
+
+            window.mostrarVocalesUnaPorUna = function(resultados) {
+                if (resultados.retroalimentacion) {
+                    mostrarRetroalimentacionPronunciacion(resultados.retroalimentacion);
+                }
+
+                if (resultados.length > 0) {
+                    mostrarVisualizacionVocales(resultados);
+                }
+
+                // Llamar función original si existe
+                if (originalMostrarVocalesUnaPorUna) {
+                    originalMostrarVocalesUnaPorUna(resultados);
+                }
+            };
+
+            function mostrarRetroalimentacionPronunciacion(feedback) {
+                feedbackBox.innerHTML = `
+                    <div class="alert alert-${feedback.color} mb-3">
+                        <h5>${feedback.mensaje}</h5>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>📊 Estadísticas:</h6>
+                            <p>Total de vocales: <strong>${feedback.total_vocales || 0}</strong></p>
+                            ${feedback.conteo_vocales ?
+                                Object.entries(feedback.conteo_vocales)
+                                    .map(([vocal, count]) => `<span class="badge bg-secondary me-1">${vocal}: ${count}</span>`)
+                                    .join('') : ''
+                            }
+                        </div>
+                        <div class="col-md-6">
+                            <h6>💡 Consejos:</h6>
+                            <ul class="list-unstyled">
+                                ${feedback.consejos.map(consejo => `<li>• ${consejo}</li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                `;
+            }
+
+            function mostrarVisualizacionVocales(resultados) {
+                vocalVisualization.style.display = 'block';
+
+                const conteoVocales = {};
+                resultados.forEach(r => {
+                    if (r.vocal && r.vocal !== 'Desconocido') {
+                        conteoVocales[r.vocal] = (conteoVocales[r.vocal] || 0) + 1;
+                    }
+                });
+
+                vocalContainer.innerHTML = Object.entries(conteoVocales)
+                    .map(([vocal, count]) => `
+                        <div class="vocal-item">
+                            <div class="vocal-count">${count}</div>
+                            <div class="vocal-letter">${vocal}</div>
+                        </div>
+                    `).join('');
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trivia Española - AlfaIA</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .game-container {
+            background: rgba(255, 255, 255, 0.95);
+            color: #333;
+            border-radius: 20px;
+            padding: 40px;
+            margin: 20px 0;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        .question-box {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 30px 0;
+            text-align: center;
+        }
+        .question-text {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .category-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+        .options-container {
+            margin: 30px 0;
+        }
+        .option-btn {
+            width: 100%;
+            padding: 20px;
+            margin: 10px 0;
+            border: 3px solid #ddd;
+            background: white;
+            color: #333;
+            border-radius: 15px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-align: left;
+            position: relative;
+        }
+        .option-btn:hover:not(.answered) {
+            border-color: #667eea;
+            background: #f8f9fa;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .option-btn.correct {
+            border-color: #2ecc71;
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+            color: white;
+        }
+        .option-btn.incorrect {
+            border-color: #e74c3c;
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+        }
+        .option-btn.answered {
+            cursor: not-allowed;
+        }
+        .option-btn::before {
+            content: attr(data-letter);
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 30px;
+            height: 30px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        .timer-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .timer {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #e74c3c;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .timer.warning {
+            animation: pulse 1s infinite;
+            color: #e74c3c;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .explanation-box {
+            background: #f8f9fa;
+            border-left: 5px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 10px 10px 0;
+            display: none;
+        }
+        .result-box {
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 20px 0;
+            display: none;
+        }
+        .result-box.correct {
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+            color: white;
+        }
+        .result-box.incorrect {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+        }
+        .score-display {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .btn-next {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            color: white;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .btn-next:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">🤖 AlfaIA</a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="{{ url_for('index') }}">🏠 Inicio</a>
+                <a class="nav-link" href="{{ url_for('mostrar_progreso') }}">📊 Progreso</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="game-container">
+                    <div class="text-center mb-4">
+                        <h2><i class="fas fa-question-circle"></i> Trivia Española</h2>
+                        <p class="lead">Pon a prueba tus conocimientos del español</p>
+                        <span class="badge bg-primary fs-6">Nivel {{ nivel }}</span>
+                        <span class="badge bg-success fs-6">{{ pregunta.puntos }} puntos posibles</span>
+                    </div>
+
+                    <!-- Temporizador -->
+                    <div class="timer-container">
+                        <div class="timer" id="timer">
+                            <i class="fas fa-clock"></i>
+                            <span id="timeDisplay">30</span>
+                        </div>
+                    </div>
+
+                    <!-- Pregunta -->
+                    <div class="question-box">
+                        <div class="category-badge">
+                            <i class="fas fa-tag"></i> {{ pregunta.categoria.title() }}
+                        </div>
+                        <div class="question-text">
+                            {{ pregunta.pregunta }}
+                        </div>
+                    </div>
+
+                    <!-- Opciones -->
+                    <div class="options-container" id="optionsContainer">
+                        {% for opcion in pregunta.opciones %}
+                        <button class="option-btn"
+                                data-letter="{{ ['A', 'B', 'C', 'D'][loop.index0] }}"
+                                onclick="seleccionarRespuesta({{ loop.index0 }})"
+                                id="option{{ loop.index0 }}">
+                            <span style="margin-left: 45px;">{{ opcion }}</span>
+                        </button>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Caja de explicación -->
+                    <div class="explanation-box" id="explanationBox">
+                        <h5><i class="fas fa-info-circle"></i> Explicación:</h5>
+                        <p id="explanationText"></p>
+                    </div>
+
+                    <!-- Caja de resultado -->
+                    <div class="result-box" id="resultBox">
+                        <h3 id="resultTitle"></h3>
+                        <p id="resultMessage"></p>
+                        <div class="score-display" id="scoreDisplay"></div>
+                        <button class="btn btn-next" onclick="siguientePregunta()">
+                            <i class="fas fa-arrow-right"></i> Siguiente Pregunta
+                        </button>
+                        <button class="btn btn-secondary ms-2" onclick="volverAlMenu()">
+                            <i class="fas fa-home"></i> Menú Principal
+                        </button>
+                    </div>
+
+                    <!-- Instrucciones -->
+                    <div class="alert alert-info" id="instructions">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Instrucciones:</strong> Lee la pregunta cuidadosamente y selecciona la respuesta correcta. ¡Tienes 30 segundos para responder!
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let timeLeft = 30;
+        let timer;
+        let answered = false;
+        let correctAnswer = {{ pregunta.respuesta_correcta }};
+
+        function iniciarTemporizador() {
+            timer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timeDisplay').textContent = timeLeft;
+
+                // Cambiar a warning cuando quedan 10 segundos
+                if (timeLeft <= 10) {
+                    document.getElementById('timer').classList.add('warning');
+                }
+
+                // Tiempo agotado
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    if (!answered) {
+                        timeOut();
+                    }
+                }
+            }, 1000);
+        }
+
+        async function seleccionarRespuesta(opcionSeleccionada) {
+            if (answered) return;
+
+            answered = true;
+            clearInterval(timer);
+
+            // Deshabilitar todas las opciones
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                btn.classList.add('answered');
+            });
+
+            try {
+                const response = await fetch('/responder_trivia', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ respuesta: opcionSeleccionada })
+                });
+
+                const data = await response.json();
+                mostrarResultado(data, opcionSeleccionada);
+
+            } catch (error) {
+                console.error('Error al enviar respuesta:', error);
+                alert('Error de conexión. Intenta de nuevo.');
+            }
+        }
+
+        function mostrarResultado(data, opcionSeleccionada) {
+            // Marcar respuestas
+            const optionButtons = document.querySelectorAll('.option-btn');
+
+            // Marcar respuesta correcta
+            optionButtons[data.respuesta_correcta].classList.add('correct');
+
+            // Si la respuesta del usuario fue incorrecta, marcarla
+            if (!data.correcto && opcionSeleccionada !== data.respuesta_correcta) {
+                optionButtons[opcionSeleccionada].classList.add('incorrect');
+            }
+
+            // Mostrar explicación
+            document.getElementById('explanationText').textContent = data.explicacion;
+            document.getElementById('explanationBox').style.display = 'block';
+
+            // Mostrar resultado
+            const resultBox = document.getElementById('resultBox');
+            const resultTitle = document.getElementById('resultTitle');
+            const resultMessage = document.getElementById('resultMessage');
+            const scoreDisplay = document.getElementById('scoreDisplay');
+
+            if (data.correcto) {
+                resultBox.className = 'result-box correct';
+                resultTitle.innerHTML = '<i class="fas fa-check-circle"></i> ¡Correcto!';
+                resultMessage.textContent = '¡Excelente! Has respondido correctamente.';
+                scoreDisplay.innerHTML = `<i class="fas fa-star"></i> +${data.puntos} puntos`;
+            } else {
+                resultBox.className = 'result-box incorrect';
+                resultTitle.innerHTML = '<i class="fas fa-times-circle"></i> Incorrecto';
+                resultMessage.textContent = 'No te preocupes, sigue practicando para mejorar.';
+                scoreDisplay.innerHTML = '<i class="fas fa-times"></i> 0 puntos';
+            }
+
+            resultBox.style.display = 'block';
+
+            // Ocultar instrucciones
+            document.getElementById('instructions').style.display = 'none';
+        }
+
+        function timeOut() {
+            answered = true;
+
+            // Mostrar respuesta correcta
+            document.querySelectorAll('.option-btn').forEach((btn, index) => {
+                btn.classList.add('answered');
+                if (index === correctAnswer) {
+                    btn.classList.add('correct');
+                }
+            });
+
+            // Mostrar resultado de tiempo agotado
+            const resultBox = document.getElementById('resultBox');
+            const resultTitle = document.getElementById('resultTitle');
+            const resultMessage = document.getElementById('resultMessage');
+            const scoreDisplay = document.getElementById('scoreDisplay');
+
+            resultBox.className = 'result-box incorrect';
+            resultTitle.innerHTML = '<i class="fas fa-clock"></i> ¡Tiempo Agotado!';
+            resultMessage.textContent = 'Se acabó el tiempo. La próxima vez serás más rápido.';
+            scoreDisplay.innerHTML = '<i class="fas fa-times"></i> 0 puntos';
+
+            resultBox.style.display = 'block';
+
+            // Mostrar explicación
+            document.getElementById('explanationText').textContent = '{{ pregunta.explicacion }}';
+            document.getElementById('explanationBox').style.display = 'block';
+
+            // Ocultar instrucciones
+            document.getElementById('instructions').style.display = 'none';
+        }
+
+        function siguientePregunta() {
+            window.location.href = '{{ url_for("juego_trivia") }}';
+        }
+
+        function volverAlMenu() {
+            window.location.href = '{{ url_for("index") }}';
+        }
+
+        // Iniciar el juego
+        document.addEventListener('DOMContentLoaded', function() {
+            iniciarTemporizador();
+        });
+
+        // Permitir responder con teclado (A, B, C, D)
+        document.addEventListener('keydown', function(event) {
+            if (answered) return;
+
+            const key = event.key.toUpperCase();
+            const keyMap = { 'A': 0, 'B': 1, 'C': 2, 'D': 3 };
+
+            if (key in keyMap) {
+                seleccionarRespuesta(keyMap[key]);
+            }
+        });
+    </script>
+</body>
+</html>

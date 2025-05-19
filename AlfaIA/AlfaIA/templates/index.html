@@ -1,46 +1,368 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asistente virtual</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <title>AlfaIA - Asistente Virtual</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         body {
-            background: url('/static/assets/educacion3.jpg') no-repeat center center;
-            background-size: cover;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             text-align: center;
+            min-height: 100vh;
         }
         .hero {
-            height: 100vh;
+            padding: 50px 0;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-direction: column;
         }
+        .stats-card {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 10px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        .stats-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.15);
+        }
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #ffd700;
+        }
+        .welcome-card {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 1000px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 30px;
+        }
+        .game-card {
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 15px;
+            transition: all 0.3s ease;
+            height: 250px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        .game-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+            background: rgba(255, 255, 255, 0.95);
+        }
+        .game-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+        .nav-btn {
+            margin: 10px;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .nav-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            text-decoration: none;
+        }
+        .level-badge {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            color: white;
+            border-radius: 20px;
+            padding: 5px 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        .locked-game {
+            opacity: 0.6;
+            position: relative;
+        }
+        .locked-game::before {
+            content: "🔒";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3rem;
+            z-index: 10;
+        }
+        .achievement-preview {
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        .floating-elements {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1;
+        }
+        .floating-elements span {
+            position: absolute;
+            display: block;
+            color: rgba(255, 255, 255, 0.1);
+            font-size: 1.5rem;
+            animation: float 15s infinite linear;
+        }
+        @keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+        }
     </style>
 </head>
 <body>
+    <!-- Elementos flotantes decorativos -->
+    <div class="floating-elements">
+        <span style="left: 10%; animation-delay: 0s;">📚</span>
+        <span style="left: 20%; animation-delay: 3s;">🎯</span>
+        <span style="left: 30%; animation-delay: 6s;">🌟</span>
+        <span style="left: 40%; animation-delay: 9s;">🎮</span>
+        <span style="left: 50%; animation-delay: 12s;">🏆</span>
+        <span style="left: 60%; animation-delay: 15s;">🎨</span>
+        <span style="left: 70%; animation-delay: 18s;">🔤</span>
+        <span style="left: 80%; animation-delay: 21s;">🎪</span>
+        <span style="left: 90%; animation-delay: 24s;">💫</span>
+    </div>
+
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
-            <a class="navbar-brand" href="#">AlfaIA</a>
+            <a class="navbar-brand fw-bold fs-3" href="#">🤖 AlfaIA</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('ejercicios') }}">Ejercicios</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('lectura') }}">Lectura</a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            🎮 Juegos
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('juego_memoria') }}">🧠 Memoria</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('juego_ahorcado') }}">🎯 Ahorcado</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('juego_trivia') }}">❓ Trivia</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('juego_palabras_cruzadas') }}">📝 Crucigrama</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('ejercicios') }}">📚 Ejercicios</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('lectura') }}">📖 Lectura</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('mostrar_progreso') }}">📊 Progreso</a></li>
                 </ul>
             </div>
         </div>
     </nav>
+
     <div class="hero">
-        <h1>El asistente virtual que está para ayudarte</h1>
-        <p>Mejora de dominio del idioma español</p>
-        <!--<a href="#" class="btn btn-danger">Find Out More</a>-->
+        <div class="container">
+            <div class="welcome-card">
+                <h1 class="display-4 mb-4">¡Bienvenido a AlfaIA! 🌟</h1>
+                <p class="lead mb-4">Tu asistente virtual personalizado para mejorar tu dominio del idioma español de forma divertida e interactiva</p>
+
+                <!-- Estadísticas del Usuario -->
+                {% if estadisticas %}
+                <div class="row justify-content-center mb-4">
+                    <div class="col-sm-6 col-md-3">
+                        <div class="stats-card">
+                            <div class="stat-number">{{ estadisticas.ejercicios_completados }}</div>
+                            <div><i class="fas fa-check-circle"></i> Ejercicios Completados</div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-md-3">
+                        <div class="stats-card">
+                            <div class="stat-number">{{ estadisticas.precision_promedio }}%</div>
+                            <div><i class="fas fa-bullseye"></i> Precisión Promedio</div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-md-3">
+                        <div class="stats-card">
+                            <div class="stat-number">{{ estadisticas.racha_dias }}</div>
+                            <div><i class="fas fa-fire"></i> Días de Racha</div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-md-3">
+                        <div class="stats-card">
+                            <div class="stat-number">{{ estadisticas.logros_count }}</div>
+                            <div><i class="fas fa-trophy"></i> Logros Obtenidos</div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Mensaje motivacional personalizado -->
+                <div class="achievement-preview">
+                    {% if estadisticas %}
+                        {% if estadisticas.ejercicios_completados == 0 %}
+                            <h5>🚀 ¡Comienza tu aventura!</h5>
+                            <p>Da el primer paso en tu viaje de aprendizaje del español.</p>
+                        {% elif estadisticas.ejercicios_completados < 5 %}
+                            <h5>🌱 ¡Excelente comienzo!</h5>
+                            <p>Has completado {{ estadisticas.ejercicios_completados }} ejercicios. ¡Sigue así para desbloquear más juegos!</p>
+                        {% elif estadisticas.ejercicios_completados < 10 %}
+                            <h5>⭐ ¡Progreso notable!</h5>
+                            <p>Ya dominas lo básico. ¡Es hora de intentar juegos más desafiantes!</p>
+                        {% else %}
+                            <h5>🏆 ¡Verdadero experto!</h5>
+                            <p>Con {{ estadisticas.ejercicios_completados }} ejercicios completados, eres un estudiante excepcional.</p>
+                        {% endif %}
+                    {% else %}
+                        <h5>🎯 ¡Bienvenido!</h5>
+                        <p>Comienza tu viaje personalizado de aprendizaje del español.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Sección de Juegos y Actividades -->
+            <div class="row">
+                <!-- Ejercicios Básicos -->
+                <div class="col-lg-3 col-md-6">
+                    <div class="game-card position-relative">
+                        <div class="level-badge">Básico</div>
+                        <div>
+                            <div class="game-icon"><i class="fas fa-book-open"></i></div>
+                            <h4>Ejercicios Básicos</h4>
+                            <p>Ordena frases y completa palabras para fortalecer tu vocabulario.</p>
+                        </div>
+                        <a href="{{ url_for('ejercicios') }}" class="btn btn-primary">Practicar 📝</a>
+                    </div>
+                </div>
+
+                <!-- Lectura Guiada -->
+                <div class="col-lg-3 col-md-6">
+                    <div class="game-card position-relative">
+                        <div class="level-badge">Básico</div>
+                        <div>
+                            <div class="game-icon"><i class="fas fa-book-reader"></i></div>
+                            <h4>Lectura Guiada</h4>
+                            <p>Mejora tu velocidad y comprensión lectora con textos adaptativos.</p>
+                        </div>
+                        <a href="{{ url_for('lectura') }}" class="btn btn-success">Leer 📖</a>
+                    </div>
+                </div>
+
+                <!-- Juego de Memoria -->
+                <div class="col-lg-3 col-md-6">
+                    <div class="game-card position-relative">
+                        <div class="level-badge">Intermedio</div>
+                        <div>
+                            <div class="game-icon"><i class="fas fa-brain"></i></div>
+                            <h4>Juego de Memoria</h4>
+                            <p>Encuentra parejas de palabras y mejora tu memoria visual.</p>
+                        </div>
+                        <a href="{{ url_for('juego_memoria') }}" class="btn btn-info">Jugar 🧠</a>
+                    </div>
+                </div>
+
+                <!-- Ahorcado -->
+                <div class="col-lg-3 col-md-6">
+                    <div class="game-card position-relative">
+                        <div class="level-badge">Intermedio</div>
+                        <div>
+                            <div class="game-icon"><i class="fas fa-gamepad"></i></div>
+                            <h4>Ahorcado Español</h4>
+                            <p>Adivina palabras letra por letra en este clásico juego.</p>
+                        </div>
+                        <a href="{{ url_for('juego_ahorcado') }}" class="btn btn-warning">Jugar 🎯</a>
+                    </div>
+                </div>
+
+                <!-- Trivia -->
+                <div class="col-lg-3 col-md-6">
+                    <div class="game-card position-relative">
+                        <div class="level-badge">Avanzado</div>
+                        <div>
+                            <div class="game-icon"><i class="fas fa-question-circle"></i></div>
+                            <h4>Trivia Española</h4>
+                            <p>Pon a prueba tus conocimientos con preguntas de cultura y gramática.</p>
+                        </div>
+                        <a href="{{ url_for('juego_trivia') }}" class="btn btn-purple" style="background-color: #6f42c1; border-color: #6f42c1;">Jugar ❓</a>
+                    </div>
+                </div>
+
+                <!-- Pronunciación -->
+                <div class="col-lg-3 col-md-6">
+                    <div class="game-card position-relative {{ 'locked-game' if not (estadisticas and estadisticas.niveles.pronunciacion.nivel >= 1) else '' }}">
+                        <div class="level-badge">Avanzado</div>
+                        <div>
+                            <div class="game-icon"><i class="fas fa-microphone"></i></div>
+                            <h4>Ejercicios de Pronunciación</h4>
+                            <p>Mejora tu pronunciación con detección de vocales en tiempo real.</p>
+                        </div>
+                        {% if estadisticas and estadisticas.niveles.pronunciacion.nivel >= 1 %}
+                            <a href="{{ url_for('ejercicio_pronunciacion') }}" class="btn btn-danger">Practicar 🎤</a>
+                        {% else %}
+                            <button class="btn btn-secondary" disabled>Se desbloquea en nivel 3</button>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Palabras Cruzadas -->
+                <div class="col-lg-3 col-md-6">
+                    <div class="game-card position-relative">
+                        <div class="level-badge">Avanzado</div>
+                        <div>
+                            <div class="game-icon"><i class="fas fa-th"></i></div>
+                            <h4>Crucigrama</h4>
+                            <p>Resuelve crucigramas temáticos para expandir tu vocabulario.</p>
+                        </div>
+                        <a href="{{ url_for('juego_palabras_cruzadas') }}" class="btn btn-dark">Resolver 📝</a>
+                    </div>
+                </div>
+
+                <!-- Tu Progreso -->
+                <div class="col-lg-3 col-md-6">
+                    <div class="game-card position-relative">
+                        <div class="level-badge">Estadísticas</div>
+                        <div>
+                            <div class="game-icon"><i class="fas fa-chart-line"></i></div>
+                            <h4>Tu Progreso</h4>
+                            <p>Revisa tus estadísticas, logros y progreso detallado.</p>
+                        </div>
+                        <a href="{{ url_for('mostrar_progreso') }}" class="btn btn-outline-primary">Ver Progreso 📊</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botón CTA Principal -->
+            <div class="mt-5">
+                {% if not estadisticas or estadisticas.ejercicios_completados == 0 %}
+                    <a href="{{ url_for('ejercicios') }}" class="btn btn-lg btn-success nav-btn px-5">
+                        <i class="fas fa-play"></i> ¡Comenzar Ahora!
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('mostrar_progreso') }}" class="btn btn-lg btn-primary nav-btn px-5">
+                        <i class="fas fa-chart-line"></i> Continuar Aprendiendo
+                    </a>
+                {% endif %}
+            </div>
+        </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

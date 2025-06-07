@@ -1,0 +1,644 @@
+/* ===== TEMA CAFÉ/SERIO - VARIABLES GLOBALES ===== */
+/* Aplica este CSS a todas las páginas para mantener consistencia */
+
+:root {
+    /* Paleta de colores café/serios */
+    --primary-brown: #8B4513;
+    --dark-brown: #654321;
+    --light-brown: #D2B48C;
+    --cream: #F5F5DC;
+    --dark-cream: #F0E68C;
+    --accent-gold: #B8860B;
+    --text-dark: #2F1B14;
+    --text-light: #6B4423;
+    --bg-warm: #FAF0E6;
+    --shadow-brown: rgba(139, 69, 19, 0.15);
+    --error-brown: #A0522D;
+    --success-brown: #8FBC8F;
+    --warning-brown: #CD853F;
+    --info-brown: #DEB887;
+}
+
+/* ===== ESTILOS BASE ===== */
+body {
+    background: linear-gradient(135deg, var(--bg-warm) 0%, var(--cream) 50%, var(--light-brown) 100%);
+    color: var(--text-dark);
+    font-family: 'Georgia', 'Times New Roman', serif;
+    min-height: 100vh;
+}
+
+/* ===== NAVEGACIÓN ===== */
+.navbar {
+    background: linear-gradient(90deg, var(--dark-brown) 0%, var(--primary-brown) 100%) !important;
+    box-shadow: 0 4px 15px var(--shadow-brown);
+    border-bottom: 3px solid var(--accent-gold);
+}
+
+.navbar-brand {
+    color: var(--cream) !important;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.nav-link {
+    color: var(--light-brown) !important;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.nav-link:hover {
+    color: var(--dark-cream) !important;
+    transform: translateY(-2px);
+}
+
+/* ===== CONTENEDORES Y TARJETAS ===== */
+.game-container,
+.exercise-container,
+.reading-container,
+.progress-container {
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid var(--light-brown);
+    border-radius: 20px;
+    padding: 35px;
+    margin: 25px 0;
+    box-shadow:
+        0 15px 35px var(--shadow-brown),
+        inset 0 1px 0 rgba(255,255,255,0.9);
+    backdrop-filter: blur(10px);
+    color: var(--text-dark);
+}
+
+.hero {
+    background: linear-gradient(135deg, var(--bg-warm) 0%, var(--cream) 100%);
+    min-height: 100vh;
+    padding: 50px 0;
+}
+
+/* ===== BOTONES ===== */
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-brown), var(--dark-brown));
+    border: 2px solid var(--primary-brown);
+    color: white;
+    font-weight: 600;
+    border-radius: 10px;
+    padding: 12px 25px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px var(--shadow-brown);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, var(--accent-gold), var(--primary-brown));
+    border-color: var(--accent-gold);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px var(--shadow-brown);
+    color: white;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, var(--success-brown), #6B8E23);
+    border: 2px solid var(--success-brown);
+    color: white;
+}
+
+.btn-success:hover {
+    background: linear-gradient(135deg, #6B8E23, var(--success-brown));
+    border-color: #6B8E23;
+    color: white;
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, var(--warning-brown), var(--accent-gold));
+    border: 2px solid var(--warning-brown);
+    color: white;
+}
+
+.btn-warning:hover {
+    background: linear-gradient(135deg, var(--accent-gold), var(--warning-brown));
+    border-color: var(--accent-gold);
+    color: white;
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, var(--error-brown), #8B0000);
+    border: 2px solid var(--error-brown);
+    color: white;
+}
+
+.btn-danger:hover {
+    background: linear-gradient(135deg, #8B0000, var(--error-brown));
+    border-color: #8B0000;
+    color: white;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, var(--light-brown), #A0522D);
+    border: 2px solid var(--light-brown);
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #A0522D, var(--light-brown));
+    border-color: #A0522D;
+    color: white;
+}
+
+.btn-info {
+    background: linear-gradient(135deg, var(--info-brown), var(--accent-gold));
+    border: 2px solid var(--info-brown);
+    color: var(--text-dark);
+}
+
+.btn-info:hover {
+    background: linear-gradient(135deg, var(--accent-gold), var(--info-brown));
+    border-color: var(--accent-gold);
+    color: var(--text-dark);
+}
+
+/* ===== ALERTAS ===== */
+.alert-success {
+    background: linear-gradient(135deg, rgba(143, 188, 143, 0.2), rgba(107, 142, 35, 0.1));
+    border: 2px solid var(--success-brown);
+    color: #2F4F2F;
+    border-radius: 10px;
+}
+
+.alert-danger {
+    background: linear-gradient(135deg, rgba(160, 82, 45, 0.2), rgba(139, 0, 0, 0.1));
+    border: 2px solid var(--error-brown);
+    color: #800000;
+    border-radius: 10px;
+}
+
+.alert-warning {
+    background: linear-gradient(135deg, rgba(205, 133, 63, 0.2), rgba(184, 134, 11, 0.1));
+    border: 2px solid var(--warning-brown);
+    color: #8B4513;
+    border-radius: 10px;
+}
+
+.alert-info {
+    background: linear-gradient(135deg, rgba(222, 184, 135, 0.2), rgba(184, 134, 11, 0.1));
+    border: 2px solid var(--info-brown);
+    color: var(--text-dark);
+    border-radius: 10px;
+}
+
+/* ===== BADGES Y ETIQUETAS ===== */
+.badge {
+    font-size: 0.85rem;
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+}
+
+.bg-primary {
+    background: linear-gradient(45deg, var(--primary-brown), var(--dark-brown)) !important;
+}
+
+.bg-success {
+    background: linear-gradient(45deg, var(--success-brown), #6B8E23) !important;
+}
+
+.bg-warning {
+    background: linear-gradient(45deg, var(--warning-brown), var(--accent-gold)) !important;
+}
+
+.bg-danger {
+    background: linear-gradient(45deg, var(--error-brown), #8B0000) !important;
+}
+
+.bg-info {
+    background: linear-gradient(45deg, var(--info-brown), var(--accent-gold)) !important;
+}
+
+.bg-secondary {
+    background: linear-gradient(45deg, var(--light-brown), #A0522D) !important;
+}
+
+/* ===== FORMULARIOS ===== */
+.form-control {
+    border: 2px solid var(--light-brown);
+    border-radius: 8px;
+    padding: 12px;
+    background: var(--cream);
+    color: var(--text-dark);
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: var(--accent-gold);
+    box-shadow: 0 0 0 0.2rem rgba(184, 134, 11, 0.25);
+    background: white;
+}
+
+.form-label {
+    color: var(--text-dark);
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+/* ===== TABLAS ===== */
+.table {
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px var(--shadow-brown);
+}
+
+.table th {
+    background: linear-gradient(135deg, var(--primary-brown), var(--dark-brown));
+    color: white;
+    border: none;
+    padding: 15px;
+}
+
+.table td {
+    border-color: var(--light-brown);
+    padding: 12px 15px;
+    color: var(--text-dark);
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background: rgba(210, 180, 140, 0.1);
+}
+
+/* ===== PROGRESS BARS ===== */
+.progress {
+    background: var(--light-brown);
+    border-radius: 10px;
+    height: 20px;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.progress-bar {
+    background: linear-gradient(135deg, var(--primary-brown), var(--accent-gold));
+    border-radius: 10px;
+    transition: width 0.6s ease;
+}
+
+/* ===== CARDS ESPECÍFICAS PARA JUEGOS ===== */
+.memory-card,
+.trivia-card,
+.hangman-card {
+    background: white;
+    border: 2px solid var(--light-brown);
+    border-radius: 15px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px var(--shadow-brown);
+}
+
+.memory-card:hover,
+.trivia-card:hover,
+.hangman-card:hover {
+    border-color: var(--accent-gold);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px var(--shadow-brown);
+}
+
+/* ===== LECTURA GUIADA ===== */
+.reading-box {
+    background: white;
+    border: 3px solid var(--light-brown);
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 8px 25px var(--shadow-brown);
+}
+
+#text {
+    color: var(--text-dark);
+    font-size: 1.6rem;
+    line-height: 1.8;
+    min-height: 60px;
+}
+
+.current-word {
+    background: linear-gradient(135deg, var(--accent-gold), var(--dark-cream));
+    color: var(--text-dark);
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-weight: bold;
+}
+
+/* ===== EJERCICIOS ===== */
+.exercise-card {
+    background: white;
+    border: 2px solid var(--light-brown);
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 8px 25px var(--shadow-brown);
+}
+
+.word-bubble {
+    background: var(--primary-brown);
+    color: white;
+    padding: 10px 20px;
+    margin: 8px;
+    border-radius: 25px;
+    display: inline-block;
+    font-weight: 600;
+    box-shadow: 0 3px 10px var(--shadow-brown);
+}
+
+.word-display {
+    font-size: 2.5rem;
+    color: var(--text-dark);
+    font-weight: bold;
+    text-align: center;
+    padding: 20px;
+    background: var(--cream);
+    border-radius: 10px;
+    margin: 20px 0;
+    border: 2px solid var(--light-brown);
+}
+
+/* ===== PRONUNCIACIÓN ===== */
+.pronunciation-text {
+    background: var(--cream);
+    border: 3px solid var(--light-brown);
+    border-radius: 15px;
+    padding: 25px;
+    font-size: 2rem;
+    font-weight: bold;
+    text-align: center;
+    color: var(--text-dark);
+    margin: 20px 0;
+}
+
+.feedback-box {
+    background: white;
+    border: 2px solid var(--light-brown);
+    border-radius: 15px;
+    padding: 25px;
+    margin: 20px 0;
+    box-shadow: 0 4px 15px var(--shadow-brown);
+}
+
+.vocal-item {
+    background: var(--cream);
+    border: 2px solid var(--light-brown);
+    border-radius: 10px;
+    padding: 15px;
+    text-align: center;
+    margin: 10px;
+    box-shadow: 0 3px 10px var(--shadow-brown);
+}
+
+/* ===== PROGRESO ===== */
+.progress-card {
+    background: white;
+    border: 2px solid var(--light-brown);
+    border-radius: 15px;
+    padding: 25px;
+    margin: 15px 0;
+    box-shadow: 0 8px 25px var(--shadow-brown);
+}
+
+.stat-circle {
+    background: linear-gradient(135deg, var(--primary-brown), var(--accent-gold));
+    color: white;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px;
+    font-size: 1.8rem;
+    font-weight: bold;
+    box-shadow: 0 4px 15px var(--shadow-brown);
+}
+
+.level-badge {
+    background: linear-gradient(45deg, var(--accent-gold), var(--primary-brown));
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: bold;
+    box-shadow: 0 3px 10px var(--shadow-brown);
+}
+
+.achievement-badge {
+    background: linear-gradient(45deg, var(--success-brown), #6B8E23);
+    color: white;
+    padding: 10px 16px;
+    border-radius: 20px;
+    margin: 8px;
+    display: inline-block;
+    font-weight: 600;
+    box-shadow: 0 3px 10px var(--shadow-brown);
+}
+
+/* ===== TRIVIA ===== */
+.question-box {
+    background: linear-gradient(135deg, var(--primary-brown), var(--dark-brown));
+    color: white;
+    padding: 30px;
+    border-radius: 15px;
+    margin: 30px 0;
+    text-align: center;
+    box-shadow: 0 8px 25px var(--shadow-brown);
+}
+
+.option-btn {
+    background: white;
+    border: 3px solid var(--light-brown);
+    color: var(--text-dark);
+    padding: 20px;
+    margin: 10px 0;
+    border-radius: 15px;
+    transition: all 0.3s ease;
+    width: 100%;
+    text-align: left;
+}
+
+.option-btn:hover {
+    border-color: var(--accent-gold);
+    background: var(--cream);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px var(--shadow-brown);
+}
+
+.option-btn.correct {
+    border-color: var(--success-brown);
+    background: linear-gradient(135deg, var(--success-brown), #6B8E23);
+    color: white;
+}
+
+.option-btn.incorrect {
+    border-color: var(--error-brown);
+    background: linear-gradient(135deg, var(--error-brown), #8B0000);
+    color: white;
+}
+
+/* ===== CRUCIGRAMA ===== */
+.crossword-container {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    border: 2px solid var(--light-brown);
+    box-shadow: 0 8px 25px var(--shadow-brown);
+}
+
+.grid-cell {
+    border: 2px solid var(--light-brown);
+    background: white;
+}
+
+.grid-cell.filled {
+    background: var(--cream);
+}
+
+.grid-cell.blocked {
+    background: var(--primary-brown);
+}
+
+.grid-cell input {
+    background: transparent;
+    border: none;
+    color: var(--text-dark);
+    font-weight: bold;
+}
+
+.grid-cell input:focus {
+    background: var(--dark-cream);
+    outline: 2px solid var(--accent-gold);
+}
+
+.clue-item {
+    background: white;
+    border-left: 4px solid var(--primary-brown);
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px var(--shadow-brown);
+}
+
+/* ===== JUEGO DE MEMORIA ===== */
+.memory-grid {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+}
+
+.card-back {
+    background: linear-gradient(135deg, var(--primary-brown), var(--dark-brown));
+}
+
+.card-front {
+    background: linear-gradient(135deg, var(--accent-gold), var(--warning-brown));
+}
+
+.memory-card.matched .card-face {
+    background: linear-gradient(135deg, var(--success-brown), #6B8E23) !important;
+}
+
+/* ===== AHORCADO ===== */
+.hangman-display {
+    background: var(--cream);
+    border: 3px solid var(--light-brown);
+    border-radius: 15px;
+    padding: 30px;
+    margin: 20px 0;
+    font-family: 'Courier New', monospace;
+    color: var(--text-dark);
+}
+
+.letter-btn {
+    border: 2px solid var(--primary-brown);
+    background: white;
+    color: var(--primary-brown);
+    border-radius: 10px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.letter-btn:hover:not(.used) {
+    background: var(--primary-brown);
+    color: white;
+}
+
+.letter-btn.correct {
+    background: var(--success-brown);
+    border-color: var(--success-brown);
+    color: white;
+}
+
+.letter-btn.incorrect {
+    background: var(--error-brown);
+    border-color: var(--error-brown);
+    color: white;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 768px) {
+    .game-container,
+    .exercise-container,
+    .reading-container,
+    .progress-container {
+        padding: 20px;
+        margin: 15px;
+    }
+
+    .word-display {
+        font-size: 2rem;
+    }
+
+    .pronunciation-text {
+        font-size: 1.5rem;
+        padding: 20px;
+    }
+
+    .option-btn {
+        padding: 15px;
+        font-size: 0.9rem;
+    }
+}
+
+/* ===== ANIMACIONES GLOBALES ===== */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+@keyframes glow {
+    0%, 100% {
+        box-shadow: 0 0 5px var(--accent-gold);
+    }
+    50% {
+        box-shadow: 0 0 20px var(--accent-gold);
+    }
+}
+
+/* Aplicar animaciones */
+.game-container,
+.exercise-container,
+.reading-container,
+.progress-container {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.btn-primary:hover,
+.btn-success:hover,
+.btn-warning:hover {
+    animation: pulse 2s infinite;
+}
+
+.form-control:focus {
+    animation: glow 2s infinite;
+}

@@ -3,366 +3,829 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AlfaIA - Asistente Virtual</title>
+    <title>AlfaIA - Asistente Virtual de Aprendizaje</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            text-align: center;
-            min-height: 100vh;
+        :root {
+            /* Paleta de colores café/serios */
+            --primary-brown: #8B4513;
+            --dark-brown: #654321;
+            --light-brown: #D2B48C;
+            --cream: #F5F5DC;
+            --dark-cream: #F0E68C;
+            --accent-gold: #B8860B;
+            --text-dark: #2F1B14;
+            --text-light: #6B4423;
+            --bg-warm: #FAF0E6;
+            --shadow-brown: rgba(139, 69, 19, 0.15);
         }
-        .hero {
-            padding: 50px 0;
+
+        body {
+            background: linear-gradient(135deg, var(--bg-warm) 0%, var(--cream) 50%, var(--light-brown) 100%);
+            color: var(--text-dark);
+            min-height: 100vh;
+            font-family: 'Georgia', 'Times New Roman', serif;
+        }
+
+        .navbar {
+            background: linear-gradient(90deg, var(--dark-brown) 0%, var(--primary-brown) 100%) !important;
+            box-shadow: 0 4px 15px var(--shadow-brown);
+            border-bottom: 3px solid var(--accent-gold);
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.8rem;
+            color: var(--cream) !important;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .nav-link {
+            color: var(--light-brown) !important;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--dark-cream) !important;
+            transform: translateY(-2px);
+        }
+
+        .hero-container {
+            padding: 60px 0;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-direction: column;
+            min-height: 90vh;
         }
-        .stats-card {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 15px;
-            padding: 20px;
-            margin: 10px;
-            backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
-        }
-        .stats-card:hover {
-            transform: translateY(-5px);
-            background: rgba(255, 255, 255, 0.15);
-        }
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: #ffd700;
-        }
+
         .welcome-card {
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid var(--light-brown);
             border-radius: 20px;
-            padding: 40px;
-            max-width: 1000px;
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            margin-bottom: 30px;
+            padding: 50px;
+            max-width: 1200px;
+            box-shadow:
+                0 15px 35px var(--shadow-brown),
+                inset 0 1px 0 rgba(255,255,255,0.9);
+            backdrop-filter: blur(10px);
+            margin-bottom: 40px;
         }
-        .game-card {
+
+        .stats-section {
+            background: linear-gradient(135deg, var(--light-brown), var(--cream));
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+            border: 1px solid var(--accent-gold);
+        }
+
+        .stats-card {
             background: rgba(255, 255, 255, 0.9);
-            color: #333;
+            border: 2px solid var(--primary-brown);
             border-radius: 15px;
             padding: 25px;
             margin: 15px;
             transition: all 0.3s ease;
-            height: 250px;
+            box-shadow: 0 8px 25px var(--shadow-brown);
+        }
+
+        .stats-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 40px var(--shadow-brown);
+            border-color: var(--accent-gold);
+        }
+
+        .stat-number {
+            font-size: 2.8rem;
+            font-weight: bold;
+            color: var(--primary-brown);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .stat-label {
+            color: var(--text-light);
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .activities-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+            margin: 40px 0;
+        }
+
+        .activity-card {
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid var(--light-brown);
+            border-radius: 18px;
+            padding: 30px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 30px var(--shadow-brown);
+            position: relative;
+            overflow: hidden;
+            height: 280px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
         }
-        .game-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
-            background: rgba(255, 255, 255, 0.95);
+
+        .activity-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary-brown), var(--accent-gold), var(--primary-brown));
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
         }
-        .game-icon {
-            font-size: 3rem;
-            margin-bottom: 15px;
-            color: #667eea;
+
+        .activity-card:hover {
+            transform: translateY(-12px) scale(1.02);
+            box-shadow: 0 20px 50px var(--shadow-brown);
+            border-color: var(--accent-gold);
         }
-        .nav-btn {
-            margin: 10px;
-            padding: 15px 30px;
-            font-size: 1.1rem;
-            border-radius: 25px;
+
+        .activity-card:hover::before {
+            transform: translateX(0);
+        }
+
+        .activity-icon {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            color: var(--primary-brown);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
             transition: all 0.3s ease;
+        }
+
+        .activity-card:hover .activity-icon {
+            transform: scale(1.1) rotate(5deg);
+            color: var(--accent-gold);
+        }
+
+        .activity-title {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: var(--text-dark);
+            margin-bottom: 15px;
+        }
+
+        .activity-description {
+            color: var(--text-light);
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            flex-grow: 1;
+        }
+
+        .activity-btn {
+            background: linear-gradient(135deg, var(--primary-brown), var(--dark-brown));
+            border: none;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-weight: 600;
             text-decoration: none;
             display: inline-block;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px var(--shadow-brown);
         }
-        .nav-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+
+        .activity-btn:hover {
+            background: linear-gradient(135deg, var(--accent-gold), var(--primary-brown));
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--shadow-brown);
+            color: white;
             text-decoration: none;
         }
-        .level-badge {
+
+        .difficulty-badge {
             position: absolute;
-            top: -10px;
-            right: -10px;
-            background: linear-gradient(45deg, #ff6b6b, #feca57);
-            color: white;
+            top: 15px;
+            right: 15px;
+            padding: 6px 12px;
             border-radius: 20px;
-            padding: 5px 12px;
             font-size: 0.8rem;
             font-weight: bold;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
         }
-        .locked-game {
+
+        .badge-basic {
+            background: linear-gradient(45deg, #28a745, #20c997);
+        }
+
+        .badge-intermediate {
+            background: linear-gradient(45deg, #ffc107, #fd7e14);
+        }
+
+        .badge-advanced {
+            background: linear-gradient(45deg, #dc3545, #e83e8c);
+        }
+
+        .locked-activity {
             opacity: 0.6;
             position: relative;
         }
-        .locked-game::before {
-            content: "🔒";
+
+        .locked-activity::after {
+            content: '🔒';
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 3rem;
+            font-size: 2rem;
             z-index: 10;
         }
-        .achievement-preview {
-            background: rgba(255, 215, 0, 0.1);
-            border: 1px solid rgba(255, 215, 0, 0.3);
-            border-radius: 10px;
-            padding: 15px;
-            margin-top: 20px;
+
+        .main-title {
+            font-size: 3.2rem;
+            font-weight: bold;
+            color: var(--text-dark);
+            text-align: center;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
         }
+
+        .main-subtitle {
+            font-size: 1.3rem;
+            color: var(--text-light);
+            text-align: center;
+            margin-bottom: 30px;
+            font-style: italic;
+        }
+
+        .motivation-box {
+            background: linear-gradient(135deg, var(--accent-gold), var(--primary-brown));
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 30px 0;
+            box-shadow: 0 8px 25px var(--shadow-brown);
+        }
+
+        .motivation-box h5 {
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .cta-section {
+            text-align: center;
+            margin: 40px 0;
+        }
+
+        .cta-button {
+            background: linear-gradient(135deg, var(--accent-gold), var(--primary-brown));
+            border: none;
+            color: white;
+            padding: 18px 40px;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px var(--shadow-brown);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 12px 35px var(--shadow-brown);
+            color: white;
+            text-decoration: none;
+        }
+
         .floating-elements {
-            position: absolute;
+            position: fixed;
             width: 100%;
             height: 100%;
-            overflow: hidden;
+            top: 0;
+            left: 0;
+            pointer-events: none;
             z-index: -1;
+            overflow: hidden;
         }
+
         .floating-elements span {
             position: absolute;
             display: block;
-            color: rgba(255, 255, 255, 0.1);
+            color: rgba(139, 69, 19, 0.1);
             font-size: 1.5rem;
-            animation: float 15s infinite linear;
+            animation: float 20s infinite linear;
         }
+
         @keyframes float {
             0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
             10% { opacity: 1; }
             90% { opacity: 1; }
             100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
         }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .main-title {
+                font-size: 2.5rem;
+            }
+
+            .welcome-card {
+                padding: 30px;
+                margin: 20px;
+            }
+
+            .activities-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .activity-card {
+                height: auto;
+                min-height: 260px;
+            }
+
+            .stats-card {
+                margin: 10px 5px;
+            }
+        }
+
+        /* Animaciones adicionales */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .welcome-card {
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .activity-card {
+            animation: fadeInUp 0.6s ease-out;
+            animation-fill-mode: both;
+        }
+
+        .activity-card:nth-child(1) { animation-delay: 0.1s; }
+        .activity-card:nth-child(2) { animation-delay: 0.2s; }
+        .activity-card:nth-child(3) { animation-delay: 0.3s; }
+        .activity-card:nth-child(4) { animation-delay: 0.4s; }
+        .activity-card:nth-child(5) { animation-delay: 0.5s; }
+        .activity-card:nth-child(6) { animation-delay: 0.6s; }
+        .activity-card:nth-child(7) { animation-delay: 0.7s; }
+        .activity-card:nth-child(8) { animation-delay: 0.8s; }
     </style>
 </head>
 <body>
     <!-- Elementos flotantes decorativos -->
     <div class="floating-elements">
         <span style="left: 10%; animation-delay: 0s;">📚</span>
-        <span style="left: 20%; animation-delay: 3s;">🎯</span>
-        <span style="left: 30%; animation-delay: 6s;">🌟</span>
-        <span style="left: 40%; animation-delay: 9s;">🎮</span>
-        <span style="left: 50%; animation-delay: 12s;">🏆</span>
-        <span style="left: 60%; animation-delay: 15s;">🎨</span>
-        <span style="left: 70%; animation-delay: 18s;">🔤</span>
-        <span style="left: 80%; animation-delay: 21s;">🎪</span>
-        <span style="left: 90%; animation-delay: 24s;">💫</span>
+        <span style="left: 20%; animation-delay: 4s;">✏️</span>
+        <span style="left: 30%; animation-delay: 8s;">🎯</span>
+        <span style="left: 40%; animation-delay: 12s;">📖</span>
+        <span style="left: 50%; animation-delay: 16s;">🎓</span>
+        <span style="left: 60%; animation-delay: 20s;">💡</span>
+        <span style="left: 70%; animation-delay: 24s;">📝</span>
+        <span style="left: 80%; animation-delay: 28s;">🔤</span>
+        <span style="left: 90%; animation-delay: 32s;">🏆</span>
     </div>
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
-            <a class="navbar-brand fw-bold fs-3" href="#">🤖 AlfaIA</a>
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-graduation-cap"></i> AlfaIA
+            </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            🎮 Juegos
+                    <li class="nav-item">
+                        <a class="nav-link" href="#actividades">
+                            <i class="fas fa-dumbbell"></i> Actividades
                         </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{{ url_for('juego_memoria') }}">🧠 Memoria</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('juego_ahorcado') }}">🎯 Ahorcado</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('juego_trivia') }}">❓ Trivia</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('juego_palabras_cruzadas') }}">📝 Crucigrama</a></li>
-                        </ul>
                     </li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('ejercicios') }}">📚 Ejercicios</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('lectura') }}">📖 Lectura</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('mostrar_progreso') }}">📊 Progreso</a></li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#progreso">
+                            <i class="fas fa-chart-line"></i> Mi Progreso
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#ayuda">
+                            <i class="fas fa-question-circle"></i> Ayuda
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
     </nav>
 
-    <div class="hero">
+    <div class="hero-container">
         <div class="container">
             <div class="welcome-card">
-                <h1 class="display-4 mb-4">¡Bienvenido a AlfaIA! 🌟</h1>
-                <p class="lead mb-4">Tu asistente virtual personalizado para mejorar tu dominio del idioma español de forma divertida e interactiva</p>
+                <h1 class="main-title">
+                    <i class="fas fa-brain text-primary"></i> AlfaIA
+                </h1>
+                <p class="main-subtitle">
+                    Sistema Integral de Aprendizaje del Idioma Español
+                </p>
 
                 <!-- Estadísticas del Usuario -->
-                {% if estadisticas %}
-                <div class="row justify-content-center mb-4">
-                    <div class="col-sm-6 col-md-3">
-                        <div class="stats-card">
-                            <div class="stat-number">{{ estadisticas.ejercicios_completados }}</div>
-                            <div><i class="fas fa-check-circle"></i> Ejercicios Completados</div>
+                <div class="stats-section">
+                    <h4 class="text-center mb-4" style="color: var(--text-dark);">
+                        <i class="fas fa-chart-bar"></i> Tu Progreso Académico
+                    </h4>
+                    <div class="row">
+                        <div class="col-sm-6 col-md-3">
+                            <div class="stats-card text-center">
+                                <div class="stat-number">42</div>
+                                <div class="stat-label">
+                                    <i class="fas fa-check-circle"></i> Ejercicios Completados
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-sm-6 col-md-3">
-                        <div class="stats-card">
-                            <div class="stat-number">{{ estadisticas.precision_promedio }}%</div>
-                            <div><i class="fas fa-bullseye"></i> Precisión Promedio</div>
+                        <div class="col-sm-6 col-md-3">
+                            <div class="stats-card text-center">
+                                <div class="stat-number">87%</div>
+                                <div class="stat-label">
+                                    <i class="fas fa-bullseye"></i> Precisión Promedio
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-sm-6 col-md-3">
-                        <div class="stats-card">
-                            <div class="stat-number">{{ estadisticas.racha_dias }}</div>
-                            <div><i class="fas fa-fire"></i> Días de Racha</div>
+                        <div class="col-sm-6 col-md-3">
+                            <div class="stats-card text-center">
+                                <div class="stat-number">12</div>
+                                <div class="stat-label">
+                                    <i class="fas fa-fire"></i> Días Consecutivos
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-sm-6 col-md-3">
-                        <div class="stats-card">
-                            <div class="stat-number">{{ estadisticas.logros_count }}</div>
-                            <div><i class="fas fa-trophy"></i> Logros Obtenidos</div>
+                        <div class="col-sm-6 col-md-3">
+                            <div class="stats-card text-center">
+                                <div class="stat-number">8</div>
+                                <div class="stat-label">
+                                    <i class="fas fa-trophy"></i> Logros Obtenidos
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                {% endif %}
 
-                <!-- Mensaje motivacional personalizado -->
-                <div class="achievement-preview">
-                    {% if estadisticas %}
-                        {% if estadisticas.ejercicios_completados == 0 %}
-                            <h5>🚀 ¡Comienza tu aventura!</h5>
-                            <p>Da el primer paso en tu viaje de aprendizaje del español.</p>
-                        {% elif estadisticas.ejercicios_completados < 5 %}
-                            <h5>🌱 ¡Excelente comienzo!</h5>
-                            <p>Has completado {{ estadisticas.ejercicios_completados }} ejercicios. ¡Sigue así para desbloquear más juegos!</p>
-                        {% elif estadisticas.ejercicios_completados < 10 %}
-                            <h5>⭐ ¡Progreso notable!</h5>
-                            <p>Ya dominas lo básico. ¡Es hora de intentar juegos más desafiantes!</p>
-                        {% else %}
-                            <h5>🏆 ¡Verdadero experto!</h5>
-                            <p>Con {{ estadisticas.ejercicios_completados }} ejercicios completados, eres un estudiante excepcional.</p>
-                        {% endif %}
-                    {% else %}
-                        <h5>🎯 ¡Bienvenido!</h5>
-                        <p>Comienza tu viaje personalizado de aprendizaje del español.</p>
-                    {% endif %}
+                <!-- Mensaje motivacional -->
+                <div class="motivation-box">
+                    <h5><i class="fas fa-star"></i> Progreso Excepcional</h5>
+                    <p class="mb-0">
+                        Has demostrado un compromiso sobresaliente con tu aprendizaje.
+                        Con 42 ejercicios completados y una precisión del 87%,
+                        estás en el camino correcto hacia la maestría del español.
+                    </p>
                 </div>
-            </div>
 
-            <!-- Sección de Juegos y Actividades -->
-            <div class="row">
-                <!-- Ejercicios Básicos -->
-                <div class="col-lg-3 col-md-6">
-                    <div class="game-card position-relative">
-                        <div class="level-badge">Básico</div>
-                        <div>
-                            <div class="game-icon"><i class="fas fa-book-open"></i></div>
-                            <h4>Ejercicios Básicos</h4>
-                            <p>Ordena frases y completa palabras para fortalecer tu vocabulario.</p>
+                <!-- Actividades y Ejercicios -->
+                <div id="actividades">
+                    <h3 class="text-center mb-4" style="color: var(--text-dark);">
+                        <i class="fas fa-laptop"></i> Módulos de Aprendizaje
+                    </h3>
+
+                    <div class="activities-grid">
+                        <!-- Lectura Guiada -->
+                        <div class="activity-card">
+                            <div class="difficulty-badge badge-basic">Fundamental</div>
+                            <div class="text-center">
+                                <div class="activity-icon">
+                                    <i class="fas fa-book-reader"></i>
+                                </div>
+                                <h4 class="activity-title">Lectura Guiada</h4>
+                                <p class="activity-description">
+                                    Desarrolla velocidad y comprensión lectora con textos adaptativos
+                                    que se ajustan a tu nivel de competencia.
+                                </p>
+                            </div>
+                            <a href="/lectura" class="activity-btn">
+                                <i class="fas fa-play"></i> Iniciar Lectura
+                            </a>
                         </div>
-                        <a href="{{ url_for('ejercicios') }}" class="btn btn-primary">Practicar 📝</a>
+
+                        <!-- Ejercicios de Gramática -->
+                        <div class="activity-card">
+                            <div class="difficulty-badge badge-basic">Fundamental</div>
+                            <div class="text-center">
+                                <div class="activity-icon">
+                                    <i class="fas fa-spell-check"></i>
+                                </div>
+                                <h4 class="activity-title">Gramática y Vocabulario</h4>
+                                <p class="activity-description">
+                                    Fortalece tus conocimientos con ejercicios de ordenamiento
+                                    de frases y completado de palabras.
+                                </p>
+                            </div>
+                            <a href="/ejercicios" class="activity-btn">
+                                <i class="fas fa-pencil-alt"></i> Practicar
+                            </a>
+                        </div>
+
+                        <!-- Pronunciación -->
+                        <div class="activity-card">
+                            <div class="difficulty-badge badge-intermediate">Intermedio</div>
+                            <div class="text-center">
+                                <div class="activity-icon">
+                                    <i class="fas fa-microphone"></i>
+                                </div>
+                                <h4 class="activity-title">Pronunciación Avanzada</h4>
+                                <p class="activity-description">
+                                    Perfecciona tu pronunciación con análisis en tiempo real
+                                    de vocales y patrones de habla.
+                                </p>
+                            </div>
+                            <a href="/ejercicio_pronunciacion" class="activity-btn">
+                                <i class="fas fa-volume-up"></i> Entrenar Voz
+                            </a>
+                        </div>
+
+                        <!-- Juego de Memoria -->
+                        <div class="activity-card">
+                            <div class="difficulty-badge badge-intermediate">Intermedio</div>
+                            <div class="text-center">
+                                <div class="activity-icon">
+                                    <i class="fas fa-brain"></i>
+                                </div>
+                                <h4 class="activity-title">Memoria y Sinónimos</h4>
+                                <p class="activity-description">
+                                    Mejora tu memoria y amplía tu vocabulario encontrando
+                                    parejas de palabras sinónimas.
+                                </p>
+                            </div>
+                            <a href="/juego_memoria" class="activity-btn">
+                                <i class="fas fa-gamepad"></i> Jugar
+                            </a>
+                        </div>
+
+                        <!-- Ahorcado -->
+                        <div class="activity-card">
+                            <div class="difficulty-badge badge-intermediate">Intermedio</div>
+                            <div class="text-center">
+                                <div class="activity-icon">
+                                    <i class="fas fa-puzzle-piece"></i>
+                                </div>
+                                <h4 class="activity-title">Adivinanza de Palabras</h4>
+                                <p class="activity-description">
+                                    Desafía tu conocimiento del vocabulario español
+                                    en este clásico juego de adivinanzas.
+                                </p>
+                            </div>
+                            <a href="/juego_ahorcado" class="activity-btn">
+                                <i class="fas fa-search"></i> Adivinar
+                            </a>
+                        </div>
+
+                        <!-- Trivia -->
+                        <div class="activity-card">
+                            <div class="difficulty-badge badge-advanced">Avanzado</div>
+                            <div class="text-center">
+                                <div class="activity-icon">
+                                    <i class="fas fa-question-circle"></i>
+                                </div>
+                                <h4 class="activity-title">Trivia Cultural</h4>
+                                <p class="activity-description">
+                                    Pon a prueba tus conocimientos de gramática,
+                                    cultura e historia del mundo hispanohablante.
+                                </p>
+                            </div>
+                            <a href="/juego_trivia" class="activity-btn">
+                                <i class="fas fa-graduation-cap"></i> Evaluar
+                            </a>
+                        </div>
+
+                        <!-- Crucigrama -->
+                        <div class="activity-card">
+                            <div class="difficulty-badge badge-advanced">Avanzado</div>
+                            <div class="text-center">
+                                <div class="activity-icon">
+                                    <i class="fas fa-th"></i>
+                                </div>
+                                <h4 class="activity-title">Crucigramas Temáticos</h4>
+                                <p class="activity-description">
+                                    Resuelve crucigramas especializados para expandir
+                                    tu vocabulario en diferentes áreas temáticas.
+                                </p>
+                            </div>
+                            <a href="/juego_palabras_cruzadas" class="activity-btn">
+                                <i class="fas fa-crosshairs"></i> Resolver
+                            </a>
+                        </div>
+
+                        <!-- Análisis de Progreso -->
+                        <div class="activity-card">
+                            <div class="difficulty-badge badge-basic">Seguimiento</div>
+                            <div class="text-center">
+                                <div class="activity-icon">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                                <h4 class="activity-title">Análisis de Progreso</h4>
+                                <p class="activity-description">
+                                    Revisa tu evolución, estadísticas detalladas,
+                                    logros obtenidos y áreas de mejora.
+                                </p>
+                            </div>
+                            <a href="/progreso" class="activity-btn">
+                                <i class="fas fa-analytics"></i> Analizar
+                            </a>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Lectura Guiada -->
-                <div class="col-lg-3 col-md-6">
-                    <div class="game-card position-relative">
-                        <div class="level-badge">Básico</div>
-                        <div>
-                            <div class="game-icon"><i class="fas fa-book-reader"></i></div>
-                            <h4>Lectura Guiada</h4>
-                            <p>Mejora tu velocidad y comprensión lectora con textos adaptativos.</p>
-                        </div>
-                        <a href="{{ url_for('lectura') }}" class="btn btn-success">Leer 📖</a>
-                    </div>
-                </div>
-
-                <!-- Juego de Memoria -->
-                <div class="col-lg-3 col-md-6">
-                    <div class="game-card position-relative">
-                        <div class="level-badge">Intermedio</div>
-                        <div>
-                            <div class="game-icon"><i class="fas fa-brain"></i></div>
-                            <h4>Juego de Memoria</h4>
-                            <p>Encuentra parejas de palabras y mejora tu memoria visual.</p>
-                        </div>
-                        <a href="{{ url_for('juego_memoria') }}" class="btn btn-info">Jugar 🧠</a>
-                    </div>
-                </div>
-
-                <!-- Ahorcado -->
-                <div class="col-lg-3 col-md-6">
-                    <div class="game-card position-relative">
-                        <div class="level-badge">Intermedio</div>
-                        <div>
-                            <div class="game-icon"><i class="fas fa-gamepad"></i></div>
-                            <h4>Ahorcado Español</h4>
-                            <p>Adivina palabras letra por letra en este clásico juego.</p>
-                        </div>
-                        <a href="{{ url_for('juego_ahorcado') }}" class="btn btn-warning">Jugar 🎯</a>
-                    </div>
-                </div>
-
-                <!-- Trivia -->
-                <div class="col-lg-3 col-md-6">
-                    <div class="game-card position-relative">
-                        <div class="level-badge">Avanzado</div>
-                        <div>
-                            <div class="game-icon"><i class="fas fa-question-circle"></i></div>
-                            <h4>Trivia Española</h4>
-                            <p>Pon a prueba tus conocimientos con preguntas de cultura y gramática.</p>
-                        </div>
-                        <a href="{{ url_for('juego_trivia') }}" class="btn btn-purple" style="background-color: #6f42c1; border-color: #6f42c1;">Jugar ❓</a>
-                    </div>
-                </div>
-
-                <!-- Pronunciación -->
-                <div class="col-lg-3 col-md-6">
-                    <div class="game-card position-relative {{ 'locked-game' if not (estadisticas and estadisticas.niveles.pronunciacion.nivel >= 1) else '' }}">
-                        <div class="level-badge">Avanzado</div>
-                        <div>
-                            <div class="game-icon"><i class="fas fa-microphone"></i></div>
-                            <h4>Ejercicios de Pronunciación</h4>
-                            <p>Mejora tu pronunciación con detección de vocales en tiempo real.</p>
-                        </div>
-                        {% if estadisticas and estadisticas.niveles.pronunciacion.nivel >= 1 %}
-                            <a href="{{ url_for('ejercicio_pronunciacion') }}" class="btn btn-danger">Practicar 🎤</a>
-                        {% else %}
-                            <button class="btn btn-secondary" disabled>Se desbloquea en nivel 3</button>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <!-- Palabras Cruzadas -->
-                <div class="col-lg-3 col-md-6">
-                    <div class="game-card position-relative">
-                        <div class="level-badge">Avanzado</div>
-                        <div>
-                            <div class="game-icon"><i class="fas fa-th"></i></div>
-                            <h4>Crucigrama</h4>
-                            <p>Resuelve crucigramas temáticos para expandir tu vocabulario.</p>
-                        </div>
-                        <a href="{{ url_for('juego_palabras_cruzadas') }}" class="btn btn-dark">Resolver 📝</a>
-                    </div>
-                </div>
-
-                <!-- Tu Progreso -->
-                <div class="col-lg-3 col-md-6">
-                    <div class="game-card position-relative">
-                        <div class="level-badge">Estadísticas</div>
-                        <div>
-                            <div class="game-icon"><i class="fas fa-chart-line"></i></div>
-                            <h4>Tu Progreso</h4>
-                            <p>Revisa tus estadísticas, logros y progreso detallado.</p>
-                        </div>
-                        <a href="{{ url_for('mostrar_progreso') }}" class="btn btn-outline-primary">Ver Progreso 📊</a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Botón CTA Principal -->
-            <div class="mt-5">
-                {% if not estadisticas or estadisticas.ejercicios_completados == 0 %}
-                    <a href="{{ url_for('ejercicios') }}" class="btn btn-lg btn-success nav-btn px-5">
-                        <i class="fas fa-play"></i> ¡Comenzar Ahora!
+                <!-- Llamada a la acción -->
+                <div class="cta-section">
+                    <h4 style="color: var(--text-dark); margin-bottom: 25px;">
+                        ¿Listo para continuar tu formación?
+                    </h4>
+                    <a href="/ejercicios" class="cta-button">
+                        <i class="fas fa-rocket"></i> Continuar Aprendizaje
                     </a>
-                {% else %}
-                    <a href="{{ url_for('mostrar_progreso') }}" class="btn btn-lg btn-primary nav-btn px-5">
-                        <i class="fas fa-chart-line"></i> Continuar Aprendiendo
-                    </a>
-                {% endif %}
+                </div>
             </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+    <script>
+        // Efecto de scroll suave
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Animación de contadores
+        function animateCounters() {
+            const counters = document.querySelectorAll('.stat-number');
+
+            counters.forEach(counter => {
+                const target = parseInt(counter.textContent);
+                const increment = target / 50;
+                let current = 0;
+
+                const timer = setInterval(() => {
+                    current += increment;
+                    if (current >= target) {
+                        counter.textContent = target + (counter.textContent.includes('%') ? '%' : '');
+                        clearInterval(timer);
+                    } else {
+                        counter.textContent = Math.floor(current) + (counter.textContent.includes('%') ? '%' : '');
+                    }
+                }, 30);
+            });
+        }
+
+        // Ejecutar animación cuando la página se carga
+        window.addEventListener('load', () => {
+            setTimeout(animateCounters, 500);
+        });
+
+        // Efecto de parallax sutil en elementos flotantes
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const parallax = document.querySelector('.floating-elements');
+
+            if (parallax) {
+                parallax.style.transform = `translateY(${scrolled * 0.1}px)`;
+            }
+        });
+
+        // Efecto hover mejorado para las tarjetas
+        document.querySelectorAll('.activity-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-12px) scale(1.02)';
+            });
+
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+
+        // Mostrar notificación de bienvenida
+        function showWelcomeNotification() {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 100px;
+                right: 30px;
+                background: linear-gradient(135deg, var(--accent-gold), var(--primary-brown));
+                color: white;
+                padding: 20px;
+                border-radius: 15px;
+                box-shadow: 0 10px 30px var(--shadow-brown);
+                z-index: 1000;
+                max-width: 300px;
+                animation: slideInRight 0.5s ease-out;
+            `;
+
+            notification.innerHTML = `
+                <h6><i class="fas fa-graduation-cap"></i> ¡Bienvenido de vuelta!</h6>
+                <p style="margin: 10px 0 0 0; font-size: 0.9rem;">
+                    Continúa con tu excelente progreso. Tienes nuevos ejercicios disponibles.
+                </p>
+                <button onclick="this.parentElement.remove()" style="
+                    position: absolute;
+                    top: 5px;
+                    right: 10px;
+                    background: none;
+                    border: none;
+                    color: white;
+                    font-size: 1.2rem;
+                    cursor: pointer;
+                ">&times;</button>
+            `;
+
+            document.body.appendChild(notification);
+
+            // Auto-remove después de 5 segundos
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.style.animation = 'slideOutRight 0.5s ease-in forwards';
+                    setTimeout(() => {
+                        if (notification.parentElement) {
+                            notification.remove();
+                        }
+                    }, 500);
+                }
+            }, 5000);
+        }
+
+        // Agregar animaciones CSS para las notificaciones
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideInRight {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+
+            @keyframes slideOutRight {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Mostrar notificación de bienvenida después de 2 segundos
+        setTimeout(showWelcomeNotification, 2000);
+
+        // Guardar progreso de visita
+        localStorage.setItem('lastVisit', new Date().toISOString());
+
+        // Actualizar estadísticas dinámicamente (simulado)
+        function updateStatsFromServer() {
+            // En una implementación real, esto haría una llamada AJAX
+            console.log('Actualizando estadísticas...');
+        }
+
+        // Efecto de escritura para el título principal
+        function typeWriter(element, text, speed = 100) {
+            let i = 0;
+            element.innerHTML = '';
+
+            function type() {
+                if (i < text.length) {
+                    element.innerHTML += text.charAt(i);
+                    i++;
+                    setTimeout(type, speed);
+                }
+            }
+
+            type();
+        }
+
+        // Aplicar efecto de escritura al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            const title = document.querySelector('.main-title');
+            const originalText = title.textContent;
+            setTimeout(() => {
+                typeWriter(title, originalText, 150);
+            }, 1000);
+        });

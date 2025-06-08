@@ -1,16 +1,35 @@
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for
+# app.py - Versión corregida para Flask 2.2+
+
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
 import os
 import uuid
 import random
 import time
+from datetime import datetime, timedelta
+
+# Importar módulos personalizados
 from modules.procesarAudio import procesarAudio
-from modules.progreso_usuario import ProgresoUsuario
 from modules.generador_ejercicios import GeneradorEjercicios
 from modules.retroalimentacion import SistemaRetroalimentacion
 from modules.juegos_interactivos import JuegosInteractivos
 
+# Importar módulos de base de datos y autenticación
+try:
+    from modules.database import db_manager
+    from modules.auth import auth_manager
+
+    DB_AVAILABLE = db_manager is not None
+except Exception as e:
+    print(f"⚠️  Base de datos no disponible: {e}")
+    print("🔄 Ejecutando en modo sin base de datos...")
+    DB_AVAILABLE = False
+    db_manager = None
+    auth_manager = None
+
 app = Flask(__name__)
-app.secret_key = 'm1_cl4v3_d3s3gur1d4d'
+app.secret_key = 'm1_cl4v3_d3s3gur1d4d_muy_s3cur4_p4r4_4lf41a'
+app.permanent_session_lifetime = timedelta(days=30)
+
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
@@ -18,26 +37,216 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.jinja_env.globals.update(enumerate=enumerate)
 
 # Inicializar sistemas
-progreso_sistema = ProgresoUsuario()
 generador = GeneradorEjercicios()
 retroalimentacion = SistemaRetroalimentacion()
 juegos = JuegosInteractivos()
 
 
+# ==================== FUNCIONES DE INICIALIZACIÓN ====================
+
+def init_database():
+    """Inicializar base de datos si está disponible"""
+    if DB_AVAILABLE and db_manager:
+        try:
+            if db_manager.test_connection():
+                print("✅ Conexión a la base de datos MySQL establecida correctamente")
+                return True
+            else:
+                print("❌ Error: No se pudo conectar a la base de datos MySQL")
+                return False
+        except Exception as e:
+            print(f"❌ Error crítico en la base de datos: {e}")
+            return False
+    else:
+        print("⚠️  Ejecutando sin base de datos - funcionalidad limitada")
+        return False
+
+
+# ==================== DECORADOR DE AUTENTICACIÓN SIMPLIFICADO ====================
+
+def login_required_simple(f):
+    """Decorador simple para requerir login cuando DB no está disponible"""
+    from functools import wraps
+
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if DB_AVAILABLE and auth_manager:
+            return auth_manager.login_required(f)(*args, **kwargs)
+        else:
+            # Sin base de datos, permitir acceso con sesión simple
+            if 'simple_user' not in session:
+                session['simple_user'] = {
+                    'id': 1,
+                    'username': 'demo_user',
+                    'nombre': 'Usuario Demo'
+                }
+            return f(*args, **kwargs)
+
+    return decorated_function
+
+
+# ==================== RUTAS DE AUTENTICACIÓN ====================
+
+@app.route("/login", methods=['GET', 'POST'])
+def login():
+    if not DB_AVAILABLE:
+        # Modo sin base de datos - login automático
+        session['simple_user'] = {
+            'id': 1,
+            'username': 'demo_user',
+            'nombre': 'Usuario Demo'
+        }
+        flash('Modo demo activado - Base de datos no disponible', 'info')
+        return redirect(url_for('dashboard'))
+
+    # Si está loggeado, redirigir al dashboard
+    if auth_manager.is_logged_in():
+        return redirect(url_for('dashboard'))
+
+    if request.method == 'POST':
+        username = request.form.get('username', '').strip()
+        password = request.form.get('password', '')
+        remember_me = 'remember_me' in request.form
+
+        if not username or not password:
+            flash('Por favor, completa todos los campos.', 'error')
+            return render_template('auth/login.html')
+
+        result = auth_manager.login_user(username, password, remember_me)
+
+        if result['success']:
+            flash(result['message'], 'success')
+            next_page = request.args.get('next')
+            return redirect(next_page if next_page else url_for('dashboard'))
+        else:
+            flash(result['message'], 'error')
+
+    return render_template('auth/login.html')
+
+
+@app.route("/register", methods=['GET', 'POST'])
+def register():
+    if not DB_AVAILABLE:
+        flash('Registro no disponible - Base de datos no conectada', 'warning')
+        return redirect(url_for('login'))
+
+    if auth_manager.is_logged_in():
+        return redirect(url_for('dashboard'))
+
+    if request.method == 'POST':
+        user_data = {
+            'username': request.form.get('username', '').strip(),
+            'email': request.form.get('email', '').strip(),
+            'password': request.form.get('password', ''),
+            'confirm_password': request.form.get('confirm_password', ''),
+            'nombre': request.form.get('nombre', '').strip(),
+            'apellido': request.form.get('apellido', '').strip(),
+            'fecha_nacimiento': request.form.get('fecha_nacimiento') or None,
+            'auto_login': True
+        }
+
+        result = auth_manager.register_user(user_data)
+
+        if result['success']:
+            flash(result['message'], 'success')
+            if result.get('auto_logged_in'):
+                return redirect(url_for('dashboard'))
+            else:
+                return redirect(url_for('login'))
+        else:
+            flash(result['message'], 'error')
+            return render_template('auth/register.html', errors=result.get('errors', {}))
+
+    return render_template('auth/register.html')
+
+
+@app.route("/logout")
+def logout():
+    if DB_AVAILABLE and auth_manager:
+        result = auth_manager.logout_user()
+        flash(result['message'], 'success' if result['success'] else 'error')
+    else:
+        session.clear()
+        flash('Sesión cerrada', 'success')
+
+    return redirect(url_for('login'))
+
+
+# ==================== RUTAS PRINCIPALES ====================
+
 @app.route("/")
 def index():
-    # Obtener estadísticas para mostrar en la página principal
-    stats = progreso_sistema.obtener_estadisticas()
-    return render_template("index.html", estadisticas=stats)
+    if not DB_AVAILABLE:
+        return redirect(url_for('dashboard'))
+
+    if not auth_manager.is_logged_in():
+        return redirect(url_for('login'))
+
+    return redirect(url_for('dashboard'))
+
+
+@app.route("/dashboard")
+@login_required_simple
+def dashboard():
+    # Estadísticas por defecto
+    estadisticas = {
+        'ejercicios_completados': 0,
+        'precision_promedio': 0,
+        'racha_dias': 0,
+        'total_vocales': 0,
+        'logros_count': 0,
+        'niveles': {
+            'lectura': {'nivel': 1, 'puntos': 0},
+            'ejercicios': {'nivel': 1, 'puntos': 0},
+            'pronunciacion': {'nivel': 1, 'puntos': 0}
+        }
+    }
+
+    user_info = {'username': 'demo_user', 'nombre': 'Usuario Demo'}
+    progreso_data = None
+
+    if DB_AVAILABLE and auth_manager:
+        # Obtener progreso del usuario real
+        progreso_data = auth_manager.get_user_progress()
+        user_info = auth_manager.get_session_info()
+
+        if progreso_data and progreso_data['progreso']:
+            progreso = progreso_data['progreso']
+            estadisticas.update({
+                'ejercicios_completados': progreso['ejercicios_completados'],
+                'precision_promedio': float(progreso['precision_promedio']) if progreso['precision_promedio'] else 0,
+                'racha_dias': progreso['racha_dias'],
+                'logros_count': len(progreso_data.get('logros', [])),
+                'niveles': {
+                    'lectura': {'nivel': progreso['nivel_lectura'], 'puntos': progreso['puntos_totales']},
+                    'ejercicios': {'nivel': progreso['nivel_ejercicios'], 'puntos': progreso['puntos_totales']},
+                    'pronunciacion': {'nivel': progreso['nivel_pronunciacion'], 'puntos': progreso['puntos_totales']}
+                }
+            })
+
+    return render_template("index.html",
+                           estadisticas=estadisticas,
+                           user=user_info,
+                           progreso_data=progreso_data,
+                           db_available=DB_AVAILABLE)
 
 
 @app.route("/lectura")
+@login_required_simple
 def lectura():
-    # Obtener nivel actual del usuario
-    nivel_usuario = progreso_sistema.progreso["niveles"]["lectura"]["nivel"]
+    nivel_usuario = 1
+    velocidad_lectura = 500
 
-    # Generar texto para lectura guiada
+    if DB_AVAILABLE and auth_manager:
+        settings = auth_manager.get_user_settings()
+        if settings:
+            progreso = auth_manager.get_user_progress()
+            if progreso and progreso['progreso']:
+                nivel_usuario = progreso['progreso']['nivel_lectura']
+            velocidad_lectura = settings.get('velocidad_lectura', 500)
+
     ejercicio_lectura = generador.generar_lectura_guiada(nivel_usuario)
+    ejercicio_lectura['velocidad_ms'] = velocidad_lectura
 
     return render_template("lecturaGuiada.html",
                            ejercicio=ejercicio_lectura,
@@ -45,13 +254,37 @@ def lectura():
 
 
 @app.route("/ejercicios")
+@login_required_simple
 def ejercicios():
-    # Obtener progreso del usuario
-    stats = progreso_sistema.obtener_estadisticas()
-    return render_template('ejercicios.html', estadisticas=stats)
+    estadisticas = {
+        'ejercicios_completados': 0,
+        'precision_promedio': 0,
+        'racha_dias': 0,
+        'logros_count': 0
+    }
+
+    user_info = {'username': 'demo_user', 'nombre': 'Usuario Demo'}
+
+    if DB_AVAILABLE and auth_manager:
+        progreso_data = auth_manager.get_user_progress()
+        user_info = auth_manager.get_session_info()
+
+        if progreso_data and progreso_data['progreso']:
+            progreso = progreso_data['progreso']
+            estadisticas.update({
+                'ejercicios_completados': progreso['ejercicios_completados'],
+                'precision_promedio': float(progreso['precision_promedio']) if progreso['precision_promedio'] else 0,
+                'racha_dias': progreso['racha_dias'],
+                'logros_count': len(progreso_data.get('logros', []))
+            })
+
+    return render_template('ejercicios.html',
+                           estadisticas=estadisticas,
+                           user=user_info)
 
 
 @app.route('/ordena_la_frase', methods=['GET', 'POST'])
+@login_required_simple
 def ordena_la_frase():
     mensaje = ""
     color = ""
@@ -67,19 +300,25 @@ def ordena_la_frase():
         stats_ejercicio = generador.obtener_estadisticas_ejercicio(respuesta, frase_correcta)
         precision = stats_ejercicio["precision"]
 
-        # Registrar ejercicio completado
-        puntos = retroalimentacion.calcular_puntos_bonus(
-            precision,
-            tiempo_respuesta,
-            es_racha=progreso_sistema.progreso["estadisticas"]["racha_dias"] > 0
-        )
-        progreso_sistema.registrar_ejercicio_completado("ejercicios", puntos, precision)
+        # Calcular puntos
+        puntos = retroalimentacion.calcular_puntos_bonus(precision, tiempo_respuesta, es_racha=True)
+
+        # Registrar en base de datos si está disponible
+        if DB_AVAILABLE and auth_manager:
+            auth_manager.update_user_progress(
+                tipo_ejercicio='ejercicios',
+                nombre_ejercicio='Ordenar Frases',
+                puntos=puntos,
+                precision=precision,
+                tiempo=int(tiempo_respuesta),
+                datos_extra={'frase_correcta': frase_correcta, 'respuesta_usuario': respuesta}
+            )
 
         # Generar retroalimentación
         retroalimentacion_data = retroalimentacion.generar_retroalimentacion(
             precision,
             "ejercicios",
-            es_primera_vez=progreso_sistema.progreso["estadisticas"]["ejercicios_completados"] == 1
+            es_primera_vez=False
         )
 
         mensaje = retroalimentacion_data["mensaje_principal"]
@@ -89,8 +328,13 @@ def ordena_la_frase():
         session.pop('frase_actual', None)
         session.pop('tiempo_inicio', None)
 
-    # Obtener nivel del usuario para generar ejercicio apropiado
-    nivel_usuario = progreso_sistema.progreso["niveles"]["ejercicios"]["nivel"]
+    # Obtener nivel del usuario
+    nivel_usuario = 1
+    if DB_AVAILABLE and auth_manager:
+        progreso_data = auth_manager.get_user_progress()
+        if progreso_data and progreso_data['progreso']:
+            nivel_usuario = progreso_data['progreso']['nivel_ejercicios']
+
     ejercicio = generador.generar_ordena_frase(nivel_usuario)
 
     # Guardar en sesión
@@ -107,6 +351,7 @@ def ordena_la_frase():
 
 
 @app.route('/completa_la_palabra', methods=['GET', 'POST'])
+@login_required_simple
 def completa_la_palabra():
     mensaje = ""
     color = ""
@@ -122,20 +367,23 @@ def completa_la_palabra():
         es_correcto = respuesta.strip().lower() == completa.lower()
         precision = 100 if es_correcto else 0
 
-        # Registrar ejercicio completado
-        puntos = retroalimentacion.calcular_puntos_bonus(
-            precision,
-            tiempo_respuesta,
-            es_racha=progreso_sistema.progreso["estadisticas"]["racha_dias"] > 0
-        )
-        progreso_sistema.registrar_ejercicio_completado("ejercicios", puntos, precision)
+        # Calcular puntos
+        puntos = retroalimentacion.calcular_puntos_bonus(precision, tiempo_respuesta, es_racha=True)
+
+        # Registrar ejercicio si DB disponible
+        if DB_AVAILABLE and auth_manager:
+            auth_manager.update_user_progress(
+                tipo_ejercicio='ejercicios',
+                nombre_ejercicio='Completar Palabras',
+                puntos=puntos,
+                precision=precision,
+                tiempo=int(tiempo_respuesta),
+                datos_extra={'palabra_correcta': completa, 'respuesta_usuario': respuesta}
+            )
 
         # Generar retroalimentación
-        retroalimentacion_data = retroalimentacion.generar_retroalimentacion(
-            precision,
-            "ejercicios",
-            es_primera_vez=progreso_sistema.progreso["estadisticas"]["ejercicios_completados"] == 1
-        )
+        retroalimentacion_data = retroalimentacion.generar_retroalimentacion(precision, "ejercicios",
+                                                                             es_primera_vez=False)
 
         mensaje = retroalimentacion_data["mensaje_principal"]
         color = retroalimentacion_data["color"]
@@ -148,7 +396,12 @@ def completa_la_palabra():
         session.pop('tiempo_inicio', None)
 
     # Obtener nivel del usuario
-    nivel_usuario = progreso_sistema.progreso["niveles"]["ejercicios"]["nivel"]
+    nivel_usuario = 1
+    if DB_AVAILABLE and auth_manager:
+        progreso_data = auth_manager.get_user_progress()
+        if progreso_data and progreso_data['progreso']:
+            nivel_usuario = progreso_data['progreso']['nivel_ejercicios']
+
     ejercicio = generador.generar_completa_palabra(nivel_usuario)
 
     # Guardar en sesión
@@ -166,24 +419,34 @@ def completa_la_palabra():
 
 
 @app.route('/ejercicio_pronunciacion')
+@login_required_simple
 def ejercicio_pronunciacion():
-    # Verificar si el módulo está desbloqueado
-    if not progreso_sistema.progreso["niveles"]["pronunciacion"]["desbloqueado"]:
-        return redirect(url_for('ejercicios'))
+    nivel_pronunciacion = 1
 
-    nivel_usuario = progreso_sistema.progreso["niveles"]["pronunciacion"]["nivel"]
+    if DB_AVAILABLE and auth_manager:
+        progreso_data = auth_manager.get_user_progress()
+        if progreso_data and progreso_data['progreso']:
+            progreso = progreso_data['progreso']
+            if progreso['nivel_lectura'] >= 2 or progreso['nivel_ejercicios'] >= 2:
+                nivel_pronunciacion = max(1, progreso['nivel_pronunciacion'])
+
     tipo_ejercicio = request.args.get('tipo', 'vocales')
-
-    ejercicio = generador.generar_ejercicio_pronunciacion(tipo_ejercicio, nivel_usuario)
+    ejercicio = generador.generar_ejercicio_pronunciacion(tipo_ejercicio, nivel_pronunciacion)
 
     return render_template('pronunciacion.html',
                            ejercicio=ejercicio,
-                           nivel=nivel_usuario)
+                           nivel=nivel_pronunciacion)
 
 
 @app.route('/trabalenguas')
+@login_required_simple
 def trabalenguas():
-    nivel_usuario = progreso_sistema.progreso["niveles"]["pronunciacion"]["nivel"]
+    nivel_usuario = 1
+    if DB_AVAILABLE and auth_manager:
+        progreso_data = auth_manager.get_user_progress()
+        if progreso_data and progreso_data['progreso']:
+            nivel_usuario = progreso_data['progreso']['nivel_pronunciacion']
+
     ejercicio = generador.generar_trabalenguas(nivel_usuario)
 
     return render_template('trabalenguas.html',
@@ -192,29 +455,91 @@ def trabalenguas():
 
 
 @app.route('/progreso')
+@login_required_simple
 def mostrar_progreso():
-    stats = progreso_sistema.obtener_estadisticas()
-    reporte = retroalimentacion.generar_reporte_progreso(
-        progreso_sistema.progreso["estadisticas"]
-    )
+    # Estadísticas por defecto
+    estadisticas = {
+        'ejercicios_completados': 0,
+        'precision_promedio': 0,
+        'racha_dias': 0,
+        'total_vocales': 0,
+        'logros_count': 0
+    }
 
-    # Obtener progreso de niveles
-    progreso_niveles = {}
-    for tipo_ejercicio in ["lectura", "ejercicios", "pronunciacion"]:
-        progreso_niveles[tipo_ejercicio] = progreso_sistema.obtener_progreso_nivel(tipo_ejercicio)
+    progreso_niveles = {
+        'lectura': {'nivel_actual': 1, 'puntos_actuales': 0, 'puntos_necesarios': 50, 'progreso_porcentaje': 0},
+        'ejercicios': {'nivel_actual': 1, 'puntos_actuales': 0, 'puntos_necesarios': 50, 'progreso_porcentaje': 0},
+        'pronunciacion': {'nivel_actual': 1, 'puntos_actuales': 0, 'puntos_necesarios': 50, 'progreso_porcentaje': 0}
+    }
+
+    logros = []
+    reporte = {
+        'mensaje_principal': '¡Comienza tu viaje de aprendizaje!',
+        'insights': ['Completa ejercicios para ver tu progreso'],
+        'recomendaciones': ['Comienza con ejercicios básicos', 'Practica regularmente']
+    }
+
+    user_info = {'username': 'demo_user', 'nombre': 'Usuario Demo'}
+
+    if DB_AVAILABLE and auth_manager:
+        progreso_data = auth_manager.get_user_progress()
+        user_info = auth_manager.get_session_info()
+
+        if progreso_data and progreso_data['progreso']:
+            progreso = progreso_data['progreso']
+
+            # Actualizar estadísticas
+            estadisticas.update({
+                'ejercicios_completados': progreso['ejercicios_completados'],
+                'precision_promedio': float(progreso['precision_promedio']) if progreso['precision_promedio'] else 0,
+                'racha_dias': progreso['racha_dias'],
+                'logros_count': len(progreso_data.get('logros', []))
+            })
+
+            # Calcular progreso de niveles
+            for tipo in ['lectura', 'ejercicios', 'pronunciacion']:
+                nivel_campo = f'nivel_{tipo}'
+                nivel_actual = progreso.get(nivel_campo, 1)
+                puntos_necesarios = nivel_actual * 50
+                puntos_actuales = min(progreso['puntos_totales'], puntos_necesarios)
+                progreso_porcentaje = (puntos_actuales / puntos_necesarios) * 100 if puntos_necesarios > 0 else 0
+
+                progreso_niveles[tipo] = {
+                    'nivel_actual': nivel_actual,
+                    'puntos_actuales': puntos_actuales,
+                    'puntos_necesarios': puntos_necesarios,
+                    'progreso_porcentaje': round(progreso_porcentaje, 1)
+                }
+
+            # Obtener logros
+            logros = progreso_data.get('logros', [])
+
+            # Generar reporte personalizado
+            reporte = retroalimentacion.generar_reporte_progreso({
+                'ejercicios_completados': progreso['ejercicios_completados'],
+                'precision_promedio': float(progreso['precision_promedio']) if progreso['precision_promedio'] else 0,
+                'racha_dias': progreso['racha_dias']
+            })
 
     return render_template('progreso.html',
-                           estadisticas=stats,
+                           estadisticas=estadisticas,
                            reporte=reporte,
                            progreso_niveles=progreso_niveles,
-                           logros=progreso_sistema.progreso["logros"])
+                           logros=logros,
+                           user=user_info)
 
 
-# === RUTAS PARA NUEVOS JUEGOS ===
+# ==================== RUTAS PARA JUEGOS ====================
 
 @app.route('/juego_memoria')
+@login_required_simple
 def juego_memoria():
-    nivel_usuario = progreso_sistema.progreso["niveles"]["ejercicios"]["nivel"]
+    nivel_usuario = 1
+    if DB_AVAILABLE and auth_manager:
+        progreso_data = auth_manager.get_user_progress()
+        if progreso_data and progreso_data['progreso']:
+            nivel_usuario = progreso_data['progreso']['nivel_ejercicios']
+
     juego_data = juegos.generar_juego_memoria(nivel_usuario)
     session['juego_memoria'] = juego_data
     session['juego_memoria_inicio'] = time.time()
@@ -225,6 +550,7 @@ def juego_memoria():
 
 
 @app.route('/verificar_memoria', methods=['POST'])
+@login_required_simple
 def verificar_memoria():
     data = request.get_json()
     carta1_id = data.get('carta1')
@@ -253,11 +579,21 @@ def verificar_memoria():
                 puntos = juegos.calcular_puntos_juego(
                     'memoria',
                     juego_data['nivel'],
-                    100,  # Precisión perfecta al completar
+                    100,
                     tiempo_usado,
                     juego_data['tiempo_limite']
                 )
-                progreso_sistema.registrar_ejercicio_completado("ejercicios", puntos, 100)
+
+                # Registrar en la base de datos si está disponible
+                if DB_AVAILABLE and auth_manager:
+                    auth_manager.update_user_progress(
+                        tipo_ejercicio='memoria',
+                        nombre_ejercicio='Juego de Memoria',
+                        puntos=puntos,
+                        precision=100,
+                        tiempo=int(tiempo_usado),
+                        datos_extra={'nivel': juego_data['nivel'], 'tiempo_limite': juego_data['tiempo_limite']}
+                    )
 
                 return jsonify({
                     'es_par': True,
@@ -277,177 +613,10 @@ def verificar_memoria():
     return jsonify({'error': 'Cartas no encontradas'}), 400
 
 
-@app.route('/juego_ahorcado')
-def juego_ahorcado():
-    nivel_usuario = progreso_sistema.progreso["niveles"]["ejercicios"]["nivel"]
-    juego_data = juegos.generar_ahorcado(nivel_usuario)
-    session['juego_ahorcado'] = juego_data
-    session['ahorcado_inicio'] = time.time()
-
-    return render_template('juego_ahorcado.html',
-                           juego=juego_data,
-                           nivel=nivel_usuario)
-
-
-@app.route('/adivinar_letra', methods=['POST'])
-def adivinar_letra():
-    data = request.get_json()
-    letra = data.get('letra', '').upper()
-
-    juego_data = session.get('juego_ahorcado', {})
-
-    if not juego_data:
-        return jsonify({'error': 'Juego no encontrado'}), 400
-
-    resultado = juegos.actualizar_ahorcado(juego_data, letra)
-
-    if resultado.get('ya_usada'):
-        return jsonify({'error': 'Letra ya usada'}), 400
-
-    # Generar palabra con espacios
-    palabra_display = juegos.generar_palabra_con_espacios(
-        juego_data['palabra'],
-        juego_data['letras_adivinadas']
-    )
-
-    # Actualizar sesión
-    session['juego_ahorcado'] = juego_data
-
-    response = {
-        'correcto': resultado['correcto'],
-        'palabra_display': palabra_display,
-        'letras_incorrectas': juego_data['letras_incorrectas'],
-        'intentos_restantes': juego_data['intentos_restantes'],
-        'juego_terminado': resultado['juego_terminado'],
-        'palabra_completa': resultado['palabra_completa']
-    }
-
-    # Si el juego terminó, calcular puntos
-    if resultado['juego_terminado']:
-        tiempo_usado = time.time() - session.get('ahorcado_inicio', time.time())
-
-        if resultado['palabra_completa']:
-            # Victoria
-            precision = max(50, 100 - (len(juego_data['letras_incorrectas']) * 15))
-            puntos = juegos.calcular_puntos_juego('ahorcado', juego_data['nivel'], precision, tiempo_usado)
-            progreso_sistema.registrar_ejercicio_completado("ejercicios", puntos, precision)
-            response['puntos'] = puntos
-            response['mensaje'] = f"¡Felicidades! Ganaste {puntos} puntos"
-        else:
-            # Derrota
-            response['palabra_correcta'] = juego_data['palabra']
-            response['mensaje'] = f"¡Mejor suerte la próxima vez! La palabra era: {juego_data['palabra']}"
-
-    return jsonify(response)
-
-
-@app.route('/juego_trivia')
-def juego_trivia():
-    nivel_usuario = progreso_sistema.progreso["niveles"]["ejercicios"]["nivel"]
-    categoria = request.args.get('categoria', None)
-    pregunta_data = juegos.generar_trivia(categoria, nivel_usuario)
-    session['trivia_actual'] = pregunta_data
-    session['trivia_inicio'] = time.time()
-
-    return render_template('juego_trivia.html',
-                           pregunta=pregunta_data,
-                           nivel=nivel_usuario)
-
-
-@app.route('/responder_trivia', methods=['POST'])
-def responder_trivia():
-    data = request.get_json()
-    respuesta_usuario = data.get('respuesta')
-
-    pregunta_data = session.get('trivia_actual', {})
-
-    if not pregunta_data:
-        return jsonify({'error': 'Pregunta no encontrada'}), 400
-
-    es_correcto = juegos.verificar_respuesta_trivia(respuesta_usuario, pregunta_data['respuesta_correcta'])
-    tiempo_usado = time.time() - session.get('trivia_inicio', time.time())
-
-    response = {
-        'correcto': es_correcto,
-        'respuesta_correcta': pregunta_data['respuesta_correcta'],
-        'explicacion': pregunta_data['explicacion'],
-        'tiempo_usado': round(tiempo_usado, 1)
-    }
-
-    # Calcular puntos
-    precision = 100 if es_correcto else 0
-    puntos = juegos.calcular_puntos_juego('trivia', pregunta_data['nivel'], precision, tiempo_usado, 30)
-
-    if es_correcto:
-        progreso_sistema.registrar_ejercicio_completado("ejercicios", puntos, precision)
-        response['puntos'] = puntos
-
-    # Limpiar sesión
-    session.pop('trivia_actual', None)
-    session.pop('trivia_inicio', None)
-
-    return jsonify(response)
-
-
-@app.route('/juego_palabras_cruzadas')
-def juego_palabras_cruzadas():
-    nivel_usuario = progreso_sistema.progreso["niveles"]["ejercicios"]["nivel"]
-    crucigrama_data = juegos.generar_crucigrama(nivel_usuario)
-    session['crucigrama_actual'] = crucigrama_data
-    session['crucigrama_inicio'] = time.time()
-
-    return render_template('juego_crucigrama.html',
-                           crucigrama=crucigrama_data,
-                           nivel=nivel_usuario)
-
-
-@app.route('/verificar_crucigrama', methods=['POST'])
-def verificar_crucigrama():
-    data = request.get_json()
-    respuestas_usuario = data.get('respuestas', {})
-
-    crucigrama_data = session.get('crucigrama_actual', {})
-
-    if not crucigrama_data:
-        return jsonify({'error': 'Crucigrama no encontrado'}), 400
-
-    # Verificar cada palabra
-    palabras_correctas = 0
-    total_palabras = len(crucigrama_data['palabras'])
-
-    for i, palabra_info in enumerate(crucigrama_data['palabras']):
-        palabra_correcta = palabra_info['palabra']
-        respuesta_usuario = respuestas_usuario.get(str(i), '').upper()
-
-        if respuesta_usuario == palabra_correcta:
-            palabras_correctas += 1
-
-    # Calcular precisión
-    precision = (palabras_correctas / total_palabras) * 100
-    tiempo_usado = time.time() - session.get('crucigrama_inicio', time.time())
-
-    # Calcular puntos
-    puntos = juegos.calcular_puntos_juego('crucigrama', crucigrama_data['nivel'], precision, tiempo_usado, 300)
-
-    if precision >= 50:  # Al menos 50% correcto para obtener puntos
-        progreso_sistema.registrar_ejercicio_completado("ejercicios", puntos, precision)
-
-    response = {
-        'palabras_correctas': palabras_correctas,
-        'total_palabras': total_palabras,
-        'precision': round(precision, 1),
-        'puntos': puntos if precision >= 50 else 0,
-        'tiempo_usado': round(tiempo_usado, 1)
-    }
-
-    # Limpiar sesión
-    session.pop('crucigrama_actual', None)
-    session.pop('crucigrama_inicio', None)
-
-    return jsonify(response)
-
+# ==================== RUTAS DE AUDIO ====================
 
 @app.route("/upload", methods=["POST"])
+@login_required_simple
 def upload_audio():
     if "audio" not in request.files:
         return jsonify({"error": "No se recibió audio"}), 400
@@ -469,26 +638,32 @@ def upload_audio():
                 {
                     "tiempo": resultado["inicio"],
                     "frecuencia": resultado["frecuencia_dominante"],
-                    "vocal": resultado["vocal"]
+                    "vocal": resultado["vocal"],
+                    "confianza": resultado.get("confianza", 0.5)
                 }
                 for resultado in resultados
                 if resultado["vocal"] != "Desconocido"
             ]
 
-            # Registrar vocales detectadas en el progreso
-            vocales_detectadas = [r["vocal"] for r in resultados_filtrados]
-            progreso_sistema.registrar_vocales_detectadas(vocales_detectadas)
+            # Registrar en base de datos si está disponible
+            if resultados_filtrados and DB_AVAILABLE and auth_manager:
+                puntos = len(resultados_filtrados) * 5
+                precision = min(100, len(resultados_filtrados) * 10)
+
+                auth_manager.update_user_progress(
+                    tipo_ejercicio='pronunciacion',
+                    nombre_ejercicio='Detección de Vocales',
+                    puntos=puntos,
+                    precision=precision,
+                    tiempo=5,
+                    datos_extra={'total_vocales': len(resultados_filtrados)}
+                )
 
             # Generar retroalimentación
+            vocales_detectadas = [r["vocal"] for r in resultados_filtrados]
             feedback_pronunciacion = retroalimentacion.generar_retroalimentacion_pronunciacion(
                 vocales_detectadas
             )
-
-            # Registrar ejercicio de pronunciación
-            if len(vocales_detectadas) > 0:
-                precision = min(100, len(vocales_detectadas) * 10)  # Máximo 100%
-                puntos = len(vocales_detectadas) * 5
-                progreso_sistema.registrar_ejercicio_completado("pronunciacion", puntos, precision)
 
             return jsonify({
                 "mensaje": "Audio procesado con éxito",
@@ -517,30 +692,132 @@ def upload_audio():
             pass
 
 
+# ==================== RUTAS DE API ====================
+
 @app.route('/api/estadisticas')
+@login_required_simple
 def api_estadisticas():
     """API para obtener estadísticas actualizadas"""
-    stats = progreso_sistema.obtener_estadisticas()
-    return jsonify(stats)
+    estadisticas = {
+        'ejercicios_completados': 0,
+        'precision_promedio': 0,
+        'racha_dias': 0,
+        'total_vocales': 0,
+        'logros_count': 0
+    }
+
+    if DB_AVAILABLE and auth_manager:
+        progreso_data = auth_manager.get_user_progress()
+
+        if progreso_data and progreso_data['progreso']:
+            progreso = progreso_data['progreso']
+            estadisticas.update({
+                'ejercicios_completados': progreso['ejercicios_completados'],
+                'precision_promedio': float(progreso['precision_promedio']) if progreso['precision_promedio'] else 0,
+                'racha_dias': progreso['racha_dias'],
+                'logros_count': len(progreso_data.get('logros', []))
+            })
+
+    return jsonify(estadisticas)
 
 
-@app.route('/api/reiniciar_progreso', methods=['POST'])
-def reiniciar_progreso():
-    """Reiniciar progreso del usuario (para pruebas)"""
-    global progreso_sistema
-    progreso_sistema = ProgresoUsuario()
-    return jsonify({"mensaje": "Progreso reiniciado correctamente"})
+@app.route('/api/user_info')
+@login_required_simple
+def api_user_info():
+    """API para obtener información del usuario actual"""
+    if DB_AVAILABLE and auth_manager:
+        return jsonify(auth_manager.get_session_info())
+    else:
+        return jsonify({
+            'user_id': 1,
+            'username': 'demo_user',
+            'nombre': 'Usuario Demo',
+            'logged_in': True,
+            'demo_mode': True
+        })
 
+
+@app.route('/api/test_db')
+def test_db():
+    """Probar conexión a base de datos"""
+    if DB_AVAILABLE and db_manager:
+        try:
+            if db_manager.test_connection():
+                return jsonify({'status': 'success', 'message': 'Base de datos conectada'})
+            else:
+                return jsonify({'status': 'error', 'message': 'No se pudo conectar a la base de datos'})
+        except Exception as e:
+            return jsonify({'status': 'error', 'message': str(e)})
+    else:
+        return jsonify({'status': 'error', 'message': 'Base de datos no disponible'})
+
+
+# ==================== MANEJO DE ERRORES ====================
 
 @app.errorhandler(404)
 def page_not_found(e):
-    return render_template('404.html'), 404
+    return render_template('errors/404.html'), 404
 
 
 @app.errorhandler(500)
 def internal_error(e):
-    return render_template('500.html'), 500
+    return render_template('errors/500.html'), 500
 
+
+@app.errorhandler(403)
+def forbidden(e):
+    return render_template('errors/403.html'), 403
+
+
+# ==================== CONTEXTO GLOBAL ====================
+
+@app.context_processor
+def inject_user():
+    """Inyectar información del usuario en todos los templates"""
+    if DB_AVAILABLE and auth_manager:
+        return {
+            'current_user': auth_manager.get_session_info(),
+            'is_logged_in': auth_manager.is_logged_in(),
+            'db_available': True
+        }
+    else:
+        return {
+            'current_user': session.get('simple_user', {'username': 'demo_user', 'nombre': 'Usuario Demo'}),
+            'is_logged_in': True,
+            'db_available': False
+        }
+
+
+# ==================== INICIALIZACIÓN DE LA APLICACIÓN ====================
+
+@app.before_request
+def before_request():
+    """Función que se ejecuta antes de cada request"""
+    # Inicializar base de datos en la primera request si no está inicializada
+    if not hasattr(app, '_db_initialized'):
+        app._db_initialized = True
+        init_database()
+
+
+# ==================== FUNCIÓN PRINCIPAL ====================
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    print("🚀 INICIANDO ALFAIA...")
+    print("=" * 50)
+
+    # Verificar estado de la base de datos
+    db_status = init_database()
+
+    if db_status:
+        print("✅ Modo completo: Base de datos conectada")
+        print("🔐 Autenticación: Activada")
+        print("💾 Progreso persistente: Activado")
+    else:
+        print("⚠️  Modo demo: Base de datos no disponible")
+        print("🔓 Autenticación: Simplificada")
+        print("💾 Progreso persistente: Desactivado")
+
+    print("🌐 Servidor: http://localhost:5000")
+    print("=" * 50)
+
+    app.run(debug=True, host='0.0.0.0', port=5000)

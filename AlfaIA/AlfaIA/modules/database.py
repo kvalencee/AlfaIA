@@ -1,4 +1,4 @@
-# modules/database.py - Configuración simplificada
+# modules/database.py - Versión Corregida
 
 import mysql.connector
 from mysql.connector import Error, pooling
@@ -16,138 +16,261 @@ logger = logging.getLogger(__name__)
 
 class DatabaseManager:
     def __init__(self):
-        # CAMBIA ESTOS VALORES POR TUS CREDENCIALES REALES
-        self.config = {
-            'host': 'localhost',
-            'database': 'alfaia_db',
-            'user': 'root',  # CAMBIA esto por tu usuario de MySQL
-            'password': 'tired2019',  # CAMBIA esto por tu contraseña de MySQL
-            'port': 3306,
-            'charset': 'utf8mb4',
-            'collation': 'utf8mb4_unicode_ci',
-            'autocommit': True,
-            'auth_plugin': 'mysql_native_password',
-            'raise_on_warnings': False,
-            'use_unicode': True
-        }
+        # CONFIGURACIONES MÚLTIPLES PARA PROBAR
+        self.configs_to_try = [
+            # Configuración 1: Usuario específico de ALFAIA (recomendado)
+            {
+                'host': 'localhost',
+                'database': 'alfaia',
+                'user': 'alfaia_user',
+                'password': 'alfaia2024',
+                'port': 3306,
+                'charset': 'utf8mb4',
+                'collation': 'utf8mb4_unicode_ci',
+                'autocommit': False,
+                'auth_plugin': 'mysql_native_password',
+                'raise_on_warnings': False,
+                'use_unicode': True,
+                'connect_timeout': 10,
+                'sql_mode': 'STRICT_TRANS_TABLES,NO_ZERO_DATE,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO'
+            },
+            # Configuración 2: Root con mysql_native_password
+            {
+                'host': 'localhost',
+                'database': 'alfaia',
+                'user': 'root',
+                'password': 'tired2019',
+                'port': 3306,
+                'charset': 'utf8mb4',
+                'collation': 'utf8mb4_unicode_ci',
+                'autocommit': False,
+                'auth_plugin': 'mysql_native_password',
+                'raise_on_warnings': False,
+                'use_unicode': True,
+                'connect_timeout': 10,
+                'sql_mode': 'STRICT_TRANS_TABLES,NO_ZERO_DATE,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO'
+            },
+            # Configuración 3: Root sin auth_plugin específico
+            {
+                'host': 'localhost',
+                'database': 'alfaia',
+                'user': 'root',
+                'password': 'tired2019',
+                'port': 3306,
+                'charset': 'utf8mb4',
+                'collation': 'utf8mb4_unicode_ci',
+                'autocommit': False,
+                'raise_on_warnings': False,
+                'use_unicode': True,
+                'connect_timeout': 10
+            }
+        ]
 
-        # Intentar diferentes configuraciones si falla
+        self.config = None  # Se establecerá con la configuración que funcione
+
         self.pool = None
         self._initialize_connection()
 
     def _initialize_connection(self):
-        """Inicializar conexión probando diferentes configuraciones"""
+        """Inicializar conexión probando múltiples configuraciones"""
 
-        # Configuraciones a probar
-        configs_to_try = [
-            # Configuración original
-            self.config.copy(),
+        # Verificar si MySQL está ejecutándose
+        if not self._check_mysql_service():
+            logger.error("❌ MySQL no está ejecutándose. Ejecuta: net start mysql")
+            raise Exception("MySQL service not running")
 
-            # Sin auth_plugin
-            {**self.config, 'auth_plugin': None},
+        logger.info("🔄 Intentando conectar a MySQL con múltiples configuraciones...")
 
-            # Sin base de datos (para crearla)
-            {k: v for k, v in self.config.items() if k != 'database'},
-
-            # Con SSL deshabilitado
-            {**self.config, 'ssl_disabled': True}
-        ]
-
-        for i, config in enumerate(configs_to_try):
+        for i, config in enumerate(self.configs_to_try):
             try:
-                logger.info(f"Intentando configuración {i + 1}...")
+                logger.info(f"Probando configuración {i + 1}: usuario '{config['user']}'")
 
-                # Si no incluye database, conectar sin ella primero
-                if 'database' not in config:
-                    temp_config = {k: v for k, v in config.items()
-                                   if k not in ['pool_name', 'pool_size', 'pool_reset_session']}
+                # Intentar crear el pool con esta configuración
+                self.pool = mysql.connector.pooling.MySQLConnectionPool(
+                    pool_name=f'alfaia_pool_{i}',
+                    pool_size=5,
+                    pool_reset_session=True,
+                    **config
+                )
 
-                    # Crear conexión temporal para crear base de datos
-                    temp_conn = mysql.connector.connect(**temp_config)
-                    cursor = temp_conn.cursor()
-
-                    # Crear base de datos
-                    cursor.execute(
-                        f"CREATE DATABASE IF NOT EXISTS {self.config['database']} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
-                    logger.info(f"✅ Base de datos {self.config['database']} verificada/creada")
-
+                # Probar la conexión
+                with self.get_connection() as conn:
+                    cursor = conn.cursor()
+                    cursor.execute("SELECT DATABASE() as db_name, USER() as user_name, VERSION() as version")
+                    result = cursor.fetchone()
+                    logger.info(f"✅ Conectado exitosamente: {result}")
                     cursor.close()
-                    temp_conn.close()
 
-                    # Ahora usar configuración completa
-                    config = self.config.copy()
-
-                # Crear pool con configuración que funcionó
-                pool_config = {
-                    **config,
-                    'pool_name': 'alfaia_pool',
-                    'pool_size': 3,
-                    'pool_reset_session': True
-                }
-
-                self.pool = mysql.connector.pooling.MySQLConnectionPool(**pool_config)
-
-                # Probar conexión
-                test_conn = self.pool.get_connection()
-                cursor = test_conn.cursor()
-                cursor.execute("SELECT 1")
-                cursor.fetchone()
-                cursor.close()
-                test_conn.close()
-
-                logger.info(f"✅ Conexión exitosa con configuración {i + 1}")
+                # Si llegamos aquí, la conexión fue exitosa
+                self.config = config
+                logger.info(f"✅ Usando configuración {i + 1} exitosamente")
                 self._setup_initial_data()
                 return
 
             except mysql.connector.Error as e:
-                logger.warning(f"⚠️  Configuración {i + 1} falló: {e}")
-                continue
+                if e.errno == 1049:  # Database doesn't exist
+                    logger.warning(f"⚠️  Base de datos 'alfaia' no existe con configuración {i + 1}")
+                    try:
+                        self._create_database_with_config(config)
+                        # Intentar de nuevo con la base de datos creada
+                        self.pool = mysql.connector.pooling.MySQLConnectionPool(
+                            pool_name=f'alfaia_pool_{i}_retry',
+                            pool_size=5,
+                            pool_reset_session=True,
+                            **config
+                        )
+                        self.config = config
+                        logger.info(f"✅ Base de datos creada y conexión establecida con configuración {i + 1}")
+                        self._setup_initial_data()
+                        return
+                    except Exception as create_error:
+                        logger.error(f"❌ Error creando base de datos con configuración {i + 1}: {create_error}")
+                        continue
+                elif e.errno == 1045:  # Access denied
+                    logger.warning(f"❌ Configuración {i + 1}: Acceso denegado para usuario '{config['user']}'")
+                    continue
+                elif "caching_sha2_password" in str(e):
+                    logger.warning(f"❌ Configuración {i + 1}: Problema de autenticación - {e}")
+                    continue
+                else:
+                    logger.warning(f"❌ Configuración {i + 1}: Error MySQL - {e}")
+                    continue
             except Exception as e:
-                logger.warning(f"⚠️  Error en configuración {i + 1}: {e}")
+                logger.warning(f"❌ Configuración {i + 1}: Error general - {e}")
                 continue
 
         # Si llegamos aquí, ninguna configuración funcionó
         logger.error("❌ No se pudo establecer conexión con ninguna configuración")
-        logger.error("💡 Verifica:")
-        logger.error("   1. MySQL está ejecutándose: net start mysql")
-        logger.error("   2. Credenciales en modules/database.py son correctas")
-        logger.error("   3. Usuario tiene permisos suficientes")
+        logger.error("💡 Soluciones sugeridas:")
+        logger.error("   1. Ejecutar el script SQL de corrección de autenticación")
+        logger.error("   2. Verificar que MySQL esté ejecutándose: net start mysql")
+        logger.error("   3. Verificar las credenciales de usuario")
+        logger.error("   4. Crear usuario alfaia_user con mysql_native_password")
 
         raise Exception("No se pudo conectar a MySQL con ninguna configuración")
 
-    def _setup_initial_data(self):
-        """Configurar datos iniciales"""
+    def _check_mysql_service(self):
+        """Verificar si MySQL está ejecutándose - Versión mejorada"""
         try:
-            # Verificar si las tablas existen
-            tables_exist = self.execute_query("SHOW TABLES LIKE 'usuarios'", fetch='one')
+            # Método 1: Intentar conexión directa sin base de datos
+            import mysql.connector
+            test_config = {
+                'host': 'localhost',
+                'user': 'root',
+                'password': 'tired2019',
+                'port': 3306,
+                'connect_timeout': 5
+            }
 
-            if not tables_exist:
-                logger.warning("⚠️  Tablas no encontradas. Necesitas ejecutar el script SQL primero.")
-                logger.info("💡 Ejecuta: mysql -u root -p < database_structure.sql")
-            else:
-                logger.info("✅ Tablas de base de datos encontradas")
+            test_conn = mysql.connector.connect(**test_config)
+            test_conn.close()
+            return True
 
-                # Crear usuario demo si no existe
-                existing_demo = self.execute_query(
-                    "SELECT id FROM usuarios WHERE username = 'demo_user'",
-                    fetch='one'
-                )
+        except mysql.connector.Error as e:
+            logger.warning(f"MySQL no accesible: {e}")
+            return False
+        except Exception as e:
+            logger.warning(f"Error verificando MySQL: {e}")
 
-                if not existing_demo:
-                    demo_password = self.hash_password('demo123')
+            # Método 2: Verificar servicios de Windows
+            try:
+                import subprocess
+                result = subprocess.run(['sc', 'query', 'mysql80'],
+                                        capture_output=True, text=True, timeout=5)
+                if 'RUNNING' in result.stdout:
+                    return True
 
-                    user_id = self.execute_query("""
-                        INSERT INTO usuarios (username, email, password_hash, nombre, apellido)
-                        VALUES (%s, %s, %s, %s, %s)
-                    """, ('demo_user', 'demo@alfaia.com', demo_password, 'Usuario', 'Demo'))
+                # También probar mysql
+                result = subprocess.run(['sc', 'query', 'mysql'],
+                                        capture_output=True, text=True, timeout=5)
+                if 'RUNNING' in result.stdout:
+                    return True
 
-                    if user_id:
-                        self.execute_query("INSERT INTO progreso_usuario (usuario_id) VALUES (%s)", (user_id,))
-                        self.execute_query("INSERT INTO configuraciones_usuario (usuario_id) VALUES (%s)", (user_id,))
-                        logger.info("✅ Usuario demo creado: demo_user / demo123")
+            except:
+                pass
+
+            return False
+
+    def _create_database_with_config(self, config):
+        """Crear la base de datos usando una configuración específica"""
+        try:
+            # Configuración sin especificar base de datos
+            temp_config = {k: v for k, v in config.items() if k != 'database'}
+
+            temp_conn = mysql.connector.connect(**temp_config)
+            cursor = temp_conn.cursor()
+
+            # Crear base de datos
+            cursor.execute("CREATE DATABASE IF NOT EXISTS alfaia CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
+            logger.info("✅ Base de datos 'alfaia' creada/verificada")
+
+            cursor.close()
+            temp_conn.close()
 
         except Exception as e:
-            logger.warning(f"⚠️  Error configurando datos iniciales: {e}")
+            logger.error(f"❌ Error creando base de datos: {e}")
+            raise
+
+    def _setup_initial_data(self):
+        """Verificar y configurar datos iniciales"""
+        try:
+            # Verificar si las tablas existen
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("SHOW TABLES LIKE 'usuarios'")
+                tables_exist = cursor.fetchone()
+                cursor.close()
+
+            if not tables_exist:
+                logger.warning("⚠️  Tablas no encontradas.")
+                logger.info("💡 Ejecuta el script SQL desde MySQL Workbench o consola:")
+                logger.info("   mysql -u root -p alfaia < database_structure.sql")
+                return
+
+            logger.info("✅ Tablas encontradas en la base de datos")
+
+            # Verificar usuario demo
+            existing_demo = self.execute_query(
+                "SELECT id FROM usuarios WHERE username = %s",
+                ('demo_user',),
+                fetch='one'
+            )
+
+            if not existing_demo:
+                logger.info("🔧 Creando usuario demo...")
+                self._create_demo_user()
+
+        except Exception as e:
+            logger.warning(f"⚠️  Error en configuración inicial: {e}")
+
+    def _create_demo_user(self):
+        """Crear usuario demo"""
+        try:
+            # Usar bcrypt para hash de contraseña
+            demo_password = self.hash_password('demo123')
+
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+
+                # Insertar usuario
+                cursor.execute("""
+                    INSERT INTO usuarios (username, email, password_hash, nombre, apellido)
+                    VALUES (%s, %s, %s, %s, %s)
+                """, ('demo_user', 'demo@alfaia.com', demo_password, 'Usuario', 'Demo'))
+
+                user_id = cursor.lastrowid
+
+                # Crear progreso inicial
+                cursor.execute("INSERT INTO progreso_usuario (usuario_id) VALUES (%s)", (user_id,))
+
+                # Crear configuración inicial
+                cursor.execute("INSERT INTO configuraciones_usuario (usuario_id) VALUES (%s)", (user_id,))
+
+                conn.commit()
+                logger.info("✅ Usuario demo creado: demo_user / demo123")
+
+        except Exception as e:
+            logger.error(f"❌ Error creando usuario demo: {e}")
 
     @contextmanager
     def get_connection(self):
@@ -182,13 +305,13 @@ class DatabaseManager:
                 cursor.execute("SELECT 1 as test")
                 result = cursor.fetchone()
                 cursor.close()
-                return result[0] == 1
+                return result and result[0] == 1
         except Exception as e:
             logger.error(f"❌ Error en test de conexión: {e}")
             return False
 
     def execute_query(self, query, params=None, fetch=False):
-        """Ejecutar query con manejo de errores"""
+        """Ejecutar query con manejo de errores mejorado"""
         try:
             with self.get_connection() as connection:
                 cursor = connection.cursor(dictionary=True)
@@ -209,23 +332,12 @@ class DatabaseManager:
 
         except mysql.connector.Error as e:
             logger.error(f"❌ Error MySQL en query: {e}")
+            logger.error(f"Query: {query}")
+            logger.error(f"Params: {params}")
             return None
         except Exception as e:
             logger.error(f"❌ Error general en query: {e}")
             return None
-
-    def execute_procedure(self, procedure_name, params=None):
-        """Ejecutar procedimiento almacenado"""
-        try:
-            with self.get_connection() as connection:
-                cursor = connection.cursor()
-                cursor.callproc(procedure_name, params or ())
-                connection.commit()
-                cursor.close()
-                return True
-        except Exception as e:
-            logger.error(f"❌ Error ejecutando procedimiento {procedure_name}: {e}")
-            return False
 
     # ==================== MÉTODOS DE USUARIO ====================
 
@@ -242,32 +354,27 @@ class DatabaseManager:
             # Hash de la contraseña
             password_hash = self.hash_password(password)
 
-            # Insertar usuario
-            query = """
-                INSERT INTO usuarios (username, email, password_hash, nombre, apellido, fecha_nacimiento)
-                VALUES (%s, %s, %s, %s, %s, %s)
-            """
-            params = (username, email, password_hash, nombre, apellido, fecha_nacimiento)
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
 
-            user_id = self.execute_query(query, params)
+                # Insertar usuario
+                cursor.execute("""
+                    INSERT INTO usuarios (username, email, password_hash, nombre, apellido, fecha_nacimiento)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                """, (username, email, password_hash, nombre, apellido, fecha_nacimiento))
 
-            if user_id:
+                user_id = cursor.lastrowid
+
                 # Crear progreso inicial
-                self.execute_query(
-                    "INSERT INTO progreso_usuario (usuario_id) VALUES (%s)",
-                    (user_id,)
-                )
+                cursor.execute("INSERT INTO progreso_usuario (usuario_id) VALUES (%s)", (user_id,))
 
                 # Crear configuración inicial
-                self.execute_query(
-                    "INSERT INTO configuraciones_usuario (usuario_id) VALUES (%s)",
-                    (user_id,)
-                )
+                cursor.execute("INSERT INTO configuraciones_usuario (usuario_id) VALUES (%s)", (user_id,))
 
+                conn.commit()
                 logger.info(f"Usuario creado exitosamente: {username}")
+
                 return {"success": True, "user_id": user_id, "message": "Usuario creado exitosamente"}
-            else:
-                return {"success": False, "message": "Error al crear el usuario"}
 
         except Exception as e:
             logger.error(f"Error creando usuario: {e}")
@@ -365,6 +472,24 @@ class DatabaseManager:
             logger.error(f"Error validando sesión: {e}")
             return None
 
+    def cerrar_sesion(self, token):
+        """Cerrar una sesión específica"""
+        try:
+            query = "UPDATE sesiones SET activa = FALSE WHERE token = %s"
+            return self.execute_query(query, (token,))
+        except Exception as e:
+            logger.error(f"Error cerrando sesión: {e}")
+            return False
+
+    def cerrar_todas_sesiones(self, user_id):
+        """Cerrar todas las sesiones de un usuario"""
+        try:
+            query = "UPDATE sesiones SET activa = FALSE WHERE usuario_id = %s"
+            return self.execute_query(query, (user_id,))
+        except Exception as e:
+            logger.error(f"Error cerrando todas las sesiones: {e}")
+            return False
+
     def obtener_progreso_usuario(self, user_id):
         """Obtener el progreso completo del usuario"""
         try:
@@ -379,45 +504,169 @@ class DatabaseManager:
 
             # Logros
             query_logros = """
-                SELECT nombre_logro, descripcion, icono, fecha_obtenido 
+                SELECT nombre_logro, descripcion, icono, categoria, fecha_obtenido 
                 FROM logros 
                 WHERE usuario_id = %s 
                 ORDER BY fecha_obtenido DESC
             """
             logros = self.execute_query(query_logros, (user_id,), fetch='all') or []
 
+            # Ejercicios recientes
+            query_ejercicios = """
+                SELECT tipo_ejercicio, nombre_ejercicio, puntos_obtenidos, 
+                       precision_porcentaje, fecha_completado
+                FROM ejercicios_realizados 
+                WHERE usuario_id = %s 
+                ORDER BY fecha_completado DESC 
+                LIMIT 10
+            """
+            ejercicios_recientes = self.execute_query(query_ejercicios, (user_id,), fetch='all') or []
+
+            # Estadísticas semanales
+            query_semanales = """
+                SELECT fecha, ejercicios_completados, tiempo_estudiado_minutos, 
+                       puntos_obtenidos, precision_promedio
+                FROM estadisticas_diarias 
+                WHERE usuario_id = %s 
+                AND fecha >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+                ORDER BY fecha DESC
+            """
+            estadisticas_semanales = self.execute_query(query_semanales, (user_id,), fetch='all') or []
+
             return {
                 "progreso": progreso,
                 "logros": logros,
-                "estadisticas_semanales": [],
-                "ejercicios_recientes": []
+                "ejercicios_recientes": ejercicios_recientes,
+                "estadisticas_semanales": estadisticas_semanales
             }
 
         except Exception as e:
             logger.error(f"Error obteniendo progreso del usuario {user_id}: {e}")
             return None
 
+    def registrar_ejercicio_completado(self, user_id, tipo_ejercicio, nombre_ejercicio,
+                                       puntos_obtenidos, precision, tiempo_empleado, datos_adicionales=None):
+        """Registrar un ejercicio completado"""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+
+                # Insertar ejercicio
+                cursor.execute("""
+                    INSERT INTO ejercicios_realizados 
+                    (usuario_id, tipo_ejercicio, nombre_ejercicio, puntos_obtenidos, 
+                     precision_porcentaje, tiempo_empleado_segundos, datos_adicionales)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                """, (user_id, tipo_ejercicio, nombre_ejercicio, puntos_obtenidos,
+                      precision, tiempo_empleado, json.dumps(datos_adicionales) if datos_adicionales else None))
+
+                ejercicio_id = cursor.lastrowid
+
+                # Actualizar estadísticas usando procedimiento almacenado
+                cursor.callproc('ActualizarEstadisticasUsuario',
+                                (user_id, puntos_obtenidos, precision, tiempo_empleado))
+
+                # Verificar logros
+                cursor.callproc('VerificarLogros', (user_id,))
+
+                conn.commit()
+                return ejercicio_id
+
+        except Exception as e:
+            logger.error(f"Error registrando ejercicio: {e}")
+            return None
+
+    def obtener_configuracion_usuario(self, user_id):
+        """Obtener configuración del usuario"""
+        try:
+            query = "SELECT * FROM configuraciones_usuario WHERE usuario_id = %s"
+            config = self.execute_query(query, (user_id,), fetch='one')
+
+            if not config:
+                # Crear configuración por defecto
+                self.execute_query("INSERT INTO configuraciones_usuario (usuario_id) VALUES (%s)", (user_id,))
+                config = self.execute_query(query, (user_id,), fetch='one')
+
+            return config
+
+        except Exception as e:
+            logger.error(f"Error obteniendo configuración: {e}")
+            return None
+
+    def actualizar_configuracion_usuario(self, user_id, configuraciones):
+        """Actualizar configuración del usuario"""
+        try:
+            # Construir query dinámicamente basado en las configuraciones proporcionadas
+            campos_permitidos = ['velocidad_lectura', 'dificultad_preferida', 'tema_preferido',
+                                 'notificaciones_activas', 'sonidos_activos', 'configuracion_json']
+
+            set_clauses = []
+            params = []
+
+            for campo, valor in configuraciones.items():
+                if campo in campos_permitidos:
+                    set_clauses.append(f"{campo} = %s")
+                    if campo == 'configuracion_json' and isinstance(valor, dict):
+                        params.append(json.dumps(valor))
+                    else:
+                        params.append(valor)
+
+            if not set_clauses:
+                return False
+
+            params.append(user_id)
+            query = f"UPDATE configuraciones_usuario SET {', '.join(set_clauses)} WHERE usuario_id = %s"
+
+            return self.execute_query(query, params)
+
+        except Exception as e:
+            logger.error(f"Error actualizando configuración: {e}")
+            return False
+
     @staticmethod
     def hash_password(password):
         """Hash de contraseña usando bcrypt"""
-        import bcrypt
-        return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        try:
+            import bcrypt
+            return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        except ImportError:
+            logger.error("bcrypt no está instalado. Usando hash simple (NO SEGURO)")
+            import hashlib
+            return hashlib.sha256(password.encode('utf-8')).hexdigest()
 
     @staticmethod
     def verify_password(password, password_hash):
         """Verificar contraseña"""
-        import bcrypt
-        return bcrypt.checkpw(password.encode('utf-8'), password_hash.encode('utf-8'))
+        try:
+            import bcrypt
+            return bcrypt.checkpw(password.encode('utf-8'), password_hash.encode('utf-8'))
+        except ImportError:
+            # Fallback para hash simple
+            import hashlib
+            return hashlib.sha256(password.encode('utf-8')).hexdigest() == password_hash
 
 
-# Inicialización segura
-try:
-    db_manager = DatabaseManager()
-    if db_manager and db_manager.test_connection():
-        logger.info("✅ Sistema de base de datos inicializado correctamente")
-    else:
-        logger.error("❌ Sistema de base de datos no funcional")
-        db_manager = None
-except Exception as e:
-    logger.error(f"❌ Error crítico inicializando base de datos: {e}")
-    db_manager = None
+# ==================== INICIALIZACIÓN SEGURA ====================
+
+def create_database_manager():
+    """Crear instancia del manejador de base de datos con manejo de errores"""
+    try:
+        db = DatabaseManager()
+        if db.test_connection():
+            logger.info("✅ Sistema de base de datos inicializado correctamente")
+            return db
+        else:
+            logger.error("❌ Sistema de base de datos no funcional")
+            return None
+    except Exception as e:
+        logger.error(f"❌ Error crítico inicializando base de datos: {e}")
+        logger.error("💡 Posibles soluciones:")
+        logger.error("   1. Verifica que MySQL esté ejecutándose: net start mysql")
+        logger.error("   2. Verifica las credenciales en modules/database.py")
+        logger.error("   3. Ejecuta el script SQL para crear la base de datos")
+        logger.error("   4. Instala las dependencias: pip install -r requirements.txt")
+        return None
+
+
+# Inicialización global
+db_manager = create_database_manager()

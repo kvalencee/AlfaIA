@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro - AlfaIA</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-brown: #8B4513;
+            --dark-brown: #654321;
+            --light-brown: #D2B48C;
+            --cream: #F5F5DC;
+            --accent-gold: #B8860B;
+            --text-dark: #2F1B14;
+            --bg-warm: #FAF0E6;
+            --shadow-brown: rgba(139, 69, 19, 0.15);
+            --error-brown: #A0522D;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--bg-warm) 0%, var(--cream) 50%, var(--light-brown) 100%);
+            min-height: 100vh;
+            font-family: 'Georgia', 'Times New Roman', serif;
+            padding: 20px 0;
+        }
+
+        .register-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .register-card {
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid var(--light-brown);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 550px;
+            width: 100%;
+            box-shadow:
+                0 20px 50px var(--shadow-brown),
+                inset 0 1px 0 rgba(255,255,255,0.9);
+            backdrop-filter: blur(15px);
+        }
+
+        .register-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .register-title {
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: var(--text-dark);
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .register-subtitle {
+            color: var(--text-dark);
+            opacity: 0.8;
+            font-size: 1rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-label {
+            color: var(--text-dark);
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .form-control {
+            border: 2px solid var(--light-brown);
+            border-radius: 8px;
+            padding: 12px;
+            background: var(--cream);
+            color: var(--text-dark);
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .form-control:focus {
+            border-color: var(--accent-gold);
+            box-shadow: 0 0 0 0.2rem rgba(184, 134, 11, 0.25);
+            background: white;
+        }
+
+        .form-control.is-invalid {
+            border-color: var(--error-brown);
+            background: #fff5f5;
+        }
+
+        .invalid-feedback {
+            color: var(--error-brown);
+            font-size: 0.875rem;
+            margin-top: 5px;
+        }
+
+        .input-group-text {
+            background: var(--light-brown);
+            border: 2px solid var(--light-brown);
+            color: var(--text-dark);
+            border-radius: 8px 0 0 8px;
+        }
+
+        .btn-register {
+            background: linear-gradient(135deg, var(--primary-brown), var(--dark-brown));
+            border: none;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            width: 100%;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px var(--shadow-brown);
+        }
+
+        .btn-register:hover {
+            background: linear-gradient(135deg, var(--accent-gold), var(--primary-brown));
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--shadow-brown);
+            color: white;
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid var(--light-brown);
+        }
+
+        .login-link a {
+            color: var(--primary-brown);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        .login-link a:hover {
+            color: var(--accent-gold);
+        }
+
+        .alert {
+            border-radius: 10px;
+            border: none;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .password-strength {
+            margin-top: 5px;
+            font-size: 0.8rem;
+        }
+
+        .strength-weak { color: #dc3545; }
+        .strength-medium { color: #ffc107; }
+        .strength-strong { color: #28a745; }
+
+        @media (max-width: 768px) {
+            .register-card {
+                padding: 30px 20px;
+                margin: 10px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+
+            .register-title {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <div class="register-card">
+            <div class="register-header">
+                <h1 class="register-title">
+                    <i class="fas fa-user-plus"></i> Crear Cuenta
+                </h1>
+                <p class="register-subtitle">Únete a la comunidad de aprendizaje AlfaIA</p>
+            </div>
+
+            <!-- Mensajes flash -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'danger' if category == 'error' else category }}" role="alert">
+                            <i class="fas fa-{{ 'exclamation-triangle' if category == 'error' else 'info-circle' }}"></i>
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST" action="{{ url_for('register') }}" id="registerForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="nombre">
+                            <i class="fas fa-user"></i> Nombre *
+                        </label>
+                        <input type="text"
+                               class="form-control {{ 'is-invalid' if errors and errors.nombre else '' }}"
+                               id="nombre"
+                               name="nombre"
+                               placeholder="Tu nombre"
+                               value="{{ request.form.nombre if request.form else '' }}"
+                               required>
+                        {% if errors and errors.nombre %}
+                            <div class="invalid-feedback">{{ errors.nombre }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="apellido">
+                            <i class="fas fa-user"></i> Apellido *
+                        </label>
+                        <input type="text"
+                               class="form-control {{ 'is-invalid' if errors and errors.apellido else '' }}"
+                               id="apellido"
+                               name="apellido"
+                               placeholder="Tu apellido"
+                               value="{{ request.form.apellido if request.form else '' }}"
+                               required>
+                        {% if errors and errors.apellido %}
+                            <div class="invalid-feedback">{{ errors.apellido }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="username">
+                        <i class="fas fa-at"></i> Nombre de Usuario *
+                    </label>
+                    <input type="text"
+                           class="form-control {{ 'is-invalid' if errors and errors.username else '' }}"
+                           id="username"
+                           name="username"
+                           placeholder="Nombre de usuario único"
+                           value="{{ request.form.username if request.form else '' }}"
+                           required>
+                    {% if errors and errors.username %}
+                        <div class="invalid-feedback">{{ errors.username }}</div>
+                    {% endif %}
+                    <small class="form-text text-muted">Solo letras, números y guiones bajos</small>
+                </div>

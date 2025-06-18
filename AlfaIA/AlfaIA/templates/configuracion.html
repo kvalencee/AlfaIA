@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuración - AlfaIA</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-brown: #8B4513;
+            --dark-brown: #654321;
+            --light-brown: #D2B48C;
+            --cream: #F5F5DC;
+            --text-dark: #3C2414;
+            --shadow-brown: rgba(139, 69, 19, 0.2);
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--cream) 0%, #FAEBD7 50%, var(--light-brown) 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            color: var(--text-dark);
+        }
+
+        .navbar-custom {
+            background: linear-gradient(135deg, var(--primary-brown), var(--dark-brown));
+            box-shadow: 0 4px 20px var(--shadow-brown);
+        }
+
+        .navbar-brand {
+            color: white !important;
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+            transition: color 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--light-brown) !important;
+        }
+
+        .user-avatar {
+            width: 35px;
+            height: 35px;
+            background: var(--light-brown);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--text-dark);
+        }
+
+        .config-container {
+            margin-top: 30px;
+            margin-bottom: 50px;
+        }
+
+        .config-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px;
+            background: linear-gradient(135deg, var(--primary-brown), var(--dark-brown));
+            color: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px var(--shadow-brown);
+        }
+
+        .config-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .config-subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .config-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 25px var(--shadow-brown);
+            border: 2px solid var(--light-brown);
+            transition: transform 0.3s ease;
+        }
+
+        .config-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--primary-brown);
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .config-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--light-brown);
+        }
+
+        .config-item:last-child {
+            border-bottom: none;
+        }
+
+        .config-label {
+            flex: 1;
+        }
+
+        .config-label h5 {
+            margin-bottom: 5px;
+            color: var(--text-dark);
+            font-weight: 600;
+        }
+
+        .config-label p {
+            margin: 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .config-control {
+            flex: 0 0 200px;
+            text-align: right;
+        }
+
+        .form-select, .form-control {
+            border: 2px solid var(--light-brown);
+            border-radius: 10px;
+            padding: 10px 15px;
+            background: white;
+            color: var(--text-dark);
+            transition: border-color 0.3s ease;
+        }
+
+        .form-select:focus, .form-control:focus {
+            border-color: var(--primary-brown);
+            box-shadow: 0 0 0 0.2rem rgba(139, 69, 19, 0.25);
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background: #ccc;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            border: none;
+        }
+
+        .toggle-switch.active {
+            background: var(--primary-brown);
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(30px);
+        }
+
+        .btn-primary-custom {
+            background: linear-gradient(135deg, var(--primary-brown), var(--dark-brown));
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary-custom:hover {
+            background: linear-gradient(135deg, var(--dark-brown), var(--primary-brown));
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px var(--shadow-brown);
+        }
+
+        .btn-secondary-custom {
+            background: transparent;
+            color: var(--primary-brown);
+            border: 2px solid var(--primary-brown);
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary-custom:hover {
+            background: var(--primary-brown);
+            color: white;
+        }
+
+        .alert-custom {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            border: 1px solid #b6d7a8;
+            color: #155724;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .range-slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 10px;
+            background: var(--light-brown);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary-brown);
+            cursor: pointer;
+            box-shadow: 0 2px 8px var(--shadow-brown);
+        }
+
+        .range-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary-brown);
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 8px var(--shadow-brown);
+        }
+
+        @media (max-width: 768px) {
+            .config-header {
+                padding: 30px 20px;
+            }
+
+            .config-title {
+                font-size: 2rem;
+            }
+
+            .config-card {
+                padding: 20px;
+            }
+
+            .config-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .config-control {
+                flex: 1;
+                width: 100%;
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-custom">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">
+                <i class="fas fa-graduation-cap text-light me-2"></i>
+                AlfaIA
+            </a>
+
+            <div class="navbar-nav ms-auto">
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+                        <div class="user-avatar me-2">
+                            J
+                        </div>
+                        <span>Juan</span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="/dashboard"><i class="fas fa-home me-2"></i>Dashboard</a></li>
+                        <li><a class="dropdown-item" href="/perfil"><i class="fas fa-user me-2"></i>Mi Perfil</a></li>
+                        <li><a class="dropdown-item" href="/progreso"><i class="fas fa-chart-line me-2"></i>Mi Progreso</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="/logout"><i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container config-container">
+        <!-- Header de Configuración -->
+        <div class="config-header">
+            <h1 class="config-title">
+                <i class="fas fa-cog me-3"></i>
+                Configuración
+            </h1>
+            <p class="config-subtitle">
+                Personaliza tu experiencia de aprendizaje en AlfaIA
+            </p>
+        </div>
+
+        <!-- Mensaje de éxito (oculto por defecto) -->
+        <div id="successAlert" class="alert-custom" style="display: none;">
+            <i class="fas fa-check-circle me-2"></i>
+            <strong>¡Configuración guardada!</strong> Tus cambios han sido aplicados exitosamente.
+        </div>
+
+        <form id="configForm">
+            <div class="row">
+                <!-- Configuración de Aprendizaje -->
+                <div class="col-lg-6">
+                    <div class="config-card">
+                        <h3 class="section-title">
+                            <i class="fas fa-graduation-cap"></i>
+                            Preferencias de Aprendizaje
+                        </h3>
+
+                        <div class="config-item">
+                            <div class="config-label">
+                                <h5>Nivel de Dificultad</h5>
+                                <p>Ajusta el nivel de complejidad de los ejercicios</p>
+                            </div>
+                            <div class="config-control">
+                                <select class="form-select" id="dificultadLevel" name="dificultad_preferida">
+                                    <option value="1">Principiante</option>
+                                    <option value="2" selected>Intermedio</option>
+                                    <option value="3">Avanzado</option>
+                                    <option value="4">Experto</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="config-item">
+                            <div class="config-label">
+                                <h5>Velocidad de Lectura</h5>
+                                <p>Velocidad de presentación de textos</p>
+                            </div>
+                            <div class="config-control">
+                                <select class="form-select" id="velocidadLectura" name="velocidad_lectura">
+                                    <option value="lenta">Lenta</option>
+                                    <option value="normal" selected>Normal</option>
+                                    <option value="rapida">Rápida</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="config-item">
+                            <div class="config-label">
+                                <h5>Tema Preferido</h5>
+                                <p>Área de enfoque para ejercicios personalizados</p>
+                            </div>
+                            <div class="config-control">
+                                <select class="form-select" id="temaPreferido" name="tema_preferido">
+                                    <option value="general" selected>General</option>
+                                    <option value="ciencias">Ciencias</option>
+                                    <option value="historia">Historia</option>
+                                    <option value="literatura">Literatura</option>
+                                    <option value="matematicas">Matemáticas</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="config-item">
+                            <div class="config-label">
+                                <h5>Tiempo de Sesión</h5>
+                                <p>Duración recomendada de estudio: <span id="tiempoValue">15 minutos</span></p>
+                            </div>
+                            <div class="config-control">
+                                <input type="range" class="range-slider" id="tiempoSesion" name="tiempo_sesion"
+                                       min="5" max="60" value="15" step="5">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Configuración de Interfaz -->
+                <div class="col-lg-6">
+                    <div class="config-card">
+                        <h3 class="section-title">
+                            <i class="fas fa-desktop"></i>
+                            Interfaz y Experiencia
+                        </h3>
+
+                        <div class="config-item">
+                            <div class="config-label">
+                                <h5>Modo Oscuro</h5>
+                                <p>Cambia la apariencia a modo oscuro</p>
+                            </div>
+                            <div class="config-control">
+                                <button type="button" class="toggle-switch" id="modoOscuro" name="modo_oscuro">
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="config-item">
+                            <div class="config-label">
+                                <h5>Efectos de Sonido</h5>
+                                <p>Reproducir sonidos en ejercicios y notificaciones</p>
+                            </div>
+                            <div class="config-control">
+                                <button type="button" class="toggle-switch active" id="sonidosActivos" name="sonidos_activos">
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="config-item">
+                            <div class="config-label">
+                                <h5>Animaciones</h5>
+                                <p>Habilitar animaciones en la interfaz</p>
+                            </div>
+                            <div class="config-control">
+                                <button type="button" class="toggle-switch active" id="animaciones" name="animaciones">
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="config-item">
+                            <div class="config-label">
+                                <h5>Idioma de Interfaz</h5>
+                                <p>Selecciona el idioma de la aplicación</p>
+                            </div>
+                            <div class="config-control">
+                                <select class="form-select" id="idioma" name="idioma">
+                                    <option value="es" selected>Español</option>
+                                    <option value="en">English</option>
+                                    <option value="fr">Français</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notificaciones -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="config-card">
+                        <h3 class="section-title">
+                            <i class="fas fa-bell"></i>
+                            Notificaciones
+                        </h3>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="config-item">
+                                    <div class="config-label">
+                                        <h5>Recordatorios de Estudio</h5>
+                                        <p>Recibir notificaciones para mantener la rutina</p>
+                                    </div>
+                                    <div class="config-control">
+                                        <button type="button" class="toggle-switch active" id="notificacionesEstudio" name="notificaciones_estudio">
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="config-item">
+                                    <div class="config-label">
+                                        <h5>Logros y Progreso</h5>
+                                        <p>Notificar sobre nuevos logros alcanzados</p>
+                                    </div>
+                                    <div class="config-control">
+                                        <button type="button" class="toggle-switch active" id="notificacionesLogros" name="notificaciones_logros">
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="config-item">
+                                    <div class="config-label">
+                                        <h5>Hora de Recordatorio</h5>
+                                        <p>Momento del día para recibir recordatorios</p>
+                                    </div>
+                                    <div class="config-control">
+                                        <input type="time" class="form-control" id="horaRecordatorio"
+                                               name="hora_recordatorio" value="18:00">
+                                    </div>
+                                </div>
+
+                                <div class="config-item">
+                                    <div class="config-label">
+                                        <h5>Email de Progreso</h5>
+                                        <p>Resumen semanal por correo electrónico</p>
+                                    </div>
+                                    <div class="config-control">
+                                        <button type="button" class="toggle-switch" id="emailProgreso" name="email_progreso">
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Privacidad y Seguridad -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="config-card">
+                        <h3 class="section-title">
+                            <i class="fas fa-shield-alt"></i>
+                            Privacidad y Seguridad
+                        </h3>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="config-item">
+                                    <div class="config-label">
+                                        <h5>Compartir Progreso</h5>
+                                        <p>Permitir que otros vean tu progreso público</p>
+                                    </div>
+                                    <div class="config-control">
+                                        <button type="button" class="toggle-switch" id="compartirProgreso" name="compartir_progreso">
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="config-item">
+                                    <div class="config-label">
+                                        <h5>Análisis de Uso</h5>
+                                        <p>Ayudar a mejorar AlfaIA compartiendo datos anónimos</p>
+                                    </div>
+                                    <div class="config-control">
+                                        <button type="button" class="toggle-switch active" id="analisisUso" name="analisis_uso">
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="config-item">
+                                    <div class="config-label">
+                                        <h5>Cambiar Contraseña</h5>
+                                        <p>Actualizar tu contraseña de acceso</p>
+                                    </div>
+                                    <div class="config-control">
+                                        <button type="button" class="btn-secondary-custom" onclick="cambiarContrasena()">
+                                            <i class="fas fa-key me-2"></i>Cambiar
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="config-item">
+                                    <div class="config-label">
+                                        <h5>Exportar Datos</h5>
+                                        <p>Descargar toda tu información personal</p>
+                                    </div>
+                                    <div class="config-control">
+                                        <button type="button" class="btn-secondary-custom" onclick="exportarDatos()">
+                                            <i class="fas fa-download me-2"></i>Exportar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="row">
+                <div class="col-12 text-center">
+                    <button type="submit" class="btn-primary-custom me-3">
+                        <i class="fas fa-save me-2"></i>
+                        Guardar Configuración
+                    </button>
+                    <button type="button" class="btn-secondary-custom me-3" onclick="resetearConfiguracion()">
+                        <i class="fas fa-undo me-2"></i>
+                        Restablecer
+                    </button>
+                    <a href="/dashboard" class="btn-secondary-custom">
+                        <i class="fas fa-home me-2"></i>
+                        Volver al Dashboard
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Funcionalidad de toggle switches
+        document.querySelectorAll('.toggle-switch').forEach(toggle => {
+            toggle.addEventListener('click', function() {
+                this.classList.toggle('active');
+            });
+        });
+
+        // Actualizar valor del slider de tiempo
+        const tiempoSlider = document.getElementById('tiempoSesion');
+        const tiempoValue = document.getElementById('tiempoValue');
+
+        tiempoSlider.addEventListener('input', function() {
+            tiempoValue.textContent = this.value + ' minutos';
+        });
+
+        // Manejar envío del formulario
+        document.getElementById('configForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Simular guardado de configuración
+            const successAlert = document.getElementById('successAlert');
+            successAlert.style.display = 'block';
+
+            // Scroll hasta el alert
+            successAlert.scrollIntoView({ behavior: 'smooth' });
+
+            // Ocultar el alert después de 5 segundos
+            setTimeout(() => {
+                successAlert.style.display = 'none';
+            }, 5000);
+
+            // Aquí irían las llamadas AJAX para guardar la configuración
+            console.log('Configuración guardada');
+        });
+
+        // Función para cambiar contraseña
+        function cambiarContrasena() {
+            // Crear modal dinámico para cambio de contraseña
+            const modalHTML = `
+                <div class="modal fade" id="passwordModal" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Cambiar Contraseña</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="passwordForm">
+                                    <div class="mb-3">
+                                        <label for="currentPassword" class="form-label">Contraseña Actual</label>
+                                        <input type="password" class="form-control" id="currentPassword" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="newPassword" class="form-label">Nueva Contraseña</label>
+                                        <input type="password" class="form-control" id="newPassword" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="confirmPassword" class="form-label">Confirmar Nueva Contraseña</label>
+                                        <input type="password" class="form-control" id="confirmPassword" required>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                <button type="button" class="btn btn-primary" onclick="guardarNuevaContrasena()">Cambiar Contraseña</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Agregar modal al DOM
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+            // Mostrar modal
+            const modal = new bootstrap.Modal(document.getElementById('passwordModal'));
+            modal.show();
+
+            // Limpiar modal al cerrarse
+            document.getElementById('passwordModal').addEventListener('hidden.bs.modal', function() {
+                this.remove();
+            });
+        }
+
+        // Función para guardar nueva contraseña
+        function guardarNuevaContrasena() {
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (newPassword !== confirmPassword) {
+                alert('Las contraseñas no coinciden');
+                return;
+            }
+
+            if (newPassword.length < 6) {
+                alert('La contraseña debe tener al menos 6 caracteres');
+                return;
+            }
+
+            // Aquí iría la llamada AJAX para cambiar la contraseña
+            console.log('Cambiando contraseña...');
+
+            // Cerrar modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('passwordModal'));
+            modal.hide();
+
+            // Mostrar mensaje de éxito
+            alert('Contraseña cambiada exitosamente');
+        }
+
+        // Función para exportar datos
+        function exportarDatos() {
+            // Simular exportación de datos
+            const userData = {
+                nombre: 'Juan Pérez',
+                email: 'juan@alfaia.com',
+                fecha_registro: '2024-01-15',
+                ejercicios_completados: 45,
+                tiempo_total_horas: 12.5,
+                puntos_totales: 850,
+                configuraciones: {
+                    dificultad_preferida: 2,
+                    velocidad_lectura: 'normal',
+                    tema_preferido: 'general',
+                    sonidos_activos: true,
+                    notificaciones_activas: true
+                }
+            };
+
+            // Crear y descargar archivo JSON
+            const dataStr = JSON.stringify(userData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = 'alfaia_datos_usuario.json';
+            link.click();
+
+            console.log('Datos exportados');
+        }
+
+        // Función para restablecer configuración
+        function resetearConfiguracion() {
+            if (confirm('¿Estás seguro de que quieres restablecer toda la configuración a los valores predeterminados?')) {
+                // Restablecer valores del formulario
+                document.getElementById('dificultadLevel').value = '2';
+                document.getElementById('velocidadLectura').value = 'normal';
+                document.getElementById('temaPreferido').value = 'general';
+                document.getElementById('tiempoSesion').value = '15';
+                document.getElementById('tiempoValue').textContent = '15 minutos';
+                document.getElementById('idioma').value = 'es';
+                document.getElementById('horaRecordatorio').value = '18:00';
+
+                // Restablecer toggles
+                document.querySelectorAll('.toggle-switch').forEach(toggle => {
+                    toggle.classList.remove('active');
+                });
+
+                // Activar algunos toggles por defecto
+                document.getElementById('sonidosActivos').classList.add('active');
+                document.getElementById('animaciones').classList.add('active');
+                document.getElementById('notificacionesEstudio').classList.add('active');
+                document.getElementById('notificacionesLogros').classList.add('active');
+                document.getElementById('analisisUso').classList.add('active');
+
+                console.log('Configuración restablecida');
+                alert('Configuración restablecida a valores predeterminados');
+            }
+        }
+
+        // Cargar configuración actual al iniciar la página
+        function cargarConfiguracion() {
+            // Aquí irían las llamadas AJAX para cargar la configuración actual del usuario
+            const configuraciones = {
+                dificultad_preferida: 2,
+                velocidad_lectura: 'normal',
+                tema_preferido: 'general',
+                tiempo_sesion: 15,
+                modo_oscuro: false,
+                sonidos_activos: true,
+                animaciones: true,
+                idioma: 'es',
+                notificaciones_estudio: true,
+                notificaciones_logros: true,
+                hora_recordatorio: '18:00',
+                email_progreso: false,
+                compartir_progreso: false,
+                analisis_uso: true
+            };
+
+            // Aplicar configuraciones cargadas
+            Object.keys(configuraciones).forEach(key => {
+                const element = document.getElementById(key) || document.querySelector(`[name="${key}"]`);
+                if (element) {
+                    if (element.type === 'checkbox' || element.classList.contains('toggle-switch')) {
+                        if (configuraciones[key]) {
+                            element.classList.add('active');
+                        }
+                    } else {
+                        element.value = configuraciones[key];
+                    }
+                }
+            });
+
+            console.log('Configuración cargada');
+        }
+
+        // Aplicar modo oscuro si está activado
+        function aplicarModoOscuro() {
+            const modoOscuroToggle = document.getElementById('modoOscuro');
+            if (modoOscuroToggle.classList.contains('active')) {
+                document.body.style.background = 'linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #2c3e50 100%)';
+                document.documentElement.style.setProperty('--text-dark', '#ecf0f1');
+                document.documentElement.style.setProperty('--cream', '#34495e');
+                document.documentElement.style.setProperty('--light-brown', '#5d6d7e');
+            }
+        }
+
+        // Inicializar página
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarConfiguracion();
+            aplicarModoOscuro();
+        });
+
+        // Aplicar modo oscuro en tiempo real
+        document.getElementById('modoOscuro').addEventListener('click', function() {
+            setTimeout(aplicarModoOscuro, 100);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ejercicio Diario - AlfaIA</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-brown: #8B4513;
+            --dark-brown: #654321;
+            --light-brown: #D2B48C;
+            --cream: #F5F5DC;
+            --text-dark: #3C2414;
+            --shadow-brown: rgba(139, 69, 19, 0.2);
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--cream) 0%, #FAEBD7 50%, var(--light-brown) 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            color: var(--text-dark);
+        }
+
+        .navbar-custom {
+            background: linear-gradient(135deg, var(--primary-brown), var(--dark-brown));
+            box-shadow: 0 4px 20px var(--shadow-brown);
+        }
+
+        .navbar-brand, .nav-link {
+            color: white !important;
+            font-weight: bold;
+        }
+
+        .daily-container {
+            margin-top: 30px;
+            margin-bottom: 50px;
+        }
+
+        .daily-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px;
+            background: linear-gradient(135deg, var(--primary-brown), var(--dark-brown));
+            color: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px var(--shadow-brown);
+        }
+
+        .daily-title {
+            font-size: 2.8rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .daily-subtitle {
+            font-size: 1.3rem;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+
+        .daily-date {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 25px;
+            display: inline-block;
+            font-weight: 600;
+        }
+
+        .exercise-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+        }
+
+        .exercise-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 25px var(--shadow-brown);
+            border: 2px solid var(--light-brown);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .exercise-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px var(--shadow-brown);
+        }
+
+        .exercise-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, var(--primary-brown), var(--light-brown));
+        }
+
+        .exercise-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary-brown), var(--dark-brown));
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin: 0 auto 20px;
+            box-shadow: 0 8px 20px rgba(139, 69, 19, 0.3);
+        }
+
+        .exercise-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--text-dark);
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .exercise-description {
+            color: #666;
+            text-align: center;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .exercise-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding: 15px;
+            background: linear-gradient(135deg, var(--cream), white);
+            border-radius: 10px;
+        }
+
+        .difficulty-badge {
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .difficulty-1 { background: #d4edda; color: #155724; }
+        .difficulty-2 { background: #fff3cd; color: #856404; }
+        .difficulty-3 { background: #f8d7da; color: #721c24; }
+
+        .exercise-points {
+            font-weight: bold;
+            color: var(--primary-brown);
+        }
+
+        .exercise-btn {
+            background: linear-gradient(135deg, var(--primary-brown), var(--dark-brown));
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 15px;
+            font-weight: 600;
+            text-decoration: none;
+            display: block;
+            text-align: center;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .exercise-btn:hover {
+            background: linear-gradient(135deg, var(--dark-brown), var(--primary-brown));
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .progress-section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 25px var(--shadow-brown);
+            border: 2px solid var(--light-brown);
+        }
+
+        .progress-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--primary-brown);
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .progress-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--cream), white);
+            border-radius: 15px;
+            border: 1px solid var(--light-brown);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--primary-brown);
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-dark);
+            margin-top: 5px;
+        }
+
+        .streak-display {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            border-radius: 20px;
+            color: var(--text-dark);
+            margin-bottom: 30px;
+        }
+
+        .streak-number {
+            font-size: 4rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .streak-text {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .completion-indicator {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 30px;
+            height: 30px;
+            background: #28a745;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .exercise-card.completed .completion-indicator {
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            .daily-header {
+                padding: 25px;
+            }
+
+            .daily-title {
+                font-size: 2.2rem;
+            }
+
+            .exercise-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .progress-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-custom">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-graduation-cap me-2"></i>AlfaIA
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/dashboard">
+                    <i class="fas fa-home me-1"></i>Dashboard
+                </a>
+                <a class="nav-link" href="/ejercicios">
+                    <i class="fas fa-dumbbell me-1"></i>Ejercicios
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container daily-container">
+        <!-- Header del ejercicio diario -->
+        <div class="daily-header">
+            <h1 class="daily-title">
+                <i class="fas fa-calendar-day me-3"></i>
+                Ejercicio Diario
+            </h1>
+            <p class="daily-subtitle">
+                Tu rutina personalizada de aprendizaje
+            </p>
+            <div class="daily-date">
+                <i class="fas fa-calendar me-2"></i>
+                <span id="currentDate"></span>
+            </div>
+        </div>
+
+        <!-- Sección de racha -->
+        <div class="streak-display">
+            <div class="streak-number">
+                <i class="fas fa-fire me-2"></i>5
+            </div>
+            <div class="streak-text">Días consecutivos practicando</div>
+        </div>
+
+        <!-- Sección de progreso diario -->
+        <div class="progress-section">
+            <h3 class="progress-title">
+                <i class="fas fa-chart-line me-2"></i>
+                Tu Progreso de Hoy
+            </h3>
+
+            <div class="progress-stats">
+                <div class="stat-item">
+                    <span class="stat-number" id="exercisesCompleted">0</span>
+                    <div class="stat-label">Ejercicios Completados</div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="timeSpent">0</span>
+                    <div class="stat-label">Minutos Estudiados</div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="pointsEarned">0</span>
+                    <div class="stat-label">Puntos Obtenidos</div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="accuracyRate">0%</span>
+                    <div class="stat-label">Precisión Promedio</div>
+                </div>
+            </div>
+
+            <!-- Barra de progreso general -->
+            <div class="mt-4">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="fw-bold">Progreso del día</span>
+                    <span id="dailyProgressPercent">0%</span>
+                </div>
+                <div class="progress" style="height: 15px; border-radius: 10px;">
+                    <div class="progress-bar" id="dailyProgressBar"
+                         style="background: linear-gradient(90deg, var(--primary-brown), var(--light-brown)); width: 0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grid de ejercicios -->
+        <div class="exercise-grid">
+            {% for ejercicio in ejercicios %}
+            <div class="exercise-card" data-exercise-id="{{ loop.index }}">
+                <div class="completion-indicator">
+                    <i class="fas fa-check"></i>
+                </div>
+
+                <div class="exercise-icon">
+                    {% if ejercicio.tipo == 'ordenar_frase' %}
+                        <i class="fas fa-sort-alpha-down"></i>
+                    {% elif ejercicio.tipo == 'completar_palabra' %}
+                        <i class="fas fa-keyboard"></i>
+                    {% elif ejercicio.tipo == 'pronunciacion' %}
+                        <i class="fas fa-microphone"></i>
+                    {% elif ejercicio.tipo == 'lectura' %}
+                        <i class="fas fa-book-open"></i>
+                    {% elif ejercicio.tipo == 'trivia' %}
+                        <i class="fas fa-question-circle"></i>
+                    {% else %}
+                        <i class="fas fa-dumbbell"></i>
+                    {% endif %}
+                </div>
+
+                <h4 class="exercise-title">{{ ejercicio.titulo }}</h4>
+
+                <p class="exercise-description">
+                    {% if ejercicio.tipo == 'ordenar_frase' %}
+                        Organiza las palabras para formar frases correctas y mejora tu gramática.
+                    {% elif ejercicio.tipo == 'completar_palabra' %}
+                        Completa las palabras agregando las letras faltantes.
+                    {% elif ejercicio.tipo == 'pronunciacion' %}
+                        Practica la pronunciación correcta de vocales y sonidos.
+                    {% elif ejercicio.tipo == 'lectura' %}
+                        Lee textos y responde preguntas de comprensión.
+                    {% elif ejercicio.tipo == 'trivia' %}
+                        Responde preguntas sobre diferentes temas educativos.
+                    {% else %}
+                        Ejercicio de aprendizaje personalizado.
+                    {% endif %}
+                </p>
+
+                <div class="exercise-meta">
+                    <span class="difficulty-badge difficulty-{{ ejercicio.dificultad }}">
+                        {% if ejercicio.dificultad == 1 %}
+                            <i class="fas fa-star me-1"></i>Fácil
+                        {% elif ejercicio.dificultad == 2 %}
+                            <i class="fas fa-star me-1"></i><i class="fas fa-star me-1"></i>Intermedio
+                        {% else %}
+                            <i class="fas fa-star me-1"></i><i class="fas fa-star me-1"></i><i class="fas fa-star me-1"></i>Avanzado
+                        {% endif %}
+                    </span>
+                    <span class="exercise-points">
+                        <i class="fas fa-coins me-1"></i>{{ ejercicio.dificultad * 15 }} puntos
+                    </span>
+                </div>
+
+                <a href="{{ ejercicio.url }}" class="exercise-btn" onclick="startExercise('{{ ejercicio.tipo }}', {{ loop.index }})">
+                    <i class="fas fa-play me-2"></i>
+                    Comenzar Ejercicio
+                </a>
+            </div>
+            {% endfor %}
+
+            <!-- Ejercicio bonus (aparece cuando se completan todos) -->
+            <div class="exercise-card" id="bonusExercise" style="display: none;">
+                <div class="exercise-icon" style="background: linear-gradient(135deg, #FFD700, #FFA500);">
+                    <i class="fas fa-trophy"></i>
+                </div>
+
+                <h4 class="exercise-title">¡Ejercicio Bonus!</h4>
+
+                <p class="exercise-description">
+                    ¡Felicidades! Has completado todos los ejercicios del día.
+                    Desbloquea un ejercicio bonus para ganar puntos extra.
+                </p>
+
+                <div class="exercise-meta">
+                    <span class="difficulty-badge" style="background: #FFD700; color: #000;">
+                        <i class="fas fa-crown me-1"></i>Bonus
+                    </span>
+                    <span class="exercise-points">
+                        <i class="fas fa-coins me-1"></i>50 puntos
+                    </span>
+                </div>
+
+                <a href="/juegos/rapido" class="exercise-btn" style="background: linear-gradient(135deg, #FFD700, #FFA500); color: #000;">
+                    <i class="fas fa-gift me-2"></i>
+                    ¡Reclamar Bonus!
+                </a>
+            </div>
+        </div>
+
+        <!-- Mensaje motivacional -->
+        <div class="text-center mt-5">
+            <div class="alert alert-info" style="background: linear-gradient(135deg, #d1ecf1, #b8daff); border: none; border-radius: 15px;">
+                <h5 class="alert-heading">
+                    <i class="fas fa-lightbulb me-2"></i>Consejo del Día
+                </h5>
+                <p class="mb-0" id="dailyTip">
+                    La constancia es la clave del aprendizaje. ¡Dedica unos minutos cada día y verás grandes resultados!
+                </p>
+            </div>
+        </div>
+
+        <!-- Botones de navegación -->
+        <div class="text-center mt-4 mb-5">
+            <a href="/ejercicios" class="btn btn-outline-secondary btn-lg me-3">
+                <i class="fas fa-arrow-left me-2"></i>
+                Volver a Ejercicios
+            </a>
+            <a href="/progreso" class="btn btn-outline-primary btn-lg">
+                <i class="fas fa-chart-line me-2"></i>
+                Ver Mi Progreso
+            </a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Variables globales
+        let completedExercises = 0;
+        let totalExercises = {{ ejercicios|length if ejercicios else 5 }};
+        let dailyStats = {
+            exercisesCompleted: 0,
+            timeSpent: 0,
+            pointsEarned: 0,
+            totalAttempts: 0,
+            correctAttempts: 0
+        };
+
+        // Consejos motivacionales
+        const dailyTips = [
+            "La constancia es la clave del aprendizaje. ¡Dedica unos minutos cada día y verás grandes resultados!",
+            "Leer en voz alta te ayuda a mejorar tanto la pronunciación como la comprensión.",
+            "No tengas miedo de cometer errores. Cada error es una oportunidad de aprender algo nuevo.",
+            "Practica un poco cada día en lugar de mucho de vez en cuando. Tu cerebro aprende mejor con repetición regular.",
+            "Celebra tus pequeños logros. Cada ejercicio completado te acerca más a tu meta."
+        ];
+
+        // Inicializar página
+        document.addEventListener('DOMContentLoaded', function() {
+            initializePage();
+            loadDailyProgress();
+        });
+
+        function initializePage() {
+            // Mostrar fecha actual
+            const today = new Date();
+            const options = {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            };
+            document.getElementById('currentDate').textContent =
+                today.toLocaleDateString('es-ES', options);
+
+            // Mostrar consejo aleatorio
+            const randomTip = dailyTips[Math.floor(Math.random() * dailyTips.length)];
+            document.getElementById('dailyTip').textContent = randomTip;
+
+            // Cargar ejercicios completados del localStorage
+            loadCompletedExercises();
+        }
+
+        function loadDailyProgress() {
+            // Simular carga de progreso del día
+            // En una app real, esto vendría de la API
+
+            updateStatsDisplay();
+            updateProgressBar();
+        }
+
+        function startExercise(exerciseType, exerciseId) {
+            // Marcar como iniciado
+            console.log(`Iniciando ejercicio: ${exerciseType}, ID: ${exerciseId}`);
+
+            // Guardar tiempo de inicio
+            localStorage.setItem('exerciseStartTime', Date.now());
+            localStorage.setItem('currentExerciseId', exerciseId);
+        }
+
+        function completeExercise(exerciseId, points, timeSpent, accuracy) {
+            // Marcar ejercicio como completado
+            const exerciseCard = document.querySelector(`[data-exercise-id="${exerciseId}"]`);
+            if (exerciseCard) {
+                exerciseCard.classList.add('completed');
+
+                // Actualizar estadísticas
+                dailyStats.exercisesCompleted++;
+                dailyStats.pointsEarned += points;
+                dailyStats.timeSpent += Math.floor(timeSpent / 60); // convertir a minutos
+                dailyStats.totalAttempts++;
+                if (accuracy > 70) dailyStats.correctAttempts++;
+
+                // Guardar en localStorage
+                localStorage.setItem('dailyStats', JSON.stringify(dailyStats));
+
+                // Actualizar display
+                updateStatsDisplay();
+                updateProgressBar();
+
+                // Verificar si se completaron todos los ejercicios
+                if (dailyStats.exercisesCompleted >= totalExercises) {
+                    showBonusExercise();
+                }
+
+                // Mostrar felicitación
+                showCompletionMessage(points);
+            }
+        }
+
+        function updateStatsDisplay() {
+            document.getElementById('exercisesCompleted').textContent = dailyStats.exercisesCompleted;
+            document.getElementById('timeSpent').textContent = dailyStats.timeSpent;
+            document.getElementById('pointsEarned').textContent = dailyStats.pointsEarned;
+
+            const accuracy = dailyStats.totalAttempts > 0 ?
+                Math.round((dailyStats.correctAttempts / dailyStats.totalAttempts) * 100) : 0;
+            document.getElementById('accuracyRate').textContent = accuracy + '%';
+        }
+
+        function updateProgressBar() {
+            const progress = Math.round((dailyStats.exercisesCompleted / totalExercises) * 100);
+            document.getElementById('dailyProgressBar').style.width = progress + '%';
+            document.getElementById('dailyProgressPercent').textContent = progress + '%';
+        }
+
+        function showBonusExercise() {
+            document.getElementById('bonusExercise').style.display = 'block';
+
+            // Animación de aparición
+            setTimeout(() => {
+                document.getElementById('bonusExercise').scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+            }, 500);
+        }
+
+        function showCompletionMessage(points) {
+            // Crear notificación de éxito
+            const notification = document.createElement('div');
+            notification.className = 'alert alert-success position-fixed';
+            notification.style.cssText = `
+                top: 20px;
+                right: 20px;
+                z-index: 1050;
+                min-width: 300px;
+                border-radius: 15px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            `;
+            notification.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-check-circle me-3" style="font-size: 1.5rem;"></i>
+                    <div>
+                        <strong>¡Ejercicio Completado!</strong><br>
+                        <small>+${points} puntos ganados</small>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(notification);
+
+            // Remover después de 3 segundos
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        function loadCompletedExercises() {
+            // Cargar ejercicios completados del localStorage
+            const saved = localStorage.getItem('dailyStats');
+            if (saved) {
+                dailyStats = JSON.parse(saved);
+
+                // Marcar ejercicios como completados visualmente
+                for (let i = 1; i <= dailyStats.exercisesCompleted; i++) {
+                    const card = document.querySelector(`[data-exercise-id="${i}"]`);
+                    if (card) {
+                        card.classList.add('completed');
+                    }
+                }
+
+                updateStatsDisplay();
+                updateProgressBar();
+
+                if (dailyStats.exercisesCompleted >= totalExercises) {
+                    showBonusExercise();
+                }
+            }
+        }
+
+        // Función para resetear el progreso diario (para testing)
+        function resetDailyProgress() {
+            if (confirm('¿Estás seguro de que quieres resetear el progreso del día?')) {
+                localStorage.removeItem('dailyStats');
+                localStorage.removeItem('exerciseStartTime');
+                localStorage.removeItem('currentExerciseId');
+                location.reload();
+            }
+        }
+
+        // Escuchar eventos de finalización de ejercicios desde otras páginas
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'exerciseCompleted') {
+                const data = JSON.parse(e.newValue);
+                completeExercise(data.exerciseId, data.points, data.timeSpent, data.accuracy);
+            }
+        });
+
+        // Función global para ser llamada desde otros ejercicios
+        window.completeExercise = completeExercise;
+    </script>
+</body>
+</html>

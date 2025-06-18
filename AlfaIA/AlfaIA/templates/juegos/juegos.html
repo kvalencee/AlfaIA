@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juegos Interactivos - AlfaIA</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #667eea;
+            --secondary: #764ba2;
+            --success: #42e695;
+            --warning: #f093fb;
+            --info: #4facfe;
+            --danger: #ff6b6b;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar-custom {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .games-container {
+            padding: 2rem 0;
+        }
+
+        .page-header {
+            text-align: center;
+            color: white;
+            margin-bottom: 3rem;
+        }
+
+        .page-title {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .page-subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .game-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--info));
+        }
+
+        .game-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .game-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: white;
+            margin-bottom: 1.5rem;
+        }
+
+        .game-icon.memoria { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .game-icon.ahorcado { background: linear-gradient(135deg, #f093fb, #f5576c); }
+        .game-icon.trivia { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+
+        .game-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #2d3748;
+        }
+
+        .game-description {
+            color: #718096;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .game-stats {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #4a5568;
+            font-size: 0.9rem;
+        }
+
+        .difficulty-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+
+        .difficulty-facil { background: #c6f6d5; color: #22543d; }
+        .difficulty-medio { background: #fed7d7; color: #742a2a; }
+        .difficulty-variada { background: #bee3f8; color: #2a4365; }
+
+        .play-button {
+            background: linear-gradient(135deg, var(--primary), var(--info));
+            border: none;
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .play-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .quick-play {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .quick-play-button {
+            background: linear-gradient(135deg, var(--warning), var(--danger));
+            border: none;
+            color: white;
+            padding: 1rem 3rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .quick-play-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(240, 147, 251, 0.4);
+            color: white;
+            text-decoration: none;
+        }
+
+        .back-link {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            margin-bottom: 2rem;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover {
+            color: white;
+            transform: translateX(-5px);
+        }
+
+        @media (max-width: 768px) {
+            .games-container {
+                padding: 1rem;
+            }
+
+            .page-title {
+                font-size: 2rem;
+            }
+
+            .games-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .game-card {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-custom">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="fas fa-graduation-cap me-2"></i>AlfaIA
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a>
+                <a class="nav-link" href="{{ url_for('ejercicios') }}">Ejercicios</a>
+                <a class="nav-link" href="{{ url_for('mostrar_progreso') }}">Progreso</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container games-container">
+        <!-- Enlace de regreso -->
+        <a href="{{ url_for('dashboard') }}" class="back-link">
+            <i class="fas fa-arrow-left me-2"></i>Volver al Dashboard
+        </a>
+
+        <!-- Header -->
+        <div class="page-header">
+            <h1 class="page-title">
+                <i class="fas fa-gamepad me-3"></i>Juegos Interactivos
+            </h1>
+            <p class="page-subtitle">
+                Aprende mientras te diviertes con nuestra colección de juegos educativos.
+                Cada juego está diseñado para reforzar tus habilidades de alfabetización de manera entretenida.
+            </p>
+        </div>
+
+        <!-- Juego Rápido -->
+        <div class="quick-play">
+            <a href="{{ url_for('juego_rapido') }}" class="quick-play-button">
+                <i class="fas fa-bolt me-2"></i>Juego Rápido Aleatorio
+            </a>
+            <p class="text-white mt-2">¡Comienza ahora con un juego sorpresa!</p>
+        </div>
+
+        <!-- Grid de Juegos -->
+        <div class="games-grid">
+            {% for juego in juegos %}
+            <a href="{{ juego.url }}" class="game-card">
+                <div class="game-icon {{ juego.id }}">
+                    <i class="fas fa-{{ juego.icono }}"></i>
+                </div>
+
+                <span class="difficulty-badge difficulty-{{ juego.dificultad.lower() }}">
+                    {{ juego.dificultad }}
+                </span>
+
+                <h3 class="game-title">{{ juego.nombre }}</h3>
+                <p class="game-description">{{ juego.descripcion }}</p>
+
+                <div class="game-stats">
+                    <div class="stat-item">
+                        <i class="fas fa-users"></i>
+                        <span>{{ juego.jugadores }} jugador</span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-clock"></i>
+                        <span>{{ juego.tiempo }}</span>
+                    </div>
+                </div>
+
+                <button class="play-button" onclick="event.preventDefault(); window.location.href='{{ juego.url }}'">
+                    <i class="fas fa-play me-2"></i>Jugar Ahora
+                </button>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

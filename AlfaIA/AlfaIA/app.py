@@ -1,4 +1,4 @@
-# app.py - Aplicación AlfaIA con Base de Datos Real
+# app.py - Aplicación AlfaIA Completa y Corregida
 # Ubicación: AlfaIA/AlfaIA/app.py
 
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
@@ -7,16 +7,28 @@ import os
 import logging
 from datetime import datetime, timedelta
 import json
+import random
 
 # Importar gestor de base de datos
 try:
     from modules.database_manager import db_manager
 
-    DB_AVAILABLE = db_manager.is_connected
+    DB_AVAILABLE = db_manager.is_connected if db_manager else False
 except ImportError as e:
     logging.error(f"Error importando database_manager: {e}")
     DB_AVAILABLE = False
     db_manager = None
+
+# Importar generador de juegos
+try:
+    from modules.juegos_interactivos import JuegosInteractivos
+
+    juegos_generator = JuegosInteractivos()
+    JUEGOS_AVAILABLE = True
+except ImportError as e:
+    logging.error(f"Error importando juegos_interactivos: {e}")
+    JUEGOS_AVAILABLE = False
+    juegos_generator = None
 
 # Configurar logging básico
 logging.basicConfig(level=logging.INFO)
@@ -43,6 +55,7 @@ app.config.update(
 os.makedirs('logs', exist_ok=True)
 os.makedirs('data', exist_ok=True)
 os.makedirs('static/uploads', exist_ok=True)
+os.makedirs('templates/errors', exist_ok=True)
 
 # Datos de respaldo si no hay base de datos
 FALLBACK_USER = {
@@ -104,6 +117,104 @@ def init_user_session(user):
     session['apellido'] = user['apellido']
     session['email'] = user['email']
     session.permanent = True
+
+
+def get_fallback_progress_data():
+    """Datos de progreso por defecto cuando no hay BD"""
+    return {
+        'estadisticas': {
+            'ejercicios_completados': 0,
+            'tiempo_total_minutos': 0,
+            'precision_promedio': 0.0,
+            'racha_dias': 0,
+            'puntos_totales': 0,
+            'nivel_lectura': 1,
+            'nivel_ejercicios': 1,
+            'nivel_pronunciacion': 1
+        },
+        'niveles': {
+            'lectura': {'nivel': 1, 'puntos': 0, 'desbloqueado': True},
+            'ejercicios': {'nivel': 1, 'puntos': 0, 'desbloqueado': True},
+            'pronunciacion': {'nivel': 1, 'puntos': 0, 'desbloqueado': True}
+        },
+        'feedback': {
+            'mensaje_principal': 'Comienza a practicar para ver tu progreso',
+            'insights': ['Conecta la base de datos para ver estadísticas reales'],
+            'recomendaciones': ['Configura la base de datos MySQL', 'Ejecuta el script database_structure.sql']
+        },
+        'historial_semanal': [
+            {'dia': 'Lunes', 'ejercicios': 0, 'tiempo': 0, 'puntos': 0},
+            {'dia': 'Martes', 'ejercicios': 0, 'tiempo': 0, 'puntos': 0},
+            {'dia': 'Miércoles', 'ejercicios': 0, 'tiempo': 0, 'puntos': 0},
+            {'dia': 'Jueves', 'ejercicios': 0, 'tiempo': 0, 'puntos': 0},
+            {'dia': 'Viernes', 'ejercicios': 0, 'tiempo': 0, 'puntos': 0},
+            {'dia': 'Sábado', 'ejercicios': 0, 'tiempo': 0, 'puntos': 0},
+            {'dia': 'Domingo', 'ejercicios': 0, 'tiempo': 0, 'puntos': 0}
+        ],
+        'logros': []
+    }
+
+
+def get_fallback_progress_data_complete():
+    """Datos completos de progreso por defecto cuando no hay BD"""
+    estadisticas = {
+        'ejercicios_completados': 0,
+        'tiempo_total_minutos': 0,
+        'precision_promedio': 0.0,
+        'racha_dias': 0,
+        'puntos_totales': 0,
+        'nivel_lectura': 1,
+        'nivel_ejercicios': 1,
+        'nivel_pronunciacion': 1,
+        'total_vocales': 0,
+        'logros_count': 0
+    }
+
+    progreso_niveles = {
+        'lectura': {'nivel': 1, 'puntos': 0, 'progreso_porcentaje': 0},
+        'ejercicios': {'nivel': 1, 'puntos': 0, 'progreso_porcentaje': 0},
+        'pronunciacion': {'nivel': 1, 'puntos': 0, 'progreso_porcentaje': 0},
+        'juegos': {'nivel': 1, 'puntos': 0, 'progreso_porcentaje': 0}
+    }
+
+    ejercicios_recientes = []
+    logros = []
+
+    reporte = {
+        'mensaje_principal': 'Comienza a practicar para ver tu progreso',
+        'nivel_actual': 1,
+        'puntos_totales': 0,
+        'tiempo_total_horas': 0.0,
+        'insights': ['Conecta la base de datos para ver estadísticas reales'],
+        'recomendaciones': ['Configura la base de datos MySQL', 'Ejecuta el script database_structure.sql']
+    }
+
+    return estadisticas, progreso_niveles, ejercicios_recientes, logros, reporte
+
+
+def get_fallback_profile_stats():
+    """Estadísticas de perfil por defecto"""
+    return {
+        'fecha_registro': '2024-01-15',
+        'total_ejercicios': 0,
+        'tiempo_total_horas': 0.0,
+        'nivel_actual': 'Principiante',
+        'puntos_totales': 0,
+        'insignias_obtenidas': 0
+    }
+
+
+def get_fallback_config():
+    """Configuración por defecto"""
+    return {
+        'velocidad_lectura': 500,
+        'dificultad_preferida': 'medio',
+        'tema_preferido': 'brown',
+        'notificaciones_activas': True,
+        'sonidos_activos': True,
+        'modo_oscuro': False,
+        'idioma': 'es'
+    }
 
 
 # ==================== RUTAS PRINCIPALES ====================
@@ -173,7 +284,6 @@ def login():
 def register():
     """Página de registro"""
     if request.method == 'POST':
-        # Para demostración, redirigir al login
         flash('El registro está deshabilitado. Usa el usuario demo para probar la aplicación.', 'info')
         return redirect(url_for('login'))
 
@@ -221,24 +331,6 @@ def dashboard():
     return render_template('dashboard.html', user=user, progreso=progreso_data)
 
 
-def get_fallback_progress_data():
-    """Datos de progreso por defecto cuando no hay BD"""
-    return {
-        'estadisticas': {
-            'ejercicios_completados': 0,
-            'tiempo_total_minutos': 0,
-            'precision_promedio': 0.0,
-            'racha_dias': 0,
-            'puntos_totales': 0
-        },
-        'niveles': {
-            'lectura': {'nivel': 1, 'puntos': 0, 'desbloqueado': True},
-            'ejercicios': {'nivel': 1, 'puntos': 0, 'desbloqueado': True},
-            'pronunciacion': {'nivel': 1, 'puntos': 0, 'desbloqueado': True}
-        }
-    }
-
-
 # ==================== RUTAS DE PERFIL Y CONFIGURACIÓN ====================
 
 @app.route('/perfil')
@@ -270,18 +362,6 @@ def perfil():
     return render_template('perfil.html', user=user, estadisticas=estadisticas_perfil)
 
 
-def get_fallback_profile_stats():
-    """Estadísticas de perfil por defecto"""
-    return {
-        'fecha_registro': '2024-01-15',
-        'total_ejercicios': 0,
-        'tiempo_total_horas': 0.0,
-        'nivel_actual': 'Principiante',
-        'puntos_totales': 0,
-        'insignias_obtenidas': 0
-    }
-
-
 @app.route('/configuracion')
 @login_required
 def configuracion():
@@ -309,23 +389,13 @@ def configuracion():
     return render_template('configuracion.html', configuraciones=config_usuario)
 
 
-def get_fallback_config():
-    """Configuración por defecto"""
-    return {
-        'velocidad_lectura': 500,
-        'dificultad_preferida': 'medio',
-        'tema_preferido': 'brown',
-        'notificaciones_activas': True,
-        'sonidos_activos': True,
-        'modo_oscuro': False,
-        'idioma': 'es'
-    }
-
+# ==================== RUTA DE PROGRESO CORREGIDA ====================
 
 @app.route('/progreso')
+@app.route('/mostrar_progreso')  # Alias para compatibilidad
 @login_required
-def progreso():
-    """Página de progreso del usuario con datos reales"""
+def mostrar_progreso():
+    """Página de progreso del usuario con datos reales - RUTA CORREGIDA"""
     user = get_current_user()
 
     if DB_AVAILABLE and user:
@@ -333,160 +403,42 @@ def progreso():
             # Obtener datos reales de la base de datos
             estadisticas = db_manager.get_user_statistics(user['id'])
             progreso_niveles = db_manager.get_progress_levels(user['id'])
-            ejercicios_recientes = db_manager.get_exercises_by_user(user['id'], 10)
-            estadisticas_diarias = db_manager.get_daily_stats(user['id'], 7)
+            ejercicios_recientes = db_manager.get_exercises_by_user(user['id'], limit=10)
             logros = db_manager.get_user_achievements(user['id'])
 
-            # Generar insights basados en datos reales
-            insights = generate_real_insights(estadisticas, ejercicios_recientes)
-            recomendaciones = generate_real_recommendations(estadisticas, progreso_niveles)
-
-            datos_progreso = {
-                'estadisticas': estadisticas,
-                'progreso_niveles': progreso_niveles,
-                'reporte': {
-                    'mensaje_principal': get_progress_message(estadisticas),
-                    'insights': insights,
-                    'recomendaciones': recomendaciones
-                },
-                'historial_semanal': format_daily_stats(estadisticas_diarias),
-                'logros': logros
+            # Crear reporte de progreso
+            reporte = {
+                'mensaje_principal': f"Has completado {estadisticas['ejercicios_completados']} ejercicios con {estadisticas['precision_promedio']:.1f}% de precisión promedio.",
+                'nivel_actual': max(estadisticas['nivel_lectura'], estadisticas['nivel_ejercicios'],
+                                    estadisticas['nivel_pronunciacion']),
+                'puntos_totales': estadisticas['puntos_totales'],
+                'tiempo_total_horas': round(estadisticas['tiempo_total_minutos'] / 60, 1),
+                'insights': [
+                    f"Tu fuerte es la {'lectura' if estadisticas['nivel_lectura'] >= max(estadisticas['nivel_ejercicios'], estadisticas['nivel_pronunciacion']) else 'práctica' if estadisticas['nivel_ejercicios'] >= estadisticas['nivel_pronunciacion'] else 'pronunciación'}",
+                    f"Has mantenido una racha de {estadisticas['racha_dias']} días",
+                    f"Tu precisión promedio es {'excelente' if estadisticas['precision_promedio'] >= 90 else 'muy buena' if estadisticas['precision_promedio'] >= 80 else 'buena' if estadisticas['precision_promedio'] >= 70 else 'mejorable'}"
+                ],
+                'recomendaciones': [
+                    "Intenta practicar al menos 15 minutos diarios",
+                    "Varía entre diferentes tipos de ejercicios",
+                    "Revisa tus errores más comunes"
+                ]
             }
 
         except Exception as e:
-            logger.error(f"Error obteniendo datos de progreso: {e}")
-            datos_progreso = get_fallback_progress_report()
+            logger.error(f"Error obteniendo progreso: {e}")
+            # Fallback a datos por defecto
+            estadisticas, progreso_niveles, ejercicios_recientes, logros, reporte = get_fallback_progress_data_complete()
     else:
-        datos_progreso = get_fallback_progress_report()
+        estadisticas, progreso_niveles, ejercicios_recientes, logros, reporte = get_fallback_progress_data_complete()
 
     return render_template('progreso.html',
                            user=user,
-                           progreso=datos_progreso,
-                           estadisticas=datos_progreso['estadisticas'],
-                           progreso_niveles=datos_progreso['progreso_niveles'],
-                           reporte=datos_progreso['reporte'],
-                           historial_semanal=datos_progreso['historial_semanal'])
-
-
-def generate_real_insights(estadisticas, ejercicios_recientes):
-    """Generar insights basados en datos reales"""
-    insights = []
-
-    if estadisticas['ejercicios_completados'] > 0:
-        if estadisticas['precision_promedio'] >= 85:
-            insights.append(f"¡Excelente! Tu precisión promedio es del {estadisticas['precision_promedio']:.1f}%")
-        elif estadisticas['precision_promedio'] >= 70:
-            insights.append(f"Buen trabajo, tu precisión es del {estadisticas['precision_promedio']:.1f}%")
-        else:
-            insights.append(f"Tu precisión actual es del {estadisticas['precision_promedio']:.1f}%, puedes mejorar")
-
-    if estadisticas['racha_dias'] > 0:
-        insights.append(f"Llevas {estadisticas['racha_dias']} días de racha consecutiva")
-
-    if estadisticas['tiempo_total_minutos'] > 60:
-        horas = estadisticas['tiempo_total_minutos'] / 60
-        insights.append(f"Has dedicado {horas:.1f} horas al aprendizaje")
-
-    if estadisticas['ejercicios_completados'] >= 10:
-        insights.append("Has completado más de 10 ejercicios, ¡sigue así!")
-
-    if not insights:
-        insights.append("¡Bienvenido! Comienza a practicar para ver tu progreso")
-
-    return insights
-
-
-def generate_real_recommendations(estadisticas, progreso_niveles):
-    """Generar recomendaciones basadas en datos reales"""
-    recomendaciones = []
-
-    # Analizar niveles más bajos
-    niveles = [(k, v['nivel_actual']) for k, v in progreso_niveles.items()]
-    nivel_mas_bajo = min(niveles, key=lambda x: x[1])
-
-    if nivel_mas_bajo[1] < 2:
-        recomendaciones.append(f"Enfócate en ejercicios de {nivel_mas_bajo[0]} para subir de nivel")
-
-    if estadisticas['precision_promedio'] < 70:
-        recomendaciones.append("Practica más despacio para mejorar tu precisión")
-
-    if estadisticas['racha_dias'] == 0:
-        recomendaciones.append("Intenta practicar todos los días para crear una racha")
-
-    if estadisticas['ejercicios_completados'] < 5:
-        recomendaciones.append("Completa al menos 5 ejercicios para desbloquear más funciones")
-
-    recomendaciones.append("Dedica 15 minutos diarios para ver mejores resultados")
-
-    return recomendaciones
-
-
-def get_progress_message(estadisticas):
-    """Generar mensaje principal de progreso"""
-    if estadisticas['ejercicios_completados'] == 0:
-        return "¡Bienvenido a AlfaIA! Comienza tu aventura de aprendizaje"
-    elif estadisticas['precision_promedio'] >= 85:
-        return "¡Excelente progreso! Eres un estudiante ejemplar"
-    elif estadisticas['ejercicios_completados'] >= 10:
-        return "¡Buen trabajo! Estás progresando constantemente"
-    else:
-        return "Sigue practicando, cada ejercicio te acerca a tu meta"
-
-
-def format_daily_stats(estadisticas_diarias):
-    """Formatear estadísticas diarias para la plantilla"""
-    if not estadisticas_diarias:
-        # Generar datos de ejemplo para la semana actual
-        dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
-        return [{'dia': dia, 'ejercicios': 0, 'tiempo': 0, 'puntos': 0} for dia in dias]
-
-    # Convertir datos reales
-    formatted = []
-    for stat in estadisticas_diarias:
-        formatted.append({
-            'dia': stat['fecha'].strftime('%A') if hasattr(stat['fecha'], 'strftime') else str(stat['fecha']),
-            'ejercicios': stat['ejercicios_completados'],
-            'tiempo': stat['tiempo_estudiado_minutos'],
-            'puntos': stat['puntos_obtenidos']
-        })
-
-    return formatted
-
-
-def get_fallback_progress_report():
-    """Reporte de progreso por defecto"""
-    return {
-        'estadisticas': {
-            'ejercicios_completados': 0,
-            'precision_promedio': 0.0,
-            'racha_dias': 0,
-            'total_vocales': 0,
-            'tiempo_total_minutos': 0,
-            'puntos_totales': 0
-        },
-        'progreso_niveles': {
-            'lectura': {'nivel_actual': 1, 'progreso_porcentaje': 0, 'puntos_actuales': 0, 'puntos_necesarios': 100},
-            'ejercicios': {'nivel_actual': 1, 'progreso_porcentaje': 0, 'puntos_actuales': 0, 'puntos_necesarios': 100},
-            'pronunciacion': {'nivel_actual': 1, 'progreso_porcentaje': 0, 'puntos_actuales': 0,
-                              'puntos_necesarios': 100},
-            'juegos': {'nivel_actual': 1, 'progreso_porcentaje': 0, 'puntos_actuales': 0, 'puntos_necesarios': 100}
-        },
-        'reporte': {
-            'mensaje_principal': '¡Bienvenido! Comienza a practicar para ver tu progreso',
-            'insights': ['Conecta la base de datos para ver estadísticas reales'],
-            'recomendaciones': ['Configura la base de datos MySQL', 'Ejecuta el script database_structure.sql']
-        },
-        'historial_semanal': [
-            {'dia': 'Lunes', 'ejercicios': 0, 'tiempo': 0, 'puntos': 0},
-            {'dia': 'Martes', 'ejercicios': 0, 'tiempo': 0, 'puntos': 0},
-            {'dia': 'Miércoles', 'ejercicios': 0, 'tiempo': 0, 'puntos': 0},
-            {'dia': 'Jueves', 'ejercicios': 0, 'tiempo': 0, 'puntos': 0},
-            {'dia': 'Viernes', 'ejercicios': 0, 'tiempo': 0, 'puntos': 0},
-            {'dia': 'Sábado', 'ejercicios': 0, 'tiempo': 0, 'puntos': 0},
-            {'dia': 'Domingo', 'ejercicios': 0, 'tiempo': 0, 'puntos': 0}
-        ],
-        'logros': []
-    }
+                           estadisticas=estadisticas,
+                           progreso_niveles=progreso_niveles,
+                           ejercicios_recientes=ejercicios_recientes,
+                           logros=logros,
+                           reporte=reporte)
 
 
 # ==================== RUTAS DE EJERCICIOS ====================
@@ -552,6 +504,7 @@ def ejercicio_diario():
 
 
 @app.route('/ejercicios/lectura')
+@app.route('/lectura')  # Alias para compatibilidad con dashboard
 @login_required
 def ejercicios_lectura():
     """Ejercicios de lectura comprensiva"""
@@ -566,56 +519,45 @@ def ejercicios_lectura():
             },
             {
                 'pregunta': '¿Cómo estaba el tiempo?',
-                'opciones': ['Lluvioso', 'Nublado', 'Soleado', 'Ventoso'],
+                'opciones': ['Nublado', 'Lluvioso', 'Soleado', 'Nevado'],
                 'respuesta_correcta': 'Soleado'
+            },
+            {
+                'pregunta': '¿Qué hizo María en el parque?',
+                'opciones': ['Correr', 'Leer', 'Jugar', 'Dormir'],
+                'respuesta_correcta': 'Leer'
             }
         ],
-        'nivel': 2,
-        'puntos_posibles': 20
+        'nivel': 1,
+        'puntos_posibles': 30
     }
     return render_template('ejercicios/lectura.html', ejercicio=ejercicio_actual)
 
 
-# Alias para compatibilidad
-@app.route('/lectura')
-@login_required
-def lectura():
-    return redirect(url_for('ejercicios_lectura'))
-
-
 @app.route('/ejercicios/pronunciacion')
 @login_required
-def ejercicios_pronunciacion():
+def ejercicio_pronunciacion():
     """Ejercicios de pronunciación"""
     ejercicio_actual = {
-        'tipo': 'vocales',
-        'palabras': [
-            {'palabra': 'casa', 'audio_url': '/static/audio/casa.mp3'},
-            {'palabra': 'mesa', 'audio_url': '/static/audio/mesa.mp3'},
-            {'palabra': 'piso', 'audio_url': '/static/audio/piso.mp3'},
-            {'palabra': 'lobo', 'audio_url': '/static/audio/lobo.mp3'},
-            {'palabra': 'luna', 'audio_url': '/static/audio/luna.mp3'}
-        ],
-        'instrucciones': 'Escucha cada palabra y repítela en voz alta',
+        'vocales': ['A', 'E', 'I', 'O', 'U'],
+        'palabras': ['casa', 'mesa', 'libro', 'oso', 'uva'],
         'nivel': 1,
-        'puntos_posibles': 15
+        'puntos_posibles': 25
     }
     return render_template('ejercicios/pronunciacion.html', ejercicio=ejercicio_actual)
 
 
 @app.route('/ejercicios/ortografia')
 @login_required
-def ejercicios_ortografia():
+def ejercicio_ortografia():
     """Ejercicios de ortografía"""
     ejercicio_actual = {
-        'tipo': 'completar_palabras',
         'palabras': [
-            {'incompleta': 'c_sa', 'completa': 'casa', 'pista': 'Lugar donde vives'},
-            {'incompleta': 'esc_ela', 'completa': 'escuela', 'pista': 'Lugar donde estudias'},
-            {'incompleta': 'fam_lia', 'completa': 'familia', 'pista': 'Tus seres queridos'},
-            {'incompleta': 'am_go', 'completa': 'amigo', 'pista': 'Persona que te quiere'},
+            {'incorrecta': 'kasa', 'correcta': 'casa'},
+            {'incorrecta': 'gato', 'correcta': 'gato'},
+            {'incorrecta': 'arbol', 'correcta': 'árbol'},
+            {'incorrecta': 'lapiz', 'correcta': 'lápiz'}
         ],
-        'instrucciones': 'Completa las palabras agregando la vocal faltante',
         'nivel': 1,
         'puntos_posibles': 25
     }
@@ -651,17 +593,17 @@ def completar_palabra():
     return render_template('ejercicios/completar_palabra.html', ejercicio=ejercicio)
 
 
-# ==================== RUTAS DE JUEGOS ====================
+# ==================== RUTAS DE JUEGOS CORREGIDAS ====================
 
 @app.route('/juegos')
 @login_required
 def juegos():
-    """Página principal de juegos"""
+    """Página principal de juegos - RUTA CORREGIDA"""
     juegos_disponibles = [
         {
             'id': 'memoria',
             'nombre': 'Juego de Memoria',
-            'descripcion': 'Encuentra las parejas de palabras',
+            'descripcion': 'Encuentra las parejas de palabras sinónimas',
             'icono': 'brain',
             'url': '/juegos/memoria',
             'dificultad': 'Fácil',
@@ -681,76 +623,212 @@ def juegos():
         {
             'id': 'trivia',
             'nombre': 'Trivia Educativa',
-            'descripcion': 'Responde preguntas sobre diferentes temas',
+            'descripcion': 'Responde preguntas sobre diferentes temas educativos',
             'icono': 'question-circle',
             'url': '/juegos/trivia',
             'dificultad': 'Variada',
             'jugadores': '1',
             'tiempo': '10-15 min'
+        },
+        {
+            'id': 'crucigrama',
+            'nombre': 'Crucigrama',
+            'descripcion': 'Completa el crucigrama con las palabras correctas',
+            'icono': 'th',
+            'url': '/juegos/crucigrama',
+            'dificultad': 'Intermedio',
+            'jugadores': '1',
+            'tiempo': '15-20 min'
         }
     ]
     return render_template('juegos.html', juegos=juegos_disponibles)
 
 
-@app.route('/juegos/rapido')
-@login_required
-def juego_rapido():
-    """Juego rápido aleatorio"""
-    import random
-    juegos_disponibles = [
-        {'nombre': 'Memoria', 'url': '/juegos/memoria'},
-        {'nombre': 'Ahorcado', 'url': '/juegos/ahorcado'},
-        {'nombre': 'Trivia', 'url': '/juegos/trivia'}
-    ]
-    juego_seleccionado = random.choice(juegos_disponibles)
-    return redirect(juego_seleccionado['url'])
-
-
 @app.route('/juegos/memoria')
 @login_required
 def juego_memoria():
-    """Juego de memoria"""
-    nivel = request.args.get('nivel', 1, type=int)
-    pares = [
-        ('Gato', 'Felino'), ('Perro', 'Canino'), ('Sol', 'Estrella'),
-        ('Casa', 'Hogar'), ('Libro', 'Lectura'), ('Agua', 'Líquido')
-    ]
-    return render_template('juegos/memoria.html', pares=pares[:3 * nivel], nivel=nivel)
+    """Juego de memoria - RUTA CORREGIDA"""
+    try:
+        nivel = request.args.get('nivel', 1, type=int)
 
+        # Usar generador de juegos si está disponible
+        if JUEGOS_AVAILABLE and juegos_generator:
+            juego_data = juegos_generator.generar_ahorcado(nivel)
+            return render_template('juegos/ahorcado.html',
+                                   palabra_data=juego_data,
+                                   nivel=nivel)
+        else:
+            # Palabras por nivel por defecto
+            palabras_por_nivel = {
+                1: [
+                    {'palabra': 'GATO', 'pista': 'Animal doméstico que dice miau'},
+                    {'palabra': 'CASA', 'pista': 'Lugar donde vives'},
+                    {'palabra': 'SOL', 'pista': 'Estrella que nos da luz'},
+                    {'palabra': 'MAR', 'pista': 'Agua salada muy grande'}
+                ],
+                2: [
+                    {'palabra': 'ESCUELA', 'pista': 'Lugar donde los niños aprenden'},
+                    {'palabra': 'FAMILIA', 'pista': 'Papá, mamá e hijos'},
+                    {'palabra': 'JARDIN', 'pista': 'Lugar con plantas y flores'},
+                    {'palabra': 'MUSICA', 'pista': 'Arte de los sonidos'}
+                ],
+                3: [
+                    {'palabra': 'NAVEGACION', 'pista': 'Acción de dirigir una embarcación'},
+                    {'palabra': 'COMPRENSION', 'pista': 'Capacidad de entender algo'},
+                    {'palabra': 'EXTRAORDINARIO', 'pista': 'Algo fuera de lo común'},
+                    {'palabra': 'REFRIGERADOR', 'pista': 'Electrodoméstico para enfriar'}
+                ]
+            }
 
-@app.route('/juegos/ahorcado')
-@login_required
-def juego_ahorcado():
-    """Juego del ahorcado"""
-    nivel = request.args.get('nivel', 1, type=int)
-    palabras = [
-        {'palabra': 'GATO', 'pista': 'Animal doméstico que dice miau'},
-        {'palabra': 'CASA', 'pista': 'Lugar donde vives'},
-        {'palabra': 'ESCUELA', 'pista': 'Lugar donde aprendes'},
-    ]
-    import random
-    palabra_data = random.choice(palabras)
-    return render_template('juegos/ahorcado.html', palabra_data=palabra_data, nivel=nivel)
+            palabras = palabras_por_nivel.get(nivel, palabras_por_nivel[1])
+            palabra_data = random.choice(palabras)
+
+            return render_template('juegos/ahorcado.html',
+                                   palabra_data=palabra_data,
+                                   nivel=nivel)
+    except Exception as e:
+        logger.error(f"Error generando juego de ahorcado: {e}")
+        flash('Error cargando el juego. Inténtalo de nuevo.', 'error')
+        return redirect('/juegos')
 
 
 @app.route('/juegos/trivia')
 @login_required
 def juego_trivia():
-    """Juego de trivia"""
-    preguntas = [
-        {
-            'pregunta': '¿Cuántas vocales tiene el español?',
-            'opciones': ['3', '5', '7', '10'],
-            'respuesta_correcta': '5'
-        },
-        {
-            'pregunta': '¿Qué palabra es un sinónimo de "grande"?',
-            'opciones': ['pequeño', 'enorme', 'medio', 'chico'],
-            'respuesta_correcta': 'enorme'
-        }
-    ]
-    return render_template('juegos/trivia.html', preguntas=preguntas)
+    """Juego de trivia - RUTA CORREGIDA"""
+    try:
+        categoria = request.args.get('categoria', None)
+        nivel = request.args.get('nivel', 1, type=int)
 
+        if JUEGOS_AVAILABLE and juegos_generator:
+            # Generar múltiples preguntas para la sesión
+            preguntas = []
+            categorias_disponibles = juegos_generator.obtener_categorias_trivia()
+
+            # Generar 5-8 preguntas aleatorias
+            num_preguntas = random.randint(5, 8)
+            for _ in range(num_preguntas):
+                cat_aleatoria = categoria if categoria else random.choice(categorias_disponibles)
+                pregunta = juegos_generator.generar_trivia(cat_aleatoria, nivel)
+                preguntas.append(pregunta)
+
+            return render_template('juegos/trivia.html', preguntas=preguntas)
+        else:
+            # Preguntas de trivia por defecto
+            preguntas = [
+                {
+                    'pregunta': '¿Cuántas vocales tiene el español?',
+                    'opciones': ['3', '5', '7', '10'],
+                    'respuesta_correcta': '5',
+                    'explicacion': 'El español tiene 5 vocales: a, e, i, o, u'
+                },
+                {
+                    'pregunta': '¿Qué palabra es un sinónimo de "grande"?',
+                    'opciones': ['pequeño', 'enorme', 'medio', 'chico'],
+                    'respuesta_correcta': 'enorme',
+                    'explicacion': 'Enorme significa de gran tamaño, igual que grande'
+                },
+                {
+                    'pregunta': '¿Cuál es el plural de "lápiz"?',
+                    'opciones': ['lápizes', 'lápices', 'lapizes', 'lapices'],
+                    'respuesta_correcta': 'lápices',
+                    'explicacion': 'El plural correcto de lápiz es lápices'
+                },
+                {
+                    'pregunta': '¿Qué tipo de palabra es "rápidamente"?',
+                    'opciones': ['sustantivo', 'adjetivo', 'adverbio', 'verbo'],
+                    'respuesta_correcta': 'adverbio',
+                    'explicacion': 'Las palabras terminadas en -mente son adverbios'
+                },
+                {
+                    'pregunta': '¿Cuál lleva tilde?',
+                    'opciones': ['cancion', 'corazon', 'árbol', 'feliz'],
+                    'respuesta_correcta': 'árbol',
+                    'explicacion': 'Árbol lleva tilde por ser una palabra grave terminada en consonante que no es n o s'
+                }
+            ]
+
+            # Mezclar preguntas
+            random.shuffle(preguntas)
+
+            return render_template('juegos/trivia.html', preguntas=preguntas[:5])
+    except Exception as e:
+        logger.error(f"Error generando trivia: {e}")
+        flash('Error cargando la trivia. Inténtalo de nuevo.', 'error')
+        return redirect('/juegos')
+
+
+@app.route('/juegos/crucigrama')
+@login_required
+def juego_crucigrama():
+    """Juego de crucigrama - RUTA CORREGIDA"""
+    try:
+        nivel = request.args.get('nivel', 1, type=int)
+
+        if JUEGOS_AVAILABLE and juegos_generator:
+            crucigrama_data = juegos_generator.generar_crucigrama(nivel)
+            return render_template('juegos/crucigrama.html',
+                                   crucigrama=crucigrama_data,
+                                   nivel=nivel)
+        else:
+            # Crucigrama simple por defecto
+            crucigrama_data = {
+                "titulo": "Crucigrama Básico",
+                "tamaño": 8,
+                "grid": [
+                    ["", "", "", "C", "", "", "", ""],
+                    ["", "", "", "A", "", "", "", ""],
+                    ["G", "A", "T", "O", "", "", "", ""],
+                    ["", "", "", "L", "", "", "", ""],
+                    ["", "", "", "O", "", "", "", ""],
+                    ["", "", "", "R", "", "", "", ""],
+                    ["", "", "", "", "", "", "", ""],
+                    ["", "", "", "", "", "", "", ""]
+                ],
+                "palabras": [
+                    {
+                        "palabra": "GATO",
+                        "fila": 2,
+                        "columna": 0,
+                        "direccion": "horizontal",
+                        "pista": "Animal doméstico que dice miau",
+                        "numero": 1
+                    },
+                    {
+                        "palabra": "CALOR",
+                        "fila": 0,
+                        "columna": 3,
+                        "direccion": "vertical",
+                        "pista": "Sensación de temperatura alta",
+                        "numero": 2
+                    }
+                ],
+                "puntos": 100
+            }
+
+            return render_template('juegos/crucigrama.html',
+                                   crucigrama=crucigrama_data,
+                                   nivel=nivel)
+    except Exception as e:
+        logger.error(f"Error generando crucigrama: {e}")
+        flash('Error cargando el crucigrama. Inténtalo de nuevo.', 'error')
+        return redirect('/juegos')
+
+
+@app.route('/juegos/rapido')
+@login_required
+def juego_rapido():
+    """Juego rápido aleatorio - RUTA CORREGIDA"""
+    juegos_disponibles = [
+        '/juegos/memoria',
+        '/juegos/ahorcado',
+        '/juegos/trivia'
+    ]
+    juego_seleccionado = random.choice(juegos_disponibles)
+    return redirect(juego_seleccionado)
+
+
+# ==================== OTRAS RUTAS IMPORTANTES ====================
 
 @app.route('/logros')
 @login_required
@@ -792,44 +870,99 @@ def api_completar_ejercicio():
         tiempo_segundos = data.get('tiempo_segundos', 0)
         datos_adicionales = data.get('datos_adicionales', {})
 
+        # Detectar si es un juego y usar el sistema mejorado de guardado
+        if ejercicio_tipo in ['memoria', 'ahorcado', 'trivia', 'crucigrama']:
+            return save_game_result_to_db(
+                user['id'], ejercicio_tipo, ejercicio_nombre,
+                puntos_obtenidos, precision, tiempo_segundos, datos_adicionales
+            )
+
+        # Para ejercicios regulares, usar el sistema original
         if DB_AVAILABLE:
-            # Guardar en base de datos
             success = db_manager.save_exercise_result(
                 user['id'], ejercicio_tipo, ejercicio_nombre,
                 puntos_obtenidos, precision, tiempo_segundos, datos_adicionales
             )
 
             if success:
-                # Obtener estadísticas actualizadas
                 estadisticas = db_manager.get_user_statistics(user['id'])
-
                 return jsonify({
                     'success': True,
                     'message': '¡Ejercicio completado exitosamente!',
                     'data': {
                         'puntos_obtenidos': puntos_obtenidos,
-                        'nuevo_total_puntos': estadisticas['puntos_totales'],
-                        'precision': precision,
-                        'nivel_actualizado': False  # TODO: implementar lógica de niveles
+                        'nuevo_total_puntos': estadisticas.get('puntos_totales', puntos_obtenidos),
+                        'precision': precision
                     }
                 })
             else:
                 return jsonify({'success': False, 'message': 'Error guardando ejercicio'})
         else:
-            # Modo sin base de datos
             return jsonify({
                 'success': True,
-                'message': '¡Ejercicio completado! (Modo sin BD)',
+                'message': '¡Ejercicio completado! (modo offline)',
                 'data': {
                     'puntos_obtenidos': puntos_obtenidos,
-                    'nuevo_total_puntos': puntos_obtenidos,
-                    'precision': precision,
-                    'nivel_actualizado': False
+                    'precision': precision
                 }
             })
 
     except Exception as e:
         logger.error(f"Error completando ejercicio: {e}")
+        return jsonify({'success': False, 'message': 'Error interno del servidor'})
+
+
+def save_game_result_to_db(user_id, game_type, game_name, points, accuracy, time_seconds, additional_data):
+    """Función auxiliar para guardar resultados de juegos en la base de datos"""
+    try:
+        if DB_AVAILABLE:
+            # Guardar en base de datos
+            success = db_manager.save_exercise_result(
+                user_id, game_type, game_name, points, accuracy, time_seconds, additional_data
+            )
+
+            if success:
+                # Obtener estadísticas actualizadas
+                estadisticas = db_manager.get_user_statistics(user_id)
+
+                # Verificar si se desbloquearon logros
+                try:
+                    # Llamar al procedimiento de verificación de logros
+                    with db_manager.get_connection() as conn:
+                        cursor = conn.cursor()
+                        cursor.callproc('VerificarLogros', [user_id])
+                        conn.commit()
+                        cursor.close()
+                except Exception as e:
+                    logger.warning(f"Error verificando logros: {e}")
+
+                return jsonify({
+                    'success': True,
+                    'message': f'¡Juego completado exitosamente! Ganaste {points} puntos.',
+                    'data': {
+                        'puntos_obtenidos': points,
+                        'nuevo_total_puntos': estadisticas.get('puntos_totales', points),
+                        'precision': accuracy,
+                        'tiempo_empleado': time_seconds,
+                        'estadisticas_actualizadas': estadisticas
+                    }
+                })
+            else:
+                return jsonify({'success': False, 'message': 'Error guardando resultado del juego'})
+        else:
+            # Modo sin base de datos
+            return jsonify({
+                'success': True,
+                'message': f'¡Juego completado! Ganaste {points} puntos (modo offline)',
+                'data': {
+                    'puntos_obtenidos': points,
+                    'precision': accuracy,
+                    'tiempo_empleado': time_seconds
+                }
+            })
+
+    except Exception as e:
+        logger.error(f"Error guardando resultado del juego: {e}")
         return jsonify({'success': False, 'message': 'Error interno del servidor'})
 
 
@@ -868,101 +1001,76 @@ def api_actualizar_configuracion():
         if DB_AVAILABLE:
             success = db_manager.update_user_settings(user['id'], data)
             if success:
-                return jsonify({'success': True, 'message': 'Configuración actualizada'})
+                return jsonify({
+                    'success': True,
+                    'message': 'Configuración actualizada exitosamente'
+                })
             else:
                 return jsonify({'success': False, 'message': 'Error actualizando configuración'})
         else:
-            return jsonify({'success': True, 'message': 'Configuración guardada (modo sin BD)'})
+            return jsonify({
+                'success': True,
+                'message': 'Configuración guardada localmente (modo offline)'
+            })
 
     except Exception as e:
         logger.error(f"Error actualizando configuración: {e}")
         return jsonify({'success': False, 'message': 'Error interno del servidor'})
 
 
-# ==================== RUTAS DE DESARROLLO ====================
-
-@app.route('/debug/database')
-def debug_database():
-    """Información de debug sobre la base de datos"""
-    if not app.debug:
-        return "Debug deshabilitado", 403
-
-    info = {
-        'database_available': DB_AVAILABLE,
-        'connection_test': db_manager.test_connection() if db_manager else False,
-        'session_user': session.get('user_id'),
-        'current_user': get_current_user()
-    }
-
-    return jsonify(info)
-
-
-@app.route('/test-session')
-def test_session():
-    """Ruta para probar sesiones"""
-    return jsonify({
-        'session_active': 'user_id' in session,
-        'session_data': dict(session) if session else {},
-        'current_user': get_current_user(),
-        'database_connected': DB_AVAILABLE
-    })
-
-
 # ==================== MANEJO DE ERRORES ====================
 
 @app.errorhandler(404)
-def not_found(error):
-    try:
-        return render_template('errors/404.html'), 404
-    except:
-        return '<h1>404 - Página no encontrada</h1><a href="/">Volver al inicio</a>', 404
+def page_not_found(error):
+    """Página de error 404"""
+    return render_template('errors/404.html'), 404
 
 
 @app.errorhandler(500)
 def internal_error(error):
-    logger.error(f"Error interno: {error}")
-    try:
-        return render_template('errors/500.html'), 500
-    except:
-        return '<h1>500 - Error del servidor</h1><a href="/">Volver al inicio</a>', 500
+    """Página de error 500"""
+    return render_template('errors/500.html'), 500
 
 
-# ==================== CONTEXTO GLOBAL ====================
+@app.errorhandler(403)
+def forbidden(error):
+    """Página de error 403"""
+    return render_template('errors/403.html'), 403
+
+
+# ==================== FILTROS DE TEMPLATE ====================
+
+@app.template_filter('tojsonfilter')
+def to_json_filter(obj):
+    """Filtro para convertir objetos Python a JSON en templates"""
+    return json.dumps(obj, ensure_ascii=False)
+
+
+# ==================== CONTEXTO GLOBAL DE TEMPLATES ====================
 
 @app.context_processor
-def inject_globals():
-    """Inyectar variables globales en todas las plantillas"""
+def inject_global_vars():
+    """Inyectar variables globales a todos los templates"""
     return {
-        'user': get_current_user(),
-        'is_logged_in': 'user_id' in session,
-        'current_year': datetime.now().year,
-        'app_name': 'AlfaIA',
-        'app_version': '1.0.0',
-        'database_connected': DB_AVAILABLE
+        'DB_AVAILABLE': DB_AVAILABLE,
+        'JUEGOS_AVAILABLE': JUEGOS_AVAILABLE,
+        'current_year': datetime.now().year
     }
 
 
-# ==================== INICIALIZACIÓN ====================
+# ==================== INICIALIZACIÓN Y MAIN ====================
 
 if __name__ == '__main__':
-    # Verificar directorios
-    for directory in ['logs', 'data', 'static/uploads', 'templates/errors']:
-        os.makedirs(directory, exist_ok=True)
+    # Información de inicio
+    print("🚀 Iniciando AlfaIA...")
+    print(f"📊 Base de datos: {'✅ Conectada' if DB_AVAILABLE else '❌ No disponible'}")
+    print(f"🎮 Generador de juegos: {'✅ Disponible' if JUEGOS_AVAILABLE else '❌ No disponible'}")
+    print(f"🌐 Servidor: http://127.0.0.1:5000")
 
-    logger.info("🚀 Iniciando AlfaIA...")
-
-    if DB_AVAILABLE:
-        logger.info("✅ Conectado a base de datos MySQL")
-    else:
-        logger.warning("⚠️ Ejecutando sin base de datos (modo de demostración)")
-        logger.warning("   Para conectar BD: 1) Instala MySQL, 2) Ejecuta database_structure.sql")
-
-    logger.info("💡 Usuario demo disponible: demo_user / demo123")
-
-    # Ejecutar aplicación
+    # Ejecutar la aplicación
     app.run(
         host='127.0.0.1',
         port=5000,
         debug=True,
-        threaded=True
+        use_reloader=True
     )

@@ -1,0 +1,1603 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trivia Educativa - AlfaIA</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #667eea;
+            --secondary: #764ba2;
+            --success: #42e695;
+            --warning: #f093fb;
+            --info: #4facfe;
+            --danger: #ff6b6b;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--info) 0%, var(--primary) 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar-custom {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .question-counter {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .question-number {
+            background: linear-gradient(135deg, var(--info), var(--primary));
+            color: white;
+            border-radius: 50px;
+            padding: 0.5rem 1.5rem;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+
+        .progress-bar-custom {
+            height: 8px;
+            border-radius: 50px;
+            background: linear-gradient(90deg, var(--info), var(--success));
+        }
+
+        .question-section {
+            text-align: center;
+            margin: 2rem 0;
+        }
+
+        .question-text {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 2rem;
+            line-height: 1.4;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            margin: 2rem 0;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .option-btn {
+            background: linear-gradient(135deg, #f7f9fc, #edf2f7);
+            border: 2px solid #e2e8f0;
+            border-radius: 15px;
+            padding: 1.5rem;
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #4a5568;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-align: left;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(79, 172, 254, 0.3);
+            border-color: var(--info);
+            background: linear-gradient(135deg, #ebf8ff, #bee3f8);
+        }
+
+        .option-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .option-btn.selected {
+            background: linear-gradient(135deg, var(--info), var(--primary));
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .option-btn.correct {
+            background: linear-gradient(135deg, var(--success), #38a169);
+            color: white;
+            border-color: var(--success);
+        }
+
+        .option-btn.incorrect {
+            background: linear-gradient(135deg, var(--danger), #e53e3e);
+            color: white;
+            border-color: var(--danger);
+        }
+
+        .option-letter {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            margin-right: 1rem;
+            font-weight: bold;
+        }
+
+        .timer-section {
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        .timer-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--warning), var(--danger));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 0 auto;
+            transition: all 0.3s ease;
+        }
+
+        .timer-circle.warning {
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .game-stats {
+            display: flex;
+            justify-content: space-around;
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            color: #718096;
+            font-size: 0.9rem;
+        }
+
+        .explanation-section {
+            background: #e6fffa;
+            border: 2px solid #4fd1c7;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            display: none;
+        }
+
+        .explanation-title {
+            color: #234e52;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .explanation-text {
+            color: #2d3748;
+            line-height: 1.6;
+        }
+
+        .next-question-btn {
+            background: linear-gradient(135deg, var(--success), #38a169);
+            border: none;
+            color: white;
+            padding: 1rem 3rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            margin: 1rem 0;
+        }
+
+        .next-question-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(66, 230, 149, 0.4);
+            color: white;
+        }
+
+        .game-over-section {
+            text-align: center;
+            padding: 2rem;
+            border-radius: 15px;
+            margin: 2rem 0;
+            display: none;
+        }
+
+        .final-score {
+            font-size: 3rem;
+            font-weight: bold;
+            margin: 1rem 0;
+        }
+
+        .score-excellent { color: var(--success); }
+        .score-good { color: var(--info); }
+        .score-average { color: var(--warning); }
+        .score-poor { color: var(--danger); }
+
+        .btn-game {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            margin: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-game:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+
+        .btn-game.success {
+            background: linear-gradient(135deg, var(--success), #38a169);
+        }
+
+        .btn-game.warning {
+            background: linear-gradient(135deg, #ed8936, #dd6b20);
+        }
+
+        .btn-game.secondary {
+            background: linear-gradient(135deg, #718096, #4a5568);
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes shakeError {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
+        @keyframes revealCorrect {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            }
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 8px 25px rgba(66, 230, 149, 0.4);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 8px 25px rgba(66, 230, 149, 0.4);
+            }
+        }
+
+        @keyframes urgentPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        @keyframes timeUpExplosion {
+            0% {
+                transform: scale(1);
+                background: linear-gradient(135deg, var(--warning), var(--danger));
+            }
+            50% {
+                transform: scale(1.3);
+                background: linear-gradient(135deg, var(--danger), #c0392b);
+            }
+            100% {
+                transform: scale(1);
+                background: linear-gradient(135deg, var(--danger), #c0392b);
+            }
+        }
+
+        @keyframes feedbackSlide {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes feedbackSlideOut {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+        }
+
+        @keyframes particleSuccess {
+            0% {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(
+                    calc(cos(var(--angle)) * var(--distance)),
+                    calc(sin(var(--angle)) * var(--distance))
+                ) scale(0);
+                opacity: 0;
+            }
+        }
+
+        @keyframes errorWave {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1.2);
+                opacity: 0;
+            }
+        }
+
+        @keyframes gameOverReveal {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes confettiFall {
+            0% {
+                transform: translateY(-10px) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .feedback-popup {
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-custom">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="fas fa-graduation-cap me-2"></i>AlfaIA
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a>
+                <a class="nav-link" href="{{ url_for('juegos') }}">Juegos</a>
+                <a class="nav-link" href="{{ url_for('mostrar_progreso') }}">Progreso</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="game-container">
+                    <!-- Header del juego -->
+                    <div class="text-center mb-4">
+                        <h2><i class="fas fa-question-circle me-2"></i>Trivia Educativa</h2>
+                        <p class="text-muted">Responde las preguntas sobre diversos temas educativos</p>
+                    </div>
+
+                    <!-- Contador de preguntas y progreso -->
+                    <div class="question-counter">
+                        <div class="question-number" id="questionCounter">
+                            Pregunta 1 de 5
+                        </div>
+                        <div class="progress mb-3">
+                            <div class="progress-bar progress-bar-custom" id="progressBar" role="progressbar" style="width: 20%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Temporizador -->
+                    <div class="timer-section">
+                        <div class="timer-circle" id="timerCircle">30</div>
+                        <p class="text-muted mt-2">segundos restantes</p>
+                    </div>
+
+                    <!-- Estadísticas del juego -->
+                    <div class="game-stats">
+                        <div class="stat-item">
+                            <div class="stat-number" id="correctAnswers">0</div>
+                            <div class="stat-label">Correctas</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" id="currentScore">0</div>
+                            <div class="stat-label">Puntos</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" id="accuracy">100%</div>
+                            <div class="stat-label">Precisión</div>
+                        </div>
+                    </div>
+
+                    <!-- Sección de pregunta -->
+                    <div class="question-section" id="questionSection">
+                        <h3 class="question-text" id="questionText">
+                            <!-- Se llenará con JavaScript -->
+                        </h3>
+
+                        <!-- Opciones de respuesta -->
+                        <div class="options-grid" id="optionsGrid">
+                            <!-- Se llenará con JavaScript -->
+                        </div>
+                    </div>
+
+                    <!-- Explicación de la respuesta -->
+                    <div class="explanation-section" id="explanationSection">
+                        <h5 class="explanation-title">
+                            <i class="fas fa-lightbulb me-2"></i>Explicación
+                        </h5>
+                        <p class="explanation-text" id="explanationText"></p>
+                    </div>
+
+                    <!-- Botón siguiente pregunta -->
+                    <div class="text-center" id="nextQuestionContainer" style="display: none;">
+                        <button class="next-question-btn" onclick="nextQuestion()">
+                            <i class="fas fa-arrow-right me-2"></i>Siguiente Pregunta
+                        </button>
+                    </div>
+
+                    <!-- Sección de juego terminado -->
+                    <div class="game-over-section" id="gameOverSection">
+                        <h3><i class="fas fa-trophy me-2"></i>¡Trivia Completada!</h3>
+                        <div class="final-score" id="finalScore">0</div>
+                        <div id="finalMessage"></div>
+                        <div id="finalStats"></div>
+                    </div>
+
+                    <!-- Botones de acción -->
+                    <div class="text-center mt-4" id="gameButtons">
+                        <button class="btn-game warning" onclick="skipQuestion()">
+                            <i class="fas fa-forward me-2"></i>Saltar Pregunta
+                        </button>
+                        <button class="btn-game secondary" onclick="restartGame()">
+                            <i class="fas fa-redo me-2"></i>Reiniciar
+                        </button>
+                        <a href="{{ url_for('juegos') }}" class="btn-game secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Volver a Juegos
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Datos del juego
+        const gameData = {
+            questions: {{ preguntas | tojsonfilter }},
+            currentQuestion: 0,
+            score: 0,
+            correctAnswers: 0,
+            totalQuestions: 0,
+            timePerQuestion: 30,
+            timeRemaining: 30,
+            timer: null,
+            gameOver: false,
+            startTime: null,
+            selectedAnswer: null,
+            questionStartTime: null
+        };
+
+        // Inicializar el juego
+        function initGame() {
+            gameData.totalQuestions = gameData.questions.length;
+            gameData.startTime = Date.now();
+
+            // Mezclar preguntas para mayor variedad
+            shuffleArray(gameData.questions);
+
+            loadQuestion();
+            startTimer();
+        }
+
+        // Mezclar array
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // Cargar pregunta actual
+        function loadQuestion() {
+            if (gameData.currentQuestion >= gameData.totalQuestions) {
+                endGame();
+                return;
+            }
+
+            const question = gameData.questions[gameData.currentQuestion];
+            gameData.questionStartTime = Date.now();
+            gameData.selectedAnswer = null;
+
+            // Actualizar contador con animación
+            const counter = document.getElementById('questionCounter');
+            counter.style.transform = 'scale(0.8)';
+            setTimeout(() => {
+                counter.textContent = `Pregunta ${gameData.currentQuestion + 1} de ${gameData.totalQuestions}`;
+                counter.style.transform = 'scale(1)';
+            }, 200);
+
+            // Actualizar barra de progreso
+            const progress = ((gameData.currentQuestion + 1) / gameData.totalQuestions) * 100;
+            const progressBar = document.getElementById('progressBar');
+            progressBar.style.width = progress + '%';
+
+            // Mostrar pregunta con animación
+            const questionText = document.getElementById('questionText');
+            questionText.style.opacity = '0';
+            questionText.style.transform = 'translateY(20px)';
+
+            setTimeout(() => {
+                questionText.textContent = question.pregunta;
+                questionText.style.opacity = '1';
+                questionText.style.transform = 'translateY(0)';
+            }, 300);
+
+            // Crear opciones con animación
+            const optionsGrid = document.getElementById('optionsGrid');
+            optionsGrid.innerHTML = '';
+
+            const letters = ['A', 'B', 'C', 'D'];
+
+            // Mezclar opciones
+            const shuffledOptions = [...question.opciones];
+            shuffleArray(shuffledOptions);
+
+            shuffledOptions.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.className = 'option-btn';
+                button.innerHTML = `<span class="option-letter">${letters[index]}</span>${option}`;
+                button.onclick = () => selectAnswer(option, button);
+                button.dataset.option = option;
+
+                // Animación de entrada
+                button.style.opacity = '0';
+                button.style.transform = 'translateX(-20px)';
+                button.style.animation = `slideInLeft 0.5s ease-out ${index * 0.1}s forwards`;
+
+                optionsGrid.appendChild(button);
+            });
+
+            // Ocultar elementos de respuesta anterior
+            document.getElementById('explanationSection').style.display = 'none';
+            document.getElementById('nextQuestionContainer').style.display = 'none';
+
+            // Reiniciar temporizador
+            gameData.timeRemaining = gameData.timePerQuestion;
+            updateTimerDisplay();
+        }
+
+        // Seleccionar respuesta
+        function selectAnswer(selectedAnswer, button) {
+            if (gameData.gameOver || gameData.selectedAnswer) return;
+
+            gameData.selectedAnswer = selectedAnswer;
+            clearTimeout(gameData.timer);
+
+            const question = gameData.questions[gameData.currentQuestion];
+            const isCorrect = selectedAnswer === question.respuesta_correcta;
+
+            const questionTime = Date.now() - gameData.questionStartTime;
+
+            // Deshabilitar todas las opciones
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                btn.disabled = true;
+            });
+
+            // Animación de selección
+            button.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                button.style.transform = 'scale(1)';
+            }, 150);
+
+            // Marcar respuesta seleccionada y correcta
+            if (isCorrect) {
+                button.classList.add('correct');
+                gameData.correctAnswers++;
+
+                // Calcular puntos (más puntos por responder rápido)
+                let points = 20; // Puntos base
+
+                // Bonus por velocidad
+                const timeBonus = Math.floor((gameData.timePerQuestion - (questionTime / 1000)) / 5);
+                points += Math.max(0, timeBonus);
+
+                // Bonus por racha
+                if (gameData.currentQuestion > 0) {
+                    const accuracy = gameData.correctAnswers / (gameData.currentQuestion + 1);
+                    if (accuracy >= 0.8) points += 5; // Bonus por buena racha
+                }
+
+                gameData.score += points;
+
+                // Mostrar feedback positivo
+                showFeedback(true, points);
+                playSound('correct');
+                createSuccessParticles(button);
+
+            } else {
+                button.classList.add('incorrect');
+
+                // Mostrar la respuesta correcta
+                document.querySelectorAll('.option-btn').forEach(btn => {
+                    if (btn.dataset.option === question.respuesta_correcta) {
+                        btn.classList.add('correct');
+                        // Efecto de revelación
+                        btn.style.animation = 'revealCorrect 0.5s ease-out';
+                    }
+                });
+
+                showFeedback(false, 0);
+                playSound('incorrect');
+                createErrorEffect(button);
+            }
+
+            // Actualizar estadísticas
+            updateStats();
+
+            // Mostrar explicación si existe
+            if (question.explicacion) {
+                setTimeout(() => {
+                    const explanationText = document.getElementById('explanationText');
+                    explanationText.textContent = question.explicacion;
+
+                    const explanationSection = document.getElementById('explanationSection');
+                    explanationSection.style.display = 'block';
+                    explanationSection.style.opacity = '0';
+                    explanationSection.style.transform = 'translateY(20px)';
+
+                    setTimeout(() => {
+                        explanationSection.style.opacity = '1';
+                        explanationSection.style.transform = 'translateY(0)';
+                    }, 100);
+                }, 1000);
+            }
+
+            // Mostrar botón siguiente pregunta
+            setTimeout(() => {
+                const nextContainer = document.getElementById('nextQuestionContainer');
+                nextContainer.style.display = 'block';
+                nextContainer.style.opacity = '0';
+                nextContainer.style.animation = 'fadeInUp 0.5s ease-out forwards';
+            }, 1500);
+        }
+
+        // Crear partículas de éxito
+        function createSuccessParticles(button) {
+            const rect = button.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+
+            for (let i = 0; i < 10; i++) {
+                setTimeout(() => {
+                    const particle = document.createElement('div');
+                    particle.style.cssText = `
+                        position: fixed;
+                        left: ${centerX}px;
+                        top: ${centerY}px;
+                        width: 6px;
+                        height: 6px;
+                        background: linear-gradient(45deg, #42e695, #4facfe);
+                        border-radius: 50%;
+                        pointer-events: none;
+                        z-index: 9999;
+                        animation: particleSuccess 1s ease-out forwards;
+                    `;
+
+                    const angle = (i * 36) + Math.random() * 36;
+                    const distance = 40 + Math.random() * 40;
+                    particle.style.setProperty('--angle', angle + 'deg');
+                    particle.style.setProperty('--distance', distance + 'px');
+
+                    document.body.appendChild(particle);
+
+                    setTimeout(() => {
+                        if (particle.parentNode) {
+                            particle.parentNode.removeChild(particle);
+                        }
+                    }, 1000);
+                }, i * 50);
+            }
+        }
+
+        // Crear efecto de error
+        function createErrorEffect(button) {
+            button.style.animation = 'shakeError 0.5s ease-out';
+
+            // Ondas de error
+            const rect = button.getBoundingClientRect();
+            const wave = document.createElement('div');
+            wave.style.cssText = `
+                position: fixed;
+                left: ${rect.left}px;
+                top: ${rect.top}px;
+                width: ${rect.width}px;
+                height: ${rect.height}px;
+                border: 2px solid #ff6b6b;
+                border-radius: 15px;
+                pointer-events: none;
+                z-index: 9998;
+                animation: errorWave 0.6s ease-out forwards;
+            `;
+
+            document.body.appendChild(wave);
+
+            setTimeout(() => {
+                if (wave.parentNode) {
+                    wave.parentNode.removeChild(wave);
+                }
+            }, 600);
+        } juego
+        function initGame() {
+            gameData.totalQuestions = gameData.questions.length;
+            gameData.startTime = Date.now();
+            loadQuestion();
+            startTimer();
+        }
+
+        // Cargar pregunta actual
+        function loadQuestion() {
+            if (gameData.currentQuestion >= gameData.totalQuestions) {
+                endGame();
+                return;
+            }
+
+            const question = gameData.questions[gameData.currentQuestion];
+
+            // Actualizar contador
+            document.getElementById('questionCounter').textContent =
+                `Pregunta ${gameData.currentQuestion + 1} de ${gameData.totalQuestions}`;
+
+            // Actualizar barra de progreso
+            const progress = ((gameData.currentQuestion + 1) / gameData.totalQuestions) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+
+            // Mostrar pregunta
+            document.getElementById('questionText').textContent = question.pregunta;
+
+            // Crear opciones
+            const optionsGrid = document.getElementById('optionsGrid');
+            optionsGrid.innerHTML = '';
+
+            const letters = ['A', 'B', 'C', 'D'];
+            question.opciones.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.className = 'option-btn';
+                button.innerHTML = `<span class="option-letter">${letters[index]}</span>${option}`;
+                button.onclick = () => selectAnswer(option, button);
+                button.dataset.option = option;
+                optionsGrid.appendChild(button);
+            });
+
+            // Ocultar elementos de respuesta anterior
+            document.getElementById('explanationSection').style.display = 'none';
+            document.getElementById('nextQuestionContainer').style.display = 'none';
+
+            // Reiniciar temporizador
+            gameData.timeRemaining = gameData.timePerQuestion;
+            updateTimerDisplay();
+        }
+
+        // Seleccionar respuesta
+        function selectAnswer(selectedAnswer, button) {
+            if (gameData.gameOver) return;
+
+            clearTimeout(gameData.timer);
+
+            const question = gameData.questions[gameData.currentQuestion];
+            const isCorrect = selectedAnswer === question.respuesta_correcta;
+
+            // Deshabilitar todas las opciones
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                btn.disabled = true;
+            });
+
+            // Marcar respuesta seleccionada y correcta
+            if (isCorrect) {
+                button.classList.add('correct');
+                gameData.correctAnswers++;
+
+                // Calcular puntos (más puntos por responder rápido)
+                const timeBonus = Math.floor(gameData.timeRemaining / 5);
+                const points = 20 + timeBonus;
+                gameData.score += points;
+
+                // Mostrar feedback positivo
+                showFeedback(true, points);
+            } else {
+                button.classList.add('incorrect');
+
+                // Mostrar la respuesta correcta
+                document.querySelectorAll('.option-btn').forEach(btn => {
+                    if (btn.dataset.option === question.respuesta_correcta) {
+                        btn.classList.add('correct');
+                    }
+                });
+
+                showFeedback(false, 0);
+            }
+
+            // Mostrar explicación si existe
+            if (question.explicacion) {
+                document.getElementById('explanationText').textContent = question.explicacion;
+                document.getElementById('explanationSection').style.display = 'block';
+            }
+
+            // Actualizar estadísticas
+            updateStats();
+
+            // Mostrar botón siguiente pregunta
+            setTimeout(() => {
+                document.getElementById('nextQuestionContainer').style.display = 'block';
+            }, 1500);
+        }
+
+        // Mostrar feedback de respuesta
+        function showFeedback(isCorrect, points) {
+            const feedback = document.createElement('div');
+            feedback.className = `alert ${isCorrect ? 'alert-success' : 'alert-danger'} mt-3 feedback-popup`;
+            feedback.innerHTML = isCorrect
+                ? `<i class="fas fa-check-circle me-2"></i>¡Correcto! +${points} puntos`
+                : `<i class="fas fa-times-circle me-2"></i>Incorrecto. ¡Sigue intentando!`;
+
+            feedback.style.animation = 'feedbackSlide 0.5s ease-out';
+            document.getElementById('questionSection').appendChild(feedback);
+
+            // Remover feedback después de 3 segundos
+            setTimeout(() => {
+                if (feedback.parentNode) {
+                    feedback.style.animation = 'feedbackSlideOut 0.5s ease-in';
+                    setTimeout(() => {
+                        if (feedback.parentNode) {
+                            feedback.parentNode.removeChild(feedback);
+                        }
+                    }, 500);
+                }
+            }, 3000);
+        }
+
+        // Actualizar estadísticas en pantalla
+        function updateStats() {
+            document.getElementById('correctAnswers').textContent = gameData.correctAnswers;
+            document.getElementById('currentScore').textContent = gameData.score;
+
+            const answered = gameData.currentQuestion + (gameData.selectedAnswer ? 1 : 0);
+            const accuracy = answered > 0 ? Math.round((gameData.correctAnswers / answered) * 100) : 100;
+            document.getElementById('accuracy').textContent = accuracy + '%';
+        }
+
+        // Siguiente pregunta
+        function nextQuestion() {
+            gameData.currentQuestion++;
+            loadQuestion();
+            startTimer();
+        }
+
+        // Saltar pregunta
+        function skipQuestion() {
+            if (confirm('¿Estás seguro de que quieres saltar esta pregunta? No obtendrás puntos.')) {
+                clearTimeout(gameData.timer);
+                gameData.currentQuestion++;
+
+                // Crear feedback de pregunta saltada
+                const skippedFeedback = document.createElement('div');
+                skippedFeedback.className = 'alert alert-warning mt-3';
+                skippedFeedback.innerHTML = '<i class="fas fa-forward me-2"></i>Pregunta saltada';
+                document.getElementById('questionSection').appendChild(skippedFeedback);
+
+                setTimeout(() => {
+                    if (skippedFeedback.parentNode) {
+                        skippedFeedback.parentNode.removeChild(skippedFeedback);
+                    }
+                    loadQuestion();
+                    startTimer();
+                }, 1000);
+            }
+        }
+
+        // Iniciar temporizador
+        function startTimer() {
+            if (gameData.gameOver) return;
+
+            gameData.timer = setInterval(() => {
+                gameData.timeRemaining--;
+                updateTimerDisplay();
+
+                if (gameData.timeRemaining <= 0) {
+                    timeUp();
+                }
+            }, 1000);
+        }
+
+        // Actualizar visualización del temporizador
+        function updateTimerDisplay() {
+            const timerCircle = document.getElementById('timerCircle');
+            timerCircle.textContent = gameData.timeRemaining;
+
+            if (gameData.timeRemaining <= 10) {
+                timerCircle.classList.add('warning');
+            } else {
+                timerCircle.classList.remove('warning');
+            }
+
+            // Animación de urgencia
+            if (gameData.timeRemaining <= 5) {
+                timerCircle.style.animation = 'urgentPulse 0.5s infinite';
+            } else {
+                timerCircle.style.animation = '';
+            }
+        }
+
+        // Tiempo agotado
+        function timeUp() {
+            if (gameData.selectedAnswer) return; // Ya respondió
+
+            clearTimeout(gameData.timer);
+
+            // Deshabilitar opciones
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                btn.disabled = true;
+                btn.style.opacity = '0.6';
+            });
+
+            // Mostrar respuesta correcta
+            const question = gameData.questions[gameData.currentQuestion];
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                if (btn.dataset.option === question.respuesta_correcta) {
+                    btn.classList.add('correct');
+                    btn.style.animation = 'revealCorrect 0.5s ease-out';
+                }
+            });
+
+            // Efecto de tiempo agotado
+            const timerCircle = document.getElementById('timerCircle');
+            timerCircle.style.animation = 'timeUpExplosion 0.8s ease-out';
+
+            showFeedback(false, 0);
+            playSound('timeout');
+
+            // Mostrar explicación si existe
+            if (question.explicacion) {
+                setTimeout(() => {
+                    document.getElementById('explanationText').textContent = question.explicacion;
+                    document.getElementById('explanationSection').style.display = 'block';
+                }, 1000);
+            }
+
+            updateStats();
+
+            setTimeout(() => {
+                document.getElementById('nextQuestionContainer').style.display = 'block';
+            }, 1500);
+        }
+
+        // Finalizar juego
+        function endGame() {
+            gameData.gameOver = true;
+            clearTimeout(gameData.timer);
+
+            const gameEndTime = Date.now();
+            const totalTimeSeconds = Math.floor((gameEndTime - gameData.startTime) / 1000);
+
+            // Calcular estadísticas finales
+            const accuracy = Math.round((gameData.correctAnswers / gameData.totalQuestions) * 100);
+            const averageTimePerQuestion = Math.round(totalTimeSeconds / gameData.totalQuestions);
+
+            // Determinar mensaje según rendimiento
+            let message = '';
+            let scoreClass = '';
+
+            if (accuracy >= 90) {
+                message = '¡Excelente! Eres un maestro de la trivia.';
+                scoreClass = 'score-excellent';
+                playSound('excellent');
+                createCelebrationEffect();
+            } else if (accuracy >= 70) {
+                message = '¡Muy bien! Buen conocimiento general.';
+                scoreClass = 'score-good';
+                playSound('good');
+            } else if (accuracy >= 50) {
+                message = 'Bien hecho. Hay espacio para mejorar.';
+                scoreClass = 'score-average';
+                playSound('average');
+            } else {
+                message = 'Sigue practicando. ¡La próxima vez lo harás mejor!';
+                scoreClass = 'score-poor';
+                playSound('poor');
+            }
+
+            // Mostrar resultados finales
+            const finalScore = document.getElementById('finalScore');
+            finalScore.textContent = gameData.score;
+            finalScore.className = `final-score ${scoreClass}`;
+
+            document.getElementById('finalMessage').innerHTML = `<h5>${message}</h5>`;
+
+            document.getElementById('finalStats').innerHTML = `
+                <div class="row text-center mt-4">
+                    <div class="col-md-3">
+                        <div class="stat-number">${gameData.correctAnswers}/${gameData.totalQuestions}</div>
+                        <div class="stat-label">Respuestas Correctas</div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-number">${accuracy}%</div>
+                        <div class="stat-label">Precisión</div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-number">${averageTimePerQuestion}s</div>
+                        <div class="stat-label">Tiempo Promedio</div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-number">${gameData.score}</div>
+                        <div class="stat-label">Puntos Totales</div>
+                    </div>
+                </div>
+            `;
+
+            // Ocultar secciones del juego
+            document.getElementById('questionSection').style.display = 'none';
+            document.getElementById('nextQuestionContainer').style.display = 'none';
+            document.getElementById('explanationSection').style.display = 'none';
+
+            // Mostrar sección de resultados finales
+            const gameOverSection = document.getElementById('gameOverSection');
+            gameOverSection.style.display = 'block';
+            gameOverSection.style.animation = 'gameOverReveal 0.8s ease-out';
+
+            // Guardar resultado en base de datos
+            saveGameResult(accuracy, totalTimeSeconds);
+        }
+
+        // Crear efecto de celebración
+        function createCelebrationEffect() {
+            for (let i = 0; i < 20; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.style.cssText = `
+                        position: fixed;
+                        left: ${Math.random() * window.innerWidth}px;
+                        top: -10px;
+                        width: 8px;
+                        height: 8px;
+                        background: ${['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#F8C291'][Math.floor(Math.random() * 6)]};
+                        border-radius: 50%;
+                        pointer-events: none;
+                        z-index: 9999;
+                        animation: confettiFall 3s linear forwards;
+                    `;
+
+                    document.body.appendChild(confetti);
+
+                    setTimeout(() => {
+                        if (confetti.parentNode) {
+                            confetti.parentNode.removeChild(confetti);
+                        }
+                    }, 3000);
+                }, i * 100);
+            }
+        }
+
+        // Guardar resultado en base de datos
+        function saveGameResult(accuracy, totalTimeSeconds) {
+            const resultData = {
+                tipo: 'trivia',
+                nombre: 'Trivia Educativa',
+                puntos: gameData.score,
+                precision: accuracy,
+                tiempo_segundos: totalTimeSeconds,
+                datos_adicionales: {
+                    preguntas_totales: gameData.totalQuestions,
+                    respuestas_correctas: gameData.correctAnswers,
+                    respuestas_incorrectas: gameData.totalQuestions - gameData.correctAnswers,
+                    tiempo_promedio_por_pregunta: Math.round(totalTimeSeconds / gameData.totalQuestions),
+                    puntos_maximos_posibles: gameData.totalQuestions * (20 + 6), // 20 base + 6 bonus máximo
+                    eficiencia: accuracy >= 80 ? 'alta' : accuracy >= 60 ? 'media' : 'baja'
+                }
+            };
+
+            fetch('/api/ejercicios/completar', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(resultData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('Resultado guardado exitosamente');
+
+                    // Mostrar mensaje de éxito
+                    const successMsg = document.createElement('div');
+                    successMsg.className = 'alert alert-success mt-3';
+                    successMsg.innerHTML = `<i class="fas fa-save me-2"></i>${data.message}`;
+                    document.getElementById('finalStats').appendChild(successMsg);
+
+                    // Agregar información adicional si está disponible
+                    if (data.data && data.data.nuevo_total_puntos) {
+                        const totalMsg = document.createElement('div');
+                        totalMsg.className = 'alert alert-info mt-2';
+                        totalMsg.innerHTML = `
+                            <i class="fas fa-star me-2"></i>
+                            <strong>Puntos totales acumulados:</strong> ${data.data.nuevo_total_puntos}
+                        `;
+                        document.getElementById('finalStats').appendChild(totalMsg);
+                    }
+
+                    // Agregar botón para ver progreso
+                    const progressBtn = document.createElement('a');
+                    progressBtn.href = '/progreso';
+                    progressBtn.className = 'btn-game success mt-2';
+                    progressBtn.innerHTML = '<i class="fas fa-chart-line me-2"></i>Ver Mi Progreso';
+                    document.getElementById('gameOverSection').appendChild(progressBtn);
+
+                } else {
+                    console.error('Error guardando resultado:', data.message);
+
+                    const errorMsg = document.createElement('div');
+                    errorMsg.className = 'alert alert-warning mt-3';
+                    errorMsg.innerHTML = `
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <small>No se pudo guardar en la base de datos.</small>
+                    `;
+                    document.getElementById('finalStats').appendChild(errorMsg);
+                }
+            })
+            .catch(error => {
+                console.error('Error en la petición:', error);
+            });
+        }
+
+        // Sistema de sonidos
+        function playSound(type) {
+            if (typeof AudioContext !== 'undefined' || typeof webkitAudioContext !== 'undefined') {
+                const audioContext = new (AudioContext || webkitAudioContext)();
+
+                switch(type) {
+                    case 'correct':
+                        playTone(audioContext, 800, 0.2);
+                        setTimeout(() => playTone(audioContext, 1000, 0.2), 100);
+                        break;
+                    case 'incorrect':
+                        playTone(audioContext, 400, 0.3);
+                        break;
+                    case 'timeout':
+                        playTone(audioContext, 200, 0.5);
+                        break;
+                    case 'excellent':
+                        [523, 659, 784, 1047, 1319].forEach((freq, i) => {
+                            setTimeout(() => playTone(audioContext, freq, 0.3), i * 150);
+                        });
+                        break;
+                    case 'good':
+                        [523, 659, 784].forEach((freq, i) => {
+                            setTimeout(() => playTone(audioContext, freq, 0.2), i * 150);
+                        });
+                        break;
+                    case 'average':
+                        playTone(audioContext, 523, 0.4);
+                        break;
+                    case 'poor':
+                        [400, 350, 300].forEach((freq, i) => {
+                            setTimeout(() => playTone(audioContext, freq, 0.2), i * 150);
+                        });
+                        break;
+                }
+            }
+        }
+
+        function playTone(audioContext, frequency, duration) {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.frequency.value = frequency;
+            oscillator.type = 'sine';
+
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+
+        // Reiniciar juego
+        function restartGame() {
+            if (confirm('¿Estás seguro de que quieres reiniciar? Se perderá el progreso actual.')) {
+                location.reload();
+            }
+        }
+
+        // Manejar teclas de atajo
+        document.addEventListener('keydown', function(event) {
+            if (gameData.gameOver) return;
+
+            // Permitir responder con teclas A, B, C, D
+            const key = event.key.toUpperCase();
+            if (['A', 'B', 'C', 'D'].includes(key) && !gameData.selectedAnswer) {
+                const index = ['A', 'B', 'C', 'D'].indexOf(key);
+                const buttons = document.querySelectorAll('.option-btn');
+                if (buttons[index] && !buttons[index].disabled) {
+                    buttons[index].click();
+                }
+            }
+
+            // Saltar pregunta con Espacio
+            if (event.code === 'Space' && !gameData.selectedAnswer) {
+                event.preventDefault();
+                skipQuestion();
+            }
+
+            // Siguiente pregunta con Enter
+            if (event.key === 'Enter' && gameData.selectedAnswer) {
+                const nextBtn = document.querySelector('.next-question-btn');
+                if (nextBtn && nextBtn.style.display !== 'none') {
+                    nextQuestion();
+                }
+            }
+        });
+
+        // Inicializar cuando se carga la página
+        document.addEventListener('DOMContentLoaded', function() {
+            // Verificar que hay preguntas
+            if (!gameData.questions || gameData.questions.length === 0) {
+                alert('Error: No hay preguntas disponibles para la trivia.');
+                window.location.href = '/juegos';
+                return;
+            }
+
+            // Limitar a 8 preguntas máximo para mejor experiencia
+            if (gameData.questions.length > 8) {
+                gameData.questions = gameData.questions.slice(0, 8);
+            }
+
+            initGame();
+        });
+
+        // Actualizar estadísticas en pantalla
+        function updateStats() {
+            document.getElementById('correctAnswers').textContent = gameData.correctAnswers;
+            document.getElementById('currentScore').textContent = gameData.score;
+
+            const accuracy = gameData.currentQuestion > 0
+                ? Math.round((gameData.correctAnswers / (gameData.currentQuestion + 1)) * 100)
+                : 100;
+            document.getElementById('accuracy').textContent = accuracy + '%';
+        }
+
+        // Siguiente pregunta
+        function nextQuestion() {
+            gameData.currentQuestion++;
+            loadQuestion();
+            startTimer();
+        }
+
+        // Saltar pregunta
+        function skipQuestion() {
+            if (confirm('¿Estás seguro de que quieres saltar esta pregunta? No obtendrás puntos.')) {
+                clearTimeout(gameData.timer);
+                gameData.currentQuestion++;
+                loadQuestion();
+                startTimer();
+            }
+        }
+
+        // Iniciar temporizador
+        function startTimer() {
+            if (gameData.gameOver) return;
+
+            gameData.timer = setInterval(() => {
+                gameData.timeRemaining--;
+                updateTimerDisplay();
+
+                if (gameData.timeRemaining <= 0) {
+                    timeUp();
+                }
+            }, 1000);
+        }
+
+        // Actualizar visualización del temporizador
+        function updateTimerDisplay() {
+            const timerCircle = document.getElementById('timerCircle');
+            timerCircle.textContent = gameData.timeRemaining;
+
+            if (gameData.timeRemaining <= 10) {
+                timerCircle.classList.add('warning');
+            } else {
+                timerCircle.classList.remove('warning');
+            }
+        }
+
+        // Tiempo agotado
+        function timeUp() {
+            clearTimeout(gameData.timer);
+
+            // Deshabilitar opciones
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                btn.disabled = true;
+            });
+
+            // Mostrar respuesta correcta
+            const question = gameData.questions[gameData.currentQuestion];
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                if (btn.dataset.option === question.respuesta_correcta) {
+                    btn.classList.add('correct');
+                }
+            });
+
+            showFeedback(false, 0);
+
+            // Mostrar explicación si existe
+            if (question.explicacion) {
+                document.getElementById('explanationText').textContent = question.explicacion;
+                document.getElementById('explanationSection').style.display = 'block';
+            }
+
+            updateStats();
+
+            setTimeout(() => {
+                document.getElementById('nextQuestionContainer').style.display = 'block';
+            }, 1500);
+        }
+
+        // Finalizar juego
+        function endGame() {
+            gameData.gameOver = true;
+            clearTimeout(gameData.timer);
+
+            const gameEndTime = Date.now();
+            const totalTimeSeconds = Math.floor((gameEndTime - gameData.startTime) / 1000);
+
+            // Calcular estadísticas finales
+            const accuracy = Math.round((gameData.correctAnswers / gameData.totalQuestions) * 100);
+            const averageTimePerQuestion = Math.round(totalTimeSeconds / gameData.totalQuestions);
+
+            // Determinar mensaje según rendimiento
+            let message = '';
+            let scoreClass = '';
+
+            if (accuracy >= 90) {
+                message = '¡Excelente! Eres un maestro de la trivia.';
+                scoreClass = 'score-excellent';
+            } else if (accuracy >= 70) {
+                message = '¡Muy bien! Buen conocimiento general.';
+                scoreClass = 'score-good';
+            } else if (accuracy >= 50) {
+                message = 'Bien hecho. Hay espacio para mejorar.';
+                scoreClass = 'score-average';
+            } else {
+                message = 'Sigue practicando. ¡La próxima vez lo harás mejor!';
+                scoreClass = 'score-poor';
+            }
+
+            // Mostrar resultados finales
+            document.getElementById('finalScore').textContent = gameData.score;
+            document.getElementById('finalScore').className = `final-score ${scoreClass}`;
+            document.getElementById('finalMessage').innerHTML = `<h5>${message}</h5>`;
+
+            document.getElementById('finalStats').innerHTML = `
+                <div class="row text-center mt-4">
+                    <div class="col-md-3">
+                        <div class="stat-number">${gameData.correctAnswers}/${gameData.totalQuestions}</div>
+                        <div class="stat-label">Respuestas Correctas</div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-number">${accuracy}%</div>
+                        <div class="stat-label">Precisión</div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-number">${averageTimePerQuestion}s</div>
+                        <div class="stat-label">Tiempo Promedio</div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-number">${gameData.score}</div>
+                        <div class="stat-label">Puntos Totales</div>
+                    </div>
+                </div>
+            `;
+
+            // Ocultar secciones del juego
+            document.getElementById('questionSection').style.display = 'none';
+            document.getElementById('nextQuestionContainer').style.display = 'none';
+            document.getElementById('explanationSection').style.display = 'none';
+
+            // Mostrar sección de resultados finales
+            document.getElementById('gameOverSection').style.display = 'block';
+
+            // Guardar resultado en base de datos
+            saveGameResult(accuracy, totalTimeSeconds);
+        }
+
+        // Guardar resultado en base de datos
+        function saveGameResult(accuracy, totalTimeSeconds) {
+            const resultData = {
+                tipo: 'trivia',
+                nombre: 'Trivia Educativa',
+                puntos: gameData.score,
+                precision: accuracy,
+                tiempo_segundos: totalTimeSeconds,
+                datos_adicionales: {
+                    preguntas_totales: gameData.totalQuestions,
+                    respuestas_correctas: gameData.correctAnswers,
+                    respuestas_incorrectas: gameData.totalQuestions - gameData.correctAnswers,
+                    tiempo_promedio_por_pregunta: Math.round(totalTimeSeconds / gameData.totalQuestions),
+                    puntos_maximos_posibles: gameData.totalQuestions * (20 + 6) // 20 base + 6 bonus máximo
+                }
+            };
+
+            fetch('/api/ejercicios/completar', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(resultData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('Resultado guardado exitosamente');
+
+                    // Mostrar mensaje de éxito
+                    const successMsg = document.createElement('div');
+                    successMsg.className = 'alert alert-success mt-3';
+                    successMsg.innerHTML = `<i class="fas fa-save me-2"></i>${data.message}`;
+                    document.getElementById('finalStats').appendChild(successMsg);
+
+                    // Agregar botón para ver progreso
+                    const progressBtn = document.createElement('a');
+                    progressBtn.href = '/progreso';
+                    progressBtn.className = 'btn-game success mt-2';
+                    progressBtn.innerHTML = '<i class="fas fa-chart-line me-2"></i>Ver Mi Progreso';
+                    document.getElementById('gameOverSection').appendChild(progressBtn);
+
+                } else {
+                    console.error('Error guardando resultado:', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error en la petición:', error);
+            });
+        }
+
+        // Reiniciar juego
+        function restartGame() {
+            if (confirm('¿Estás seguro de que quieres reiniciar? Se perderá el progreso actual.')) {
+                // Reiniciar datos del juego
+                gameData.currentQuestion = 0;
+                gameData.score = 0;
+                gameData.correctAnswers = 0;
+                gameData.gameOver = false;
+                gameData.startTime = Date.now();
+
+                // Mostrar secciones del juego
+                document.getElementById('questionSection').style.display = 'block';
+                document.getElementById('gameButtons').style.display = 'block';
+                document.getElementById('gameOverSection').style.display = 'none';
+                document.getElementById('nextQuestionContainer').style.display = 'none';
+                document.getElementById('explanationSection').style.display = 'none';
+
+                // Reiniciar estadísticas en pantalla
+                updateStats();
+
+                // Mezclar preguntas para variedad
+                shuffleQuestions();
+
+                // Iniciar de nuevo
+                initGame();
+            }
+        }
+
+        // Mezclar preguntas para mayor variedad
+        function shuffleQuestions() {
+            for (let i = gameData.questions.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [gameData.questions[i], gameData.questions[j]] = [gameData.questions[j], gameData.questions[i]];
+            }
+        }
+
+        // Inicializar el juego cuando se carga la página
+        document.addEventListener('DOMContentLoaded', function() {
+            // Mezclar preguntas al inicio
+            shuffleQuestions();
+
+            // Limitar a 5 preguntas máximo para una mejor experiencia
+            if (gameData.questions.length > 5) {
+                gameData.questions = gameData.questions.slice(0, 5);
+            }
+
+            initGame();
+        });
+
+        // Función para manejar teclas (opcional)
+        document.addEventListener('keydown', function(event) {
+            if (gameData.gameOver) return;
+
+            // Permitir responder con teclas A, B, C, D
+            const key = event.key.toUpperCase();
+            if (['A', 'B', 'C', 'D'].includes(key)) {
+                const index = ['A', 'B', 'C', 'D'].indexOf(key);
+                const buttons = document.querySelectorAll('.option-btn');
+                if (buttons[index] && !buttons[index].disabled) {
+                    buttons[index].click();
+                }
+            }
+
+            // Saltar pregunta con Espacio
+            if (event.code === 'Space') {
+                event.preventDefault();
+                skipQuestion();
+            }
+        });
+    </script>
+</body>
+</html>

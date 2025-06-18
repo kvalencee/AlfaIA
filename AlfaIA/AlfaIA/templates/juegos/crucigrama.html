@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crucigrama - AlfaIA</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #667eea;
+            --secondary: #764ba2;
+            --success: #42e695;
+            --warning: #f093fb;
+            --info: #4facfe;
+            --danger: #ff6b6b;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar-custom {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .crossword-container {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .crossword-grid {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .grid-table {
+            margin: 0 auto;
+            border-collapse: collapse;
+        }
+
+        .grid-cell {
+            width: 40px;
+            height: 40px;
+            border: 1px solid #cbd5e0;
+            text-align: center;
+            position: relative;
+            padding: 0;
+        }
+
+        .grid-cell.filled {
+            background: white;
+        }
+
+        .grid-cell.blocked {
+            background: #2d3748;
+        }
+
+        .grid-cell input {
+            width: 100%;
+            height: 100%;
+            border: none;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2d3748;
+            background: transparent;
+            outline: none;
+            text-transform: uppercase;
+        }
+
+        .grid-cell input:focus {
+            background: #e6fffa;
+            border: 2px solid var(--info);
+        }
+
+        .grid-cell.correct {
+            background: #c6f6d5;
+        }
+
+        .grid-cell.incorrect {
+            background: #fed7d7;
+        }
+
+        .word-number {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            color: var(--primary);
+            z-index: 1;
+        }
+
+        .clues-container {
+            background: #f7fafc;
+            border-radius: 10px;
+            padding: 1.5rem;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .clues-section {
+            margin-bottom: 2rem;
+        }
+
+        .clues-section h5 {
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .clue-item {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .clue-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            border-left: 4px solid var(--info);
+        }
+
+        .clue-number {
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-right: 1rem;
+        }
+
+        .progress-section {
+            background: #edf2f7;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .progress-bar-custom {
+            height: 12px;
+            border-radius: 50px;
+            background: linear-gradient(90deg, var(--info), var(--success));
+        }
+
+        .btn-check {
+            background: linear-gradient(135deg, var(--success), #38a169);
+            border: none;
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-check:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(66, 230, 149, 0.4);
+            color: white;
+        }
+
+        .result-section {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+            border-radius: 15px;
+            margin: 2rem 0;
+        }
+
+        .result-section.success {
+            background: linear-gradient(135deg, var(--success), #38a169);
+            color: white;
+        }
+
+        .result-section.partial {
+            background: linear-gradient(135deg, var(--warning), #ed8936);
+            color: white;
+        }
+
+        .btn-game {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            margin: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-game:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .crossword-container {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .grid-cell {
+                width: 30px;
+                height: 30px;
+            }
+
+            .grid-cell input {
+                font-size: 1rem;
+            }
+
+            .game-container {
+                margin: 1rem;
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-custom">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="fas fa-graduation-cap me-2"></i>AlfaIA
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a>
+                <a class="nav-link" href="{{ url_for('juegos') }}">Juegos</a>
+                <a class="nav-link" href="{{ url_for('mostrar_progreso') }}">Progreso</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12">
+                <div class="game-container">
+                    <div class="text-center mb-4">
+                        <h2><i class="fas fa-th me-2"></i>Crucigrama: {{ crucigrama.titulo }}</h2>
+                        <p class="lead">Completa el crucigrama con las palabras correctas</p>
+                        <span class="badge bg-primary fs-6">Nivel {{ nivel }}</span>
+                        <span class="badge bg-success fs-6">{{ crucigrama.puntos }} puntos posibles</span>
+                    </div>
+
+                    <!-- Progreso -->
+                    <div class="progress-section">
+                        <h6>Progreso del Crucigrama</h6>
+                        <div class="progress mb-2">
+                            <div class="progress-bar progress-bar-custom"
+                                 role="progressbar"
+                                 style="width: 0%"
+                                 id="progressBar">0%</div>
+                        </div>
+                        <small id="wordsCompleted">0 de {{ crucigrama.palabras|length }} palabras completadas</small>
+                    </div>
+
+                    <!-- Container principal -->
+                    <div class="crossword-container">
+                        <!-- Grid del crucigrama -->
+                        <div class="crossword-grid">
+                            <table class="grid-table">
+                                {% for fila in range(crucigrama.tamaño) %}
+                                <tr>
+                                    {% for columna in range(crucigrama.tamaño) %}
+                                    <td class="grid-cell {% if crucigrama.grid[fila][columna] %}filled{% else %}blocked{% endif %}"
+                                        data-row="{{ fila }}" data-col="{{ columna }}">
+                                        {% if crucigrama.grid[fila][columna] %}
+                                            {% for palabra in crucigrama.palabras %}
+                                                {% if palabra.fila == fila and palabra.columna == columna %}
+                                                    <span class="word-number">{{ loop.index }}</span>
+                                                {% endif %}
+                                            {% endfor %}
+                                            <input type="text"
+                                                   maxlength="1"
+                                                   data-answer="{{ crucigrama.grid[fila][columna] }}"
+                                                   onkeyup="manejarInput(this, event)"
+                                                   onkeydown="manejarNavegacion(this, event)">
+                                        {% endif %}
+                                    </td>
+                                    {% endfor %}
+                                </tr>
+                                {% endfor %}
+                            </table>
+                        </div>
+
+                        <!-- Pistas -->
+                        <div class="clues-container">
+                            <div class="clues-section">
+                                <h5><i class="fas fa-arrow-right"></i> Horizontales</h5>
+                                {% for palabra in crucigrama.palabras %}
+                                    {% if palabra.direccion == 'horizontal' %}
+                                    <div class="clue-item" onclick="enfocarPalabra({{ loop.index }}, 'horizontal')">
+                                        <span class="clue-number">{{ loop.index }}</span>
+                                        {{ palabra.pista }}
+                                        <small class="text-muted">({{ palabra.palabra|length }} letras)</small>
+                                    </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+
+                            <div class="clues-section">
+                                <h5><i class="fas fa-arrow-down"></i> Verticales</h5>
+                                {% for palabra in crucigrama.palabras %}
+                                    {% if palabra.direccion == 'vertical' %}
+                                    <div class="clue-item" onclick="enfocarPalabra({{ loop.index }}, 'vertical')">
+                                        <span class="clue-number">{{ loop.index }}</span>
+                                        {{ palabra.pista }}
+                                        <small class="text-muted">({{ palabra.palabra|length }} letras)</small>
+                                    </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botones de acción -->
+                    <div class="text-center mb-4">
+                        <button class="btn btn-check me-3" onclick="verificarCrucigrama()">
+                            <i class="fas fa-check"></i> Verificar Respuestas
+                        </button>
+                        <button class="btn btn-warning me-3" onclick="limpiarCrucigrama()">
+                            <i class="fas fa-eraser"></i> Limpiar Todo
+                        </button>
+                        <button class="btn btn-info" onclick="mostrarAyuda()">
+                            <i class="fas fa-lightbulb"></i> Ayuda
+                        </button>
+                    </div>
+
+                    <!-- Sección de resultados -->
+                    <div class="result-section" id="resultSection">
+                        <h3 id="resultTitle"></h3>
+                        <p id="resultMessage"></p>
+                        <div id="resultDetails"></div>
+                        <button class="btn-game" onclick="nuevoCrucigrama()">
+                            <i class="fas fa-redo"></i> Nuevo Crucigrama
+                        </button>
+                        <a href="{{ url_for('juegos') }}" class="btn-game">
+                            <i class="fas fa-arrow-left"></i> Volver a Juegos
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Datos del crucigrama
+        const crucigramaData = {
+            palabras: {{ crucigrama.palabras | tojsonfilter }},
+            grid: {{ crucigrama.grid | tojsonfilter }},
+            tamaño: {{ crucigrama.tamaño }},
+            nivel: {{ nivel }},
+            puntos: {{ crucigrama.puntos }},
+            titulo: "{{ crucigrama.titulo }}",
+            startTime: Date.now(),
+            palabrasCompletadas: 0
+        };
+
+        // Manejar input en las celdas
+        function manejarInput(input, event) {
+            const valor = input.value.toUpperCase();
+            const respuestaCorrecta = input.dataset.answer.toUpperCase();
+
+            if (valor === respuestaCorrecta) {
+                input.parentNode.classList.add('correct');
+                input.parentNode.classList.remove('incorrect');
+            } else if (valor !== '') {
+                input.parentNode.classList.add('incorrect');
+                input.parentNode.classList.remove('correct');
+            } else {
+                input.parentNode.classList.remove('correct', 'incorrect');
+            }
+
+            // Auto-avanzar a la siguiente celda
+            if (valor && event.key !== 'Backspace') {
+                const siguiente = encontrarSiguienteCelda(input);
+                if (siguiente) {
+                    siguiente.focus();
+                }
+            }
+
+            actualizarProgreso();
+        }
+
+        // Manejar navegación con teclado
+        function manejarNavegacion(input, event) {
+            const fila = parseInt(input.parentNode.dataset.row);
+            const col = parseInt(input.parentNode.dataset.col);
+
+            let nuevaFila = fila;
+            let nuevaCol = col;
+
+            switch(event.key) {
+                case 'ArrowUp':
+                    nuevaFila = Math.max(0, fila - 1);
+                    break;
+                case 'ArrowDown':
+                    nuevaFila = Math.min(crucigramaData.tamaño - 1, fila + 1);
+                    break;
+                case 'ArrowLeft':
+                    nuevaCol = Math.max(0, col - 1);
+                    break;
+                case 'ArrowRight':
+                    nuevaCol = Math.min(crucigramaData.tamaño - 1, col + 1);
+                    break;
+                case 'Backspace':
+                    if (!input.value) {
+                        const anterior = encontrarAnteriorCelda(input);
+                        if (anterior) {
+                            anterior.focus();
+                        }
+                    }
+                    return;
+                default:
+                    return;
+            }
+
+            event.preventDefault();
+            const nuevaCelda = document.querySelector(`[data-row="${nuevaFila}"][data-col="${nuevaCol}"] input`);
+            if (nuevaCelda) {
+                nuevaCelda.focus();
+            }
+        }
+
+        // Encontrar siguiente celda
+        function encontrarSiguienteCelda(input) {
+            const fila = parseInt(input.parentNode.dataset.row);
+            const col = parseInt(input.parentNode.dataset.col);
+
+            // Buscar en la misma fila
+            for (let c = col + 1; c < crucigramaData.tamaño; c++) {
+                const celda = document.querySelector(`[data-row="${fila}"][data-col="${c}"] input`);
+                if (celda) return celda;
+            }
+
+            // Buscar en la siguiente fila
+            for (let f = fila + 1; f < crucigramaData.tamaño; f++) {
+                for (let c = 0; c < crucigramaData.tamaño; c++) {
+                    const celda = document.querySelector(`[data-row="${f}"][data-col="${c}"] input`);
+                    if (celda) return celda;
+                }
+            }
+
+            return null;
+        }
+
+        // Encontrar celda anterior
+        function encontrarAnteriorCelda(input) {
+            const fila = parseInt(input.parentNode.dataset.row);
+            const col = parseInt(input.parentNode.dataset.col);
+
+            // Buscar en la misma fila
+            for (let c = col - 1; c >= 0; c--) {
+                const celda = document.querySelector(`[data-row="${fila}"][data-col="${c}"] input`);
+                if (celda) return celda;
+            }
+
+            // Buscar en la fila anterior
+            for (let f = fila - 1; f >= 0; f--) {
+                for (let c = crucigramaData.tamaño - 1; c >= 0; c--) {
+                    const celda = document.querySelector(`[data-row="${f}"][data-col="${c}"] input`);
+                    if (celda) return celda;
+                }
+            }
+
+            return null;
+        }
+
+        // Enfocar palabra específica
+        function enfocarPalabra(numero, direccion) {
+            // Encontrar la palabra en los datos
+            const palabra = crucigramaData.palabras.find(p =>
+                p.numero === numero && p.direccion === direccion
+            );
+
+            if (palabra) {
+                // Resaltar las celdas de la palabra
+                limpiarResaltado();
+
+                const celdas = [];
+                for (let i = 0; i < palabra.palabra.length; i++) {
+                    let fila, col;
+                    if (direccion === 'horizontal') {
+                        fila = palabra.fila;
+                        col = palabra.columna + i;
+                    } else {
+                        fila = palabra.fila + i;
+                        col = palabra.columna;
+                    }
+
+                    const celda = document.querySelector(`[data-row="${fila}"][data-col="${col}"]`);
+                    if (celda) {
+                        celda.style.background = '#e6fffa';
+                        celda.style.border = '2px solid #4facfe';
+                        celdas.push(celda);
+                    }
+                }
+
+                // Enfocar primera celda
+                if (celdas[0]) {
+                    const input = celdas[0].querySelector('input');
+                    if (input) input.focus();
+                }
+            }
+        }
+
+        // Limpiar resaltado
+        function limpiarResaltado() {
+            document.querySelectorAll('.grid-cell').forEach(celda => {
+                celda.style.background = '';
+                celda.style.border = '';
+            });
+        }
+
+        // Actualizar progreso
+        function actualizarProgreso() {
+            let palabrasCompletadas = 0;
+
+            crucigramaData.palabras.forEach(palabra => {
+                let completada = true;
+
+                for (let i = 0; i < palabra.palabra.length; i++) {
+                    let fila, col;
+                    if (palabra.direccion === 'horizontal') {
+                        fila = palabra.fila;
+                        col = palabra.columna + i;
+                    } else {
+                        fila = palabra.fila + i;
+                        col = palabra.columna;
+                    }
+
+                    const input = document.querySelector(`[data-row="${fila}"][data-col="${col}"] input`);
+                    if (!input || input.value.toUpperCase() !== palabra.palabra[i].toUpperCase()) {
+                        completada = false;
+                        break;
+                    }
+                }
+
+                if (completada) {
+                    palabrasCompletadas++;
+                }
+            });
+
+            crucigramaData.palabrasCompletadas = palabrasCompletadas;
+            const porcentaje = (palabrasCompletadas / crucigramaData.palabras.length) * 100;
+
+            document.getElementById('progressBar').style.width = porcentaje + '%';
+            document.getElementById('progressBar').textContent = Math.round(porcentaje) + '%';
+            document.getElementById('wordsCompleted').textContent =
+                `${palabrasCompletadas} de ${crucigramaData.palabras.length} palabras completadas`;
+        }
+
+        // Verificar crucigrama
+        function verificarCrucigrama() {
+            const gameEndTime = Date.now();
+            const tiempoEmpleadoSegundos = Math.floor((gameEndTime - crucigramaData.startTime) / 1000);
+
+            let respuestasCorrectas = 0;
+            let totalCeldas = 0;
+
+            // Verificar cada celda
+            document.querySelectorAll('.grid-cell input').forEach(input => {
+                totalCeldas++;
+                const valor = input.value.toUpperCase();
+                const correcto = input.dataset.answer.toUpperCase();
+
+                if (valor === correcto) {
+                    respuestasCorrectas++;
+                    input.parentNode.classList.add('correct');
+                    input.parentNode.classList.remove('incorrect');
+                } else {
+                    input.parentNode.classList.add('incorrect');
+                    input.parentNode.classList.remove('correct');
+                }
+            });
+
+            const precision = (respuestasCorrectas / totalCeldas) * 100;
+            const puntos = Math.floor((precision / 100) * crucigramaData.puntos);
+
+            // Mostrar resultados
+            mostrarResultados(precision, puntos, tiempoEmpleadoSegundos, respuestasCorrectas, totalCeldas);
+
+            // Guardar en base de datos
+            guardarResultadoCrucigrama(puntos, precision, tiempoEmpleadoSegundos, respuestasCorrectas, totalCeldas);
+        }
+
+        // Mostrar resultados
+        function mostrarResultados(precision, puntos, tiempo, correctas, total) {
+            const resultSection = document.getElementById('resultSection');
+            const resultTitle = document.getElementById('resultTitle');
+            const resultMessage = document.getElementById('resultMessage');
+            const resultDetails = document.getElementById('resultDetails');
+
+            if (precision === 100) {
+                resultSection.className = 'result-section success';
+                resultTitle.innerHTML = '<i class="fas fa-trophy"></i> ¡Crucigrama Perfecto!';
+                resultMessage.textContent = '¡Felicitaciones! Completaste el crucigrama sin errores.';
+            } else if (precision >= 70) {
+                resultSection.className = 'result-section partial';
+                resultTitle.innerHTML = '<i class="fas fa-star"></i> ¡Buen Trabajo!';
+                resultMessage.textContent = 'Completaste la mayoría del crucigrama correctamente.';
+            } else {
+                resultSection.className = 'result-section';
+                resultSection.style.background = 'linear-gradient(135deg, #ff6b6b, #ee5a24)';
+                resultSection.style.color = 'white';
+                resultTitle.innerHTML = '<i class="fas fa-redo"></i> ¡Sigue Intentando!';
+                resultMessage.textContent = 'Revisa las respuestas marcadas en rojo y vuelve a intentar.';
+            }
+
+            resultDetails.innerHTML = `
+                <div class="row text-center mt-3">
+                    <div class="col-md-3">
+                        <h4>${puntos}</h4>
+                        <small>Puntos Obtenidos</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4>${precision.toFixed(1)}%</h4>
+                        <small>Precisión</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4>${correctas}/${total}</h4>
+                        <small>Respuestas Correctas</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4>${Math.floor(tiempo / 60)}:${(tiempo % 60).toString().padStart(2, '0')}</h4>
+                        <small>Tiempo Empleado</small>
+                    </div>
+                </div>
+            `;
+
+            resultSection.style.display = 'block';
+        }
+
+        // Guardar resultado en base de datos
+        function guardarResultadoCrucigrama(puntos, precision, tiempoSegundos, correctas, total) {
+            const datosJuego = {
+                tipo: 'crucigrama',
+                nombre: 'Crucigrama',
+                puntos: puntos,
+                precision: precision,
+                tiempo_segundos: tiempoSegundos,
+                datos_adicionales: {
+                    titulo: crucigramaData.titulo,
+                    nivel: crucigramaData.nivel,
+                    respuestas_correctas: correctas,
+                    total_celdas: total,
+                    palabras_completadas: crucigramaData.palabrasCompletadas,
+                    total_palabras: crucigramaData.palabras.length,
+                    puntos_maximos: crucigramaData.puntos
+                }
+            };
+
+            fetch('/api/ejercicios/completar', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(datosJuego)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('Resultado guardado exitosamente');
+
+                    const mensajeExito = document.createElement('div');
+                    mensajeExito.className = 'alert alert-info mt-3';
+                    mensajeExito.innerHTML = `
+                        <i class="fas fa-save me-2"></i>
+                        ${data.message}
+                    `;
+                    document.getElementById('resultDetails').appendChild(mensajeExito);
+                } else {
+                    console.error('Error guardando resultado:', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error en la petición:', error);
+            });
+        }
+
+        // Limpiar crucigrama
+        function limpiarCrucigrama() {
+            if (confirm('¿Estás seguro de que quieres limpiar todas las respuestas?')) {
+                document.querySelectorAll('.grid-cell input').forEach(input => {
+                    input.value = '';
+                    input.parentNode.classList.remove('correct', 'incorrect');
+                });
+
+                document.getElementById('resultSection').style.display = 'none';
+                actualizarProgreso();
+                limpiarResaltado();
+            }
+        }
+
+        // Mostrar ayuda
+        function mostrarAyuda() {
+            alert(`Instrucciones del Crucigrama:
+
+1. Haz clic en las pistas para resaltar la palabra correspondiente
+2. Usa las flechas del teclado para navegar entre celdas
+3. El texto se introduce automáticamente en mayúsculas
+4. Las celdas verdes indican respuestas correctas
+5. Las celdas rojas indican respuestas incorrectas
+6. Presiona "Verificar Respuestas" para comprobar tu progreso
+
+¡Buena suerte!`);
+        }
+
+        // Nuevo crucigrama
+        function nuevoCrucigrama() {
+            if (confirm('¿Quieres generar un nuevo crucigrama? Se perderá el progreso actual.')) {
+                window.location.reload();
+            }
+        }
+
+        // Inicializar cuando se carga la página
+        document.addEventListener('DOMContentLoaded', function() {
+            actualizarProgreso();
+
+            // Enfocar primera celda disponible
+            const primerInput = document.querySelector('.grid-cell input');
+            if (primerInput) {
+                primerInput.focus();
+            }
+        });
+    </script>
+</body>
+</html>

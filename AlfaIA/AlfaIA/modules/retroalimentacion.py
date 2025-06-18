@@ -1,4 +1,6 @@
-# modules/retroalimentacion.py
+# modules/retroalimentacion.py - Módulo Corregido y Completo
+# Ubicación: AlfaIA/AlfaIA/modules/retroalimentacion.py
+
 import random
 from datetime import datetime
 
@@ -193,66 +195,6 @@ class SistemaRetroalimentacion:
             "color": color
         }
 
-    def generar_reporte_progreso(self, estadisticas_usuario):
-        """Generar un reporte de progreso del usuario"""
-        ejercicios = estadisticas_usuario.get("ejercicios_completados", 0)
-        precision = estadisticas_usuario.get("precision_promedio", 0)
-        racha = estadisticas_usuario.get("racha_dias", 0)
-
-        # Mensaje principal basado en el progreso
-        if ejercicios >= 50:
-            mensaje_main = "¡Eres un estudiante dedicado! 🏆"
-        elif ejercicios >= 20:
-            mensaje_main = "¡Excelente progreso! 📈"
-        elif ejercicios >= 5:
-            mensaje_main = "¡Vas por buen camino! 🌟"
-        else:
-            mensaje_main = "¡Seguimos aprendiendo juntos! 🌱"
-
-        # Generar insights
-        insights = []
-
-        if precision >= 90:
-            insights.append("Tu precisión es excepcional")
-        elif precision >= 70:
-            insights.append("Mantienes una buena precisión")
-        else:
-            insights.append("Hay oportunidad de mejorar la precisión")
-
-        if racha >= 7:
-            insights.append(f"¡{racha} días de práctica consecutiva!")
-        elif racha >= 3:
-            insights.append(f"Llevas {racha} días practicando")
-        else:
-            insights.append("Intenta practicar más regularmente")
-
-        # Recomendaciones personalizadas
-        recomendaciones = []
-
-        if precision < 70:
-            recomendaciones.append("Dedica más tiempo a cada ejercicio")
-            recomendaciones.append("Revisa tus respuestas antes de enviarlas")
-
-        if racha < 3:
-            recomendaciones.append("Intenta practicar un poco cada día")
-            recomendaciones.append("Establece recordatorios para practicar")
-
-        if ejercicios < 10:
-            recomendaciones.append("Explora diferentes tipos de ejercicios")
-            recomendaciones.append("No tengas miedo de cometer errores")
-
-        return {
-            "mensaje_principal": mensaje_main,
-            "estadisticas": {
-                "ejercicios": ejercicios,
-                "precision": f"{precision:.1f}%",
-                "racha": f"{racha} días"
-            },
-            "insights": insights,
-            "recomendaciones": recomendaciones[:3],  # Máximo 3 recomendaciones
-            "fecha": datetime.now().strftime("%d/%m/%Y")
-        }
-
     def calcular_puntos_bonus(self, precision, tiempo_respuesta=None, es_racha=False):
         """Calcular puntos bonus basados en rendimiento"""
         puntos_base = 10
@@ -275,3 +217,224 @@ class SistemaRetroalimentacion:
             bonus += 5
 
         return puntos_base + bonus
+
+
+class RetroalimentacionPersonalizada:
+    """Clase principal para retroalimentación personalizada (IA)"""
+
+    def __init__(self):
+        self.sistema_base = SistemaRetroalimentacion()
+
+    def generar_retroalimentacion_personalizada(self, ejercicios_completados=0, precision_promedio=0, racha_dias=0):
+        """Generar retroalimentación personalizada basada en el progreso del usuario"""
+
+        # Mensaje principal basado en el progreso
+        if ejercicios_completados >= 50:
+            mensaje_main = "¡Eres un estudiante dedicado! 🏆"
+        elif ejercicios_completados >= 20:
+            mensaje_main = "¡Excelente progreso! 📈"
+        elif ejercicios_completados >= 5:
+            mensaje_main = "¡Vas por buen camino! 🌟"
+        else:
+            mensaje_main = "¡Seguimos aprendiendo juntos! 🌱"
+
+        # Generar insights
+        insights = []
+
+        if precision_promedio >= 90:
+            insights.append("Tu precisión es excepcional")
+        elif precision_promedio >= 70:
+            insights.append("Mantienes una buena precisión")
+        else:
+            insights.append("Hay oportunidad de mejorar la precisión")
+
+        if racha_dias >= 7:
+            insights.append(f"¡{racha_dias} días de práctica consecutiva!")
+        elif racha_dias >= 3:
+            insights.append(f"Llevas {racha_dias} días practicando")
+        else:
+            insights.append("Intenta practicar más regularmente")
+
+        # Recomendaciones personalizadas
+        recomendaciones = []
+
+        if precision_promedio < 70:
+            recomendaciones.append("Dedica más tiempo a cada ejercicio")
+            recomendaciones.append("Revisa tus respuestas antes de enviarlas")
+
+        if racha_dias < 3:
+            recomendaciones.append("Intenta practicar un poco cada día")
+            recomendaciones.append("Establece recordatorios para practicar")
+
+        if ejercicios_completados < 10:
+            recomendaciones.append("Explora diferentes tipos de ejercicios")
+            recomendaciones.append("No tengas miedo de cometer errores")
+
+        return {
+            "mensaje_principal": mensaje_main,
+            "estadisticas": {
+                "ejercicios": ejercicios_completados,
+                "precision": f"{precision_promedio:.1f}%",
+                "racha": f"{racha_dias} días"
+            },
+            "insights": insights,
+            "recomendaciones": recomendaciones[:3],  # Máximo 3 recomendaciones
+            "fecha": datetime.now().strftime("%d/%m/%Y")
+        }
+
+    def generar_retroalimentacion_ejercicio(self, precision, tipo_ejercicio, es_primera_vez=False, mejora_anterior=0):
+        """Wrapper para retroalimentación de ejercicios individuales"""
+        return self.sistema_base.generar_retroalimentacion(
+            precision, tipo_ejercicio, es_primera_vez, mejora_anterior
+        )
+
+    def generar_retroalimentacion_pronunciacion(self, vocales_detectadas, vocales_esperadas=None):
+        """Wrapper para retroalimentación de pronunciación"""
+        return self.sistema_base.generar_retroalimentacion_pronunciacion(
+            vocales_detectadas, vocales_esperadas
+        )
+
+    def calcular_puntos_bonus(self, precision, tiempo_respuesta=None, es_racha=False):
+        """Wrapper para calcular puntos bonus"""
+        return self.sistema_base.calcular_puntos_bonus(precision, tiempo_respuesta, es_racha)
+
+    def generar_reporte_progreso_semanal(self, datos_semana):
+        """Generar reporte de progreso semanal"""
+        ejercicios_semana = len(datos_semana.get('ejercicios', []))
+        promedio_precision = datos_semana.get('precision_promedio', 0)
+        dias_activos = datos_semana.get('dias_activos', 0)
+
+        # Evaluación general de la semana
+        if ejercicios_semana >= 15 and promedio_precision >= 80:
+            evaluacion = "¡Semana excepcional! 🌟"
+            color = "success"
+        elif ejercicios_semana >= 10 and promedio_precision >= 70:
+            evaluacion = "¡Muy buena semana! 👍"
+            color = "success"
+        elif ejercicios_semana >= 5:
+            evaluacion = "Semana productiva 📚"
+            color = "info"
+        else:
+            evaluacion = "Intenta ser más consistente 💪"
+            color = "warning"
+
+        # Objetivos para la próxima semana
+        objetivos = []
+        if ejercicios_semana < 10:
+            objetivos.append(f"Intentar completar al menos {ejercicios_semana + 3} ejercicios")
+
+        if promedio_precision < 80:
+            objetivos.append("Mejorar la precisión tomándote más tiempo")
+
+        if dias_activos < 5:
+            objetivos.append("Practicar al menos 5 días de la semana")
+
+        if not objetivos:
+            objetivos.append("Mantener este excelente ritmo de aprendizaje")
+
+        return {
+            "evaluacion": evaluacion,
+            "color": color,
+            "estadisticas": {
+                "ejercicios_completados": ejercicios_semana,
+                "precision_promedio": f"{promedio_precision:.1f}%",
+                "dias_activos": dias_activos
+            },
+            "objetivos_proxima_semana": objetivos[:3],
+            "fecha_reporte": datetime.now().strftime("%d/%m/%Y")
+        }
+
+    def generar_mensaje_motivacional_diario(self, racha_actual=0):
+        """Generar mensaje motivacional diario"""
+        mensajes_por_racha = {
+            0: [
+                "¡Hoy es un gran día para aprender algo nuevo! 🌟",
+                "¡Empecemos esta aventura de aprendizaje! 🚀",
+                "¡Tu primera lección te está esperando! 📚"
+            ],
+            1: [
+                "¡Segundo día! El hábito se está formando 💪",
+                "¡Excelente! Continuemos con esta racha 🔥",
+                "¡Vas por buen camino! 👍"
+            ],
+            7: [
+                "¡Una semana completa! ¡Increíble dedicación! 🏆",
+                "¡7 días seguidos! Eres realmente constante 🌟",
+                "¡Una semana de aprendizaje! ¡Felicitaciones! 🎉"
+            ],
+            30: [
+                "¡UN MES COMPLETO! ¡Eres extraordinario! 🏆🎉",
+                "¡30 días de constancia! ¡Eres una inspiración! ⭐",
+                "¡Un mes de aprendizaje! ¡Logro increíble! 🚀"
+            ]
+        }
+
+        if racha_actual >= 30:
+            categoria = 30
+        elif racha_actual >= 7:
+            categoria = 7
+        elif racha_actual >= 1:
+            categoria = 1
+        else:
+            categoria = 0
+
+        mensaje = random.choice(mensajes_por_racha[categoria])
+
+        return {
+            "mensaje": mensaje,
+            "racha_actual": racha_actual,
+            "siguiente_meta": self._calcular_siguiente_meta(racha_actual),
+            "fecha": datetime.now().strftime("%d/%m/%Y")
+        }
+
+    def _calcular_siguiente_meta(self, racha_actual):
+        """Calcular la siguiente meta de racha"""
+        metas = [1, 3, 7, 14, 30, 60, 100]
+
+        for meta in metas:
+            if racha_actual < meta:
+                return {
+                    "dias": meta,
+                    "faltantes": meta - racha_actual
+                }
+
+        # Si ya superó todas las metas predefinidas
+        siguiente_decena = ((racha_actual // 10) + 1) * 10
+        return {
+            "dias": siguiente_decena,
+            "faltantes": siguiente_decena - racha_actual
+        }
+
+    def evaluar_dificultad_recomendada(self, historial_precision, nivel_actual):
+        """Recomendar ajuste de dificultad basado en el rendimiento"""
+        if not historial_precision:
+            return {
+                "nivel_recomendado": nivel_actual,
+                "razon": "Necesitamos más datos para hacer una recomendación",
+                "cambio": "mantener"
+            }
+
+        precision_reciente = sum(historial_precision[-5:]) / len(historial_precision[-5:])
+
+        if precision_reciente >= 90 and len(historial_precision) >= 5:
+            return {
+                "nivel_recomendado": min(nivel_actual + 1, 5),
+                "razon": "Tu alto rendimiento indica que puedes manejar un mayor desafío",
+                "cambio": "aumentar"
+            }
+        elif precision_reciente < 60:
+            return {
+                "nivel_recomendado": max(nivel_actual - 1, 1),
+                "razon": "Un nivel más fácil te ayudará a construir confianza",
+                "cambio": "disminuir"
+            }
+        else:
+            return {
+                "nivel_recomendado": nivel_actual,
+                "razon": "Tu nivel actual es perfecto para tu progreso",
+                "cambio": "mantener"
+            }
+
+
+# Instancia global para usar en la aplicación
+retroalimentacion_personalizada = RetroalimentacionPersonalizada()

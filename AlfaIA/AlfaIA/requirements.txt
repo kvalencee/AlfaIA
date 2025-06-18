@@ -1,0 +1,85 @@
+# requirements.txt - Dependencias de AlfaIA
+# Ubicación: AlfaIA/requirements.txt
+
+# === FRAMEWORK WEB ===
+Flask==3.0.0
+Flask-CORS==4.0.0
+
+# === BASE DE DATOS ===
+mysql-connector-python==8.2.0
+
+# === SEGURIDAD ===
+bcrypt==4.1.2
+cryptography==41.0.8
+
+# === PROCESAMIENTO DE AUDIO ===
+librosa==0.10.1
+numpy==1.24.4
+scipy==1.11.4
+soundfile==0.12.1
+pyaudio==0.2.11
+wave==0.0.2
+
+# === ANÁLISIS DE DATOS ===
+pandas==2.1.4
+matplotlib==3.8.2
+seaborn==0.13.0
+
+# === UTILIDADES ===
+python-dateutil==2.8.2
+requests==2.31.0
+Pillow==10.1.0
+
+# === DESARROLLO Y TESTING ===
+pytest==7.4.3
+pytest-flask==1.3.0
+coverage==7.3.2
+
+# === LOGGING Y MONITOREO ===
+coloredlogs==15.0.1
+
+# === PROCESAMIENTO DE TEXTO ===
+nltk==3.8.1
+textblob==0.17.1
+
+# === MACHINE LEARNING (OPCIONAL) ===
+scikit-learn==1.3.2
+tensorflow==2.15.0
+
+# === EXTRAS PARA FUNCIONALIDADES AVANZADAS ===
+pydub==0.25.1
+speech-recognition==3.10.0
+googletrans==4.0.0rc1
+
+# === NOTAS DE INSTALACIÓN ===
+#
+# Para instalar todas las dependencias:
+# pip install -r requirements.txt
+#
+# Para entornos específicos:
+#
+# Windows:
+# pip install pyaudio
+#
+# Linux/Ubuntu:
+# sudo apt-get install portaudio19-dev python3-pyaudio
+# sudo apt-get install ffmpeg
+# pip install pyaudio
+#
+# macOS:
+# brew install portaudio
+# brew install ffmpeg
+# pip install pyaudio
+#
+# DEPENDENCIAS OPCIONALES (instalar según necesidad):
+#
+# Para funcionalidades avanzadas de ML:
+# pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+#
+# Para reconocimiento de voz avanzado:
+# pip install vosk
+# pip install whisper-openai
+#
+# Para síntesis de voz:
+# pip install pyttsx3
+# pip install gTTS

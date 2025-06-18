@@ -3,44 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Juegos Interactivos - AlfaIA</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Juegos Educativos - AlfaIA</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
-            --primary: #667eea;
-            --secondary: #764ba2;
-            --success: #42e695;
-            --warning: #f093fb;
-            --info: #4facfe;
-            --danger: #ff6b6b;
+            --primary: #4facfe;
+            --secondary: #00f2fe;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1f2937;
+            --light: #f3f4f6;
         }
 
         body {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
         }
 
         .navbar-custom {
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(31, 41, 55, 0.95);
             backdrop-filter: blur(10px);
             box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
         }
 
         .games-container {
-            padding: 2rem 0;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
         }
 
         .page-header {
             text-align: center;
             color: white;
+            padding: 3rem 2rem;
             margin-bottom: 3rem;
         }
 
         .page-title {
             font-size: 3rem;
-            font-weight: 700;
+            font-weight: 800;
             margin-bottom: 1rem;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
         }
@@ -60,149 +64,158 @@
         }
 
         .game-card {
-            background: rgba(255, 255, 255, 0.95);
+            background: white;
             border-radius: 20px;
-            padding: 2rem;
+            overflow: hidden;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease;
-            text-decoration: none;
-            color: inherit;
             position: relative;
-            overflow: hidden;
-        }
-
-        .game-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--primary), var(--info));
         }
 
         .game-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-            text-decoration: none;
-            color: inherit;
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .game-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 2rem;
+            position: relative;
         }
 
         .game-icon {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.5rem;
-            color: white;
-            margin-bottom: 1.5rem;
+            font-size: 3rem;
+            margin-bottom: 1rem;
         }
-
-        .game-icon.memoria { background: linear-gradient(135deg, #667eea, #764ba2); }
-        .game-icon.ahorcado { background: linear-gradient(135deg, #f093fb, #f5576c); }
-        .game-icon.trivia { background: linear-gradient(135deg, #4facfe, #00f2fe); }
 
         .game-title {
             font-size: 1.5rem;
-            font-weight: 600;
+            font-weight: 700;
             margin-bottom: 0.5rem;
-            color: #2d3748;
         }
 
         .game-description {
-            color: #718096;
-            margin-bottom: 1.5rem;
-            line-height: 1.6;
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+
+        .game-body {
+            padding: 2rem;
         }
 
         .game-stats {
             display: flex;
-            gap: 1rem;
+            justify-content: space-between;
             margin-bottom: 1.5rem;
         }
 
         .stat-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: #4a5568;
-            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: #6b7280;
+            display: block;
+        }
+
+        .stat-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .play-btn {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .play-btn:hover {
+            color: white;
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.3);
         }
 
         .difficulty-badge {
-            display: inline-block;
-            padding: 0.25rem 0.75rem;
-            border-radius: 50px;
-            font-size: 0.8rem;
-            font-weight: 500;
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            color: white;
+            padding: 0.25rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .quick-play-section {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            text-align: center;
+            margin-bottom: 3rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .quick-play-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--dark);
             margin-bottom: 1rem;
         }
 
-        .difficulty-facil { background: #c6f6d5; color: #22543d; }
-        .difficulty-medio { background: #fed7d7; color: #742a2a; }
-        .difficulty-variada { background: #bee3f8; color: #2a4365; }
-
-        .play-button {
-            background: linear-gradient(135deg, var(--primary), var(--info));
-            border: none;
+        .quick-play-btn {
+            display: inline-block;
+            padding: 1.25rem 3rem;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             color: white;
-            padding: 0.75rem 2rem;
+            text-decoration: none;
             border-radius: 50px;
-            font-weight: 600;
-            font-size: 1rem;
+            font-weight: 700;
+            font-size: 1.1rem;
             transition: all 0.3s ease;
-            width: 100%;
+            box-shadow: 0 5px 15px rgba(245, 87, 108, 0.3);
         }
 
-        .play-button:hover {
+        .quick-play-btn:hover {
+            color: white;
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 10px 25px rgba(245, 87, 108, 0.4);
         }
 
-        .quick-play {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
-
-        .quick-play-button {
-            background: linear-gradient(135deg, var(--warning), var(--danger));
-            border: none;
-            color: white;
-            padding: 1rem 3rem;
-            border-radius: 50px;
-            font-weight: 600;
-            font-size: 1.2rem;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .quick-play-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(240, 147, 251, 0.4);
+        .back-to-dashboard {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
             color: white;
             text-decoration: none;
-        }
-
-        .back-link {
-            color: white;
-            text-decoration: none;
-            font-weight: 500;
             margin-bottom: 2rem;
-            display: inline-block;
+            font-weight: 500;
             transition: all 0.3s ease;
         }
 
-        .back-link:hover {
-            color: white;
-            transform: translateX(-5px);
+        .back-to-dashboard:hover {
+            color: var(--light);
+            transform: translateX(-4px);
         }
 
         @media (max-width: 768px) {
             .games-container {
                 padding: 1rem;
+            }
+
+            .page-header {
+                padding: 2rem 1rem;
             }
 
             .page-title {
@@ -211,11 +224,6 @@
 
             .games-grid {
                 grid-template-columns: 1fr;
-                gap: 1.5rem;
-            }
-
-            .game-card {
-                padding: 1.5rem;
             }
         }
     </style>
@@ -228,72 +236,75 @@
                 <i class="fas fa-graduation-cap me-2"></i>AlfaIA
             </a>
             <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a>
-                <a class="nav-link" href="{{ url_for('ejercicios') }}">Ejercicios</a>
-                <a class="nav-link" href="{{ url_for('mostrar_progreso') }}">Progreso</a>
+                <span class="navbar-text">
+                    {{ user.nombre if user else 'Usuario' }}
+                </span>
             </div>
         </div>
     </nav>
 
-    <div class="container games-container">
-        <!-- Enlace de regreso -->
-        <a href="{{ url_for('dashboard') }}" class="back-link">
-            <i class="fas fa-arrow-left me-2"></i>Volver al Dashboard
+    <div class="games-container">
+        <!-- Enlace para volver -->
+        <a href="{{ url_for('dashboard') }}" class="back-to-dashboard">
+            <i class="fas fa-arrow-left"></i> Volver al Dashboard
         </a>
 
         <!-- Header -->
         <div class="page-header">
-            <h1 class="page-title">
-                <i class="fas fa-gamepad me-3"></i>Juegos Interactivos
-            </h1>
+            <h1 class="page-title">Juegos Educativos</h1>
             <p class="page-subtitle">
-                Aprende mientras te diviertes con nuestra colección de juegos educativos.
-                Cada juego está diseñado para reforzar tus habilidades de alfabetización de manera entretenida.
+                Aprende mientras te diviertes con nuestros juegos interactivos diseñados para mejorar tu vocabulario y comprensión del español.
             </p>
         </div>
 
-        <!-- Juego Rápido -->
-        <div class="quick-play">
-            <a href="{{ url_for('juego_rapido') }}" class="quick-play-button">
-                <i class="fas fa-bolt me-2"></i>Juego Rápido Aleatorio
+        <!-- Sección de Juego Rápido -->
+        <div class="quick-play-section">
+            <h2 class="quick-play-title">
+                <i class="fas fa-dice me-2"></i>¿No sabes qué jugar?
+            </h2>
+            <p class="mb-4">Déjanos elegir un juego aleatorio para ti</p>
+            <a href="{{ url_for('juego_rapido') }}" class="quick-play-btn">
+                <i class="fas fa-random me-2"></i>Juego Aleatorio
             </a>
-            <p class="text-white mt-2">¡Comienza ahora con un juego sorpresa!</p>
         </div>
 
         <!-- Grid de Juegos -->
         <div class="games-grid">
             {% for juego in juegos %}
-            <a href="{{ juego.url }}" class="game-card">
-                <div class="game-icon {{ juego.id }}">
-                    <i class="fas fa-{{ juego.icono }}"></i>
-                </div>
-
-                <span class="difficulty-badge difficulty-{{ juego.dificultad.lower() }}">
-                    {{ juego.dificultad }}
-                </span>
-
-                <h3 class="game-title">{{ juego.nombre }}</h3>
-                <p class="game-description">{{ juego.descripcion }}</p>
-
-                <div class="game-stats">
-                    <div class="stat-item">
-                        <i class="fas fa-users"></i>
-                        <span>{{ juego.jugadores }} jugador</span>
+            <div class="game-card">
+                <div class="game-header">
+                    <div class="difficulty-badge">{{ juego.dificultad }}</div>
+                    <div class="game-icon">
+                        <i class="fas fa-{{ juego.icono }}"></i>
                     </div>
-                    <div class="stat-item">
-                        <i class="fas fa-clock"></i>
-                        <span>{{ juego.tiempo }}</span>
-                    </div>
+                    <h3 class="game-title">{{ juego.nombre }}</h3>
+                    <p class="game-description">{{ juego.descripcion }}</p>
                 </div>
-
-                <button class="play-button" onclick="event.preventDefault(); window.location.href='{{ juego.url }}'">
-                    <i class="fas fa-play me-2"></i>Jugar Ahora
-                </button>
-            </a>
+                <div class="game-body">
+                    <div class="game-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Jugadores</span>
+                            <span class="stat-value">{{ juego.jugadores }}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Tiempo</span>
+                            <span class="stat-value">{{ juego.tiempo }}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Dificultad</span>
+                            <span class="stat-value">{{ juego.dificultad }}</span>
+                        </div>
+                    </div>
+                    <a href="{{ juego.url }}" class="play-btn">
+                        <i class="fas fa-play me-2"></i>Jugar Ahora
+                    </a>
+                </div>
+            </div>
             {% endfor %}
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

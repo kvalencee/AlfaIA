@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Centro de Ejercicios - AlfaIA</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4facfe;
+            --secondary: #00f2fe;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1f2937;
+            --light: #f3f4f6;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        .navbar-custom {
+            background: rgba(31, 41, 55, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .exercises-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .page-header {
+            text-align: center;
+            color: var(--dark);
+            padding: 3rem 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .page-title {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+
+        .page-subtitle {
+            font-size: 1.2rem;
+            color: #6b7280;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .category-section {
+            margin-bottom: 4rem;
+        }
+
+        .category-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .activities-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .activity-card {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .activity-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        .activity-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            font-size: 1.75rem;
+            color: white;
+        }
+
+        .activity-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 0.75rem;
+        }
+
+        .activity-description {
+            color: #6b7280;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .activity-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .activity-btn:hover {
+            color: white;
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.3);
+        }
+
+        .difficulty-badge {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            padding: 0.25rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .badge-fundamental {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .badge-basico {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-intermedio {
+            background: #fed7aa;
+            color: #92400e;
+        }
+
+        .badge-avanzado {
+            background: #fecaca;
+            color: #991b1b;
+        }
+
+        .back-to-dashboard {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #6b7280;
+            text-decoration: none;
+            margin-bottom: 2rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .back-to-dashboard:hover {
+            color: var(--primary);
+            transform: translateX(-4px);
+        }
+
+        @media (max-width: 768px) {
+            .exercises-container {
+                padding: 1rem;
+            }
+
+            .page-header {
+                padding: 2rem 1rem;
+            }
+
+            .page-title {
+                font-size: 2rem;
+            }
+
+            .activities-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-custom">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="fas fa-graduation-cap me-2"></i>AlfaIA
+            </a>
+            <div class="navbar-nav ms-auto">
+                <span class="navbar-text">
+                    {{ user.nombre if user else 'Usuario' }}
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="exercises-container">
+        <!-- Enlace para volver -->
+        <a href="{{ url_for('dashboard') }}" class="back-to-dashboard">
+            <i class="fas fa-arrow-left"></i> Volver al Dashboard
+        </a>
+
+        <!-- Header -->
+        <div class="page-header">
+            <h1 class="page-title">Centro de Ejercicios</h1>
+            <p class="page-subtitle">
+                Explora nuestra colección completa de actividades diseñadas para mejorar tu alfabetización.
+                Cada ejercicio se adapta a tu nivel y progreso.
+            </p>
+        </div>
+
+        <!-- SECCIÓN: EJERCICIOS FUNDAMENTALES -->
+        <div class="category-section">
+            <h2 class="category-title">
+                <i class="fas fa-book-open"></i> Ejercicios Fundamentales
+            </h2>
+            <div class="activities-grid">
+                <!-- Lectura Guiada -->
+                <div class="activity-card">
+                    <div class="difficulty-badge badge-fundamental">Fundamental</div>
+                    <div class="activity-icon">
+                        <i class="fas fa-book-reader"></i>
+                    </div>
+                    <h4 class="activity-title">Lectura Guiada</h4>
+                    <p class="activity-description">
+                        Desarrolla velocidad lectora y comprensión con textos adaptativos.
+                        Sistema inteligente que ajusta la velocidad según tu progreso.
+                    </p>
+                    <a href="{{ url_for('ejercicios_lectura') }}" class="activity-btn">
+                        <i class="fas fa-play"></i> Iniciar Lectura
+                    </a>
+                </div>
+
+                <!-- Ordenar Frases -->
+                <div class="activity-card">
+                    <div class="difficulty-badge badge-fundamental">Fundamental</div>
+                    <div class="activity-icon">
+                        <i class="fas fa-spell-check"></i>
+                    </div>
+                    <h4 class="activity-title">Ordenar Frases</h4>
+                    <p class="activity-description">
+                        Fortalece tu dominio del idioma con ejercicios de ordenamiento,
+                        completado de palabras y construcción gramatical.
+                    </p>
+                    <a href="{{ url_for('ordenar_frase') }}" class="activity-btn">
+                        <i class="fas fa-pencil-alt"></i> Practicar Gramática
+                    </a>
+                </div>
+
+                <!-- Completar Palabras -->
+                <div class="activity-card">
+                    <div class="difficulty-badge badge-fundamental">Fundamental</div>
+                    <div class="activity-icon">
+                        <i class="fas fa-keyboard"></i>
+                    </div>
+                    <h4 class="activity-title">Completar Palabras</h4>
+                    <p class="activity-description">
+                        Mejora tu ortografía y vocabulario completando palabras
+                        con letras faltantes. Incluye pistas contextuales.
+                    </p>
+                    <a href="{{ url_for('completar_palabra') }}" class="activity-btn">
+                        <i class="fas fa-edit"></i> Completar Palabras
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN: EJERCICIOS DE PRONUNCIACIÓN -->
+        <div class="category-section">
+            <h2 class="category-title">
+                <i class="fas fa-microphone"></i> Pronunciación
+            </h2>
+            <div class="activities-grid">
+                <!-- Vocales y Pronunciación -->
+                <div class="activity-card">
+                    <div class="difficulty-badge badge-basico">Básico</div>
+                    <div class="activity-icon">
+                        <i class="fas fa-volume-up"></i>
+                    </div>
+                    <h4 class="activity-title">Pronunciación</h4>
+                    <p class="activity-description">
+                        Aprende a pronunciar correctamente las vocales y consonantes del español.
+                        Ejercicios con retroalimentación visual y auditiva.
+                    </p>
+                    <a href="{{ url_for('ejercicios_pronunciacion') }}" class="activity-btn">
+                        <i class="fas fa-microphone"></i> Practicar Pronunciación
+                    </a>
+                </div>
+
+                <!-- Ortografía -->
+                <div class="activity-card">
+                    <div class="difficulty-badge badge-intermedio">Intermedio</div>
+                    <div class="activity-icon">
+                        <i class="fas fa-spell-check"></i>
+                    </div>
+                    <h4 class="activity-title">Ortografía</h4>
+                    <p class="activity-description">
+                        Mejora tu escritura con ejercicios de ortografía.
+                        Aprende las reglas y excepciones del español.
+                    </p>
+                    <a href="{{ url_for('ejercicios_ortografia') }}" class="activity-btn">
+                        <i class="fas fa-pen"></i> Practicar Ortografía
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN: JUEGOS EDUCATIVOS -->
+        <div class="category-section">
+            <h2 class="category-title">
+                <i class="fas fa-gamepad"></i> Juegos Educativos
+            </h2>
+            <div class="activities-grid">
+                <!-- Memoria -->
+                <div class="activity-card">
+                    <div class="difficulty-badge badge-basico">Básico</div>
+                    <div class="activity-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h4 class="activity-title">Juego de Memoria</h4>
+                    <p class="activity-description">
+                        Encuentra las parejas de palabras relacionadas.
+                        Mejora tu memoria visual y vocabulario jugando.
+                    </p>
+                    <a href="{{ url_for('juego_memoria') }}" class="activity-btn">
+                        <i class="fas fa-puzzle-piece"></i> Jugar Memoria
+                    </a>
+                </div>
+
+                <!-- Ahorcado -->
+                <div class="activity-card">
+                    <div class="difficulty-badge badge-intermedio">Intermedio</div>
+                    <div class="activity-icon">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <h4 class="activity-title">Adivinanza de Palabras</h4>
+                    <p class="activity-description">
+                        Desafía tu conocimiento del vocabulario español en este
+                        clásico juego con pistas contextuales y niveles adaptativos.
+                    </p>
+                    <a href="{{ url_for('juego_ahorcado') }}" class="activity-btn">
+                        <i class="fas fa-crosshairs"></i> Adivinar Palabras
+                    </a>
+                </div>
+
+                <!-- Trivia -->
+                <div class="activity-card">
+                    <div class="difficulty-badge badge-intermedio">Intermedio</div>
+                    <div class="activity-icon">
+                        <i class="fas fa-question-circle"></i>
+                    </div>
+                    <h4 class="activity-title">Trivia del Lenguaje</h4>
+                    <p class="activity-description">
+                        Pon a prueba tus conocimientos sobre el español
+                        con preguntas de gramática, vocabulario y cultura.
+                    </p>
+                    <a href="{{ url_for('juego_trivia') }}" class="activity-btn">
+                        <i class="fas fa-lightbulb"></i> Jugar Trivia
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN: EJERCICIOS DIARIOS -->
+        <div class="category-section">
+            <h2 class="category-title">
+                <i class="fas fa-calendar-day"></i> Retos Diarios
+            </h2>
+            <div class="activities-grid">
+                <!-- Ejercicio del Día -->
+                <div class="activity-card">
+                    <div class="difficulty-badge badge-intermedio">Variable</div>
+                    <div class="activity-icon">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <h4 class="activity-title">Ejercicio del Día</h4>
+                    <p class="activity-description">
+                        Completa el ejercicio diario para mantener tu racha.
+                        Nuevo contenido cada día adaptado a tu nivel.
+                    </p>
+                    <a href="{{ url_for('ejercicio_diario') }}" class="activity-btn">
+                        <i class="fas fa-calendar-check"></i> Ejercicio de Hoy
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -3,28 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ejercicios - AlfaIA</title>
+    <title>Centro de Ejercicios - AlfaIA</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* Variables CSS */
         :root {
-            --primary: #4f46e5;
-            --primary-dark: #4338ca;
-            --secondary: #10b981;
-            --tertiary: #f59e0b;
+            --primary: #4facfe;
+            --secondary: #00f2fe;
+            --success: #10b981;
+            --warning: #f59e0b;
             --danger: #ef4444;
-            --light: #f3f4f6;
             --dark: #1f2937;
-            --gray-600: #4b5563;
-            --gray-700: #374151;
-            --gray-800: #1f2937;
+            --light: #f3f4f6;
         }
 
         body {
-            background: linear-gradient(135deg, #f0f4ff 0%, #e8edff 100%);
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             min-height: 100vh;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        .navbar-custom {
+            background: rgba(31, 41, 55, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
         }
 
         .exercises-container {
@@ -35,76 +37,117 @@
 
         .page-header {
             text-align: center;
-            margin-bottom: 3rem;
-            background: white;
+            color: var(--dark);
             padding: 3rem 2rem;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 3rem;
         }
 
         .page-title {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: var(--gray-800);
+            font-size: 3rem;
+            font-weight: 800;
             margin-bottom: 1rem;
         }
 
         .page-subtitle {
-            color: var(--gray-600);
-            font-size: 1.1rem;
+            font-size: 1.2rem;
+            color: #6b7280;
             max-width: 600px;
             margin: 0 auto;
         }
 
         .category-section {
-            margin-bottom: 3rem;
+            margin-bottom: 4rem;
         }
 
         .category-title {
-            font-size: 1.8rem;
-            color: var(--gray-800);
-            margin-bottom: 1.5rem;
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 2rem;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.75rem;
         }
 
         .activities-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 1.5rem;
         }
 
         .activity-card {
             background: white;
             border-radius: 16px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
             transition: all 0.3s ease;
             position: relative;
-            display: flex;
-            flex-direction: column;
+            overflow: hidden;
         }
 
         .activity-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        .activity-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            font-size: 1.75rem;
+            color: white;
+        }
+
+        .activity-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 0.75rem;
+        }
+
+        .activity-description {
+            color: #6b7280;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .activity-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .activity-btn:hover {
+            color: white;
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.3);
         }
 
         .difficulty-badge {
             position: absolute;
-            top: 1rem;
-            right: 1rem;
-            padding: 0.25rem 0.75rem;
+            top: 1.5rem;
+            right: 1.5rem;
+            padding: 0.25rem 1rem;
             border-radius: 20px;
-            font-size: 0.75rem;
+            font-size: 0.85rem;
             font-weight: 600;
-            text-transform: uppercase;
         }
 
         .badge-fundamental {
-            background: #e0f2fe;
-            color: #0369a1;
+            background: #dbeafe;
+            color: #1e40af;
         }
 
         .badge-basico {
@@ -114,7 +157,7 @@
 
         .badge-intermedio {
             background: #fed7aa;
-            color: #9a3412;
+            color: #92400e;
         }
 
         .badge-avanzado {
@@ -122,64 +165,11 @@
             color: #991b1b;
         }
 
-        .activity-icon {
-            font-size: 3rem;
-            color: var(--primary);
-            margin-bottom: 1rem;
-        }
-
-        .activity-title {
-            font-size: 1.3rem;
-            font-weight: 600;
-            color: var(--gray-800);
-            margin-bottom: 0.75rem;
-        }
-
-        .activity-description {
-            color: var(--gray-600);
-            font-size: 0.95rem;
-            flex-grow: 1;
-            margin-bottom: 1.5rem;
-        }
-
-        .activity-btn {
-            background: var(--primary);
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 25px;
-            text-decoration: none;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: all 0.3s ease;
-            align-self: flex-start;
-        }
-
-        .activity-btn:hover {
-            background: var(--primary-dark);
-            color: white;
-            transform: translateX(4px);
-            text-decoration: none;
-        }
-
-        .navbar-custom {
-            background: white;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            padding: 1rem 0;
-        }
-
-        .navbar-brand {
-            font-weight: 700;
-            font-size: 1.5rem;
-            color: var(--primary) !important;
-        }
-
         .back-to-dashboard {
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            color: var(--gray-600);
+            color: #6b7280;
             text-decoration: none;
             margin-bottom: 2rem;
             font-weight: 500;
@@ -257,7 +247,7 @@
                         Desarrolla velocidad lectora y comprensión con textos adaptativos.
                         Sistema inteligente que ajusta la velocidad según tu progreso.
                     </p>
-                    <a href="{{ url_for('lectura') }}" class="activity-btn">
+                    <a href="{{ url_for('ejercicios_lectura') }}" class="activity-btn">
                         <i class="fas fa-play"></i> Iniciar Lectura
                     </a>
                 </div>
@@ -302,35 +292,35 @@
                 <i class="fas fa-microphone"></i> Pronunciación
             </h2>
             <div class="activities-grid">
-                <!-- Vocales -->
+                <!-- Vocales y Pronunciación -->
                 <div class="activity-card">
                     <div class="difficulty-badge badge-basico">Básico</div>
                     <div class="activity-icon">
                         <i class="fas fa-volume-up"></i>
                     </div>
-                    <h4 class="activity-title">Pronunciación de Vocales</h4>
+                    <h4 class="activity-title">Pronunciación</h4>
                     <p class="activity-description">
-                        Aprende a pronunciar correctamente las vocales del español.
+                        Aprende a pronunciar correctamente las vocales y consonantes del español.
                         Ejercicios con retroalimentación visual y auditiva.
                     </p>
-                    <a href="{{ url_for('pronunciacion_vocales') }}" class="activity-btn">
-                        <i class="fas fa-microphone"></i> Practicar Vocales
+                    <a href="{{ url_for('ejercicios_pronunciacion') }}" class="activity-btn">
+                        <i class="fas fa-microphone"></i> Practicar Pronunciación
                     </a>
                 </div>
 
-                <!-- Trabalenguas -->
+                <!-- Ortografía -->
                 <div class="activity-card">
-                    <div class="difficulty-badge badge-avanzado">Avanzado</div>
+                    <div class="difficulty-badge badge-intermedio">Intermedio</div>
                     <div class="activity-icon">
-                        <i class="fas fa-comment-dots"></i>
+                        <i class="fas fa-spell-check"></i>
                     </div>
-                    <h4 class="activity-title">Trabalenguas</h4>
+                    <h4 class="activity-title">Ortografía</h4>
                     <p class="activity-description">
-                        Mejora tu pronunciación y fluidez con trabalenguas
-                        de diferentes niveles de dificultad y complejidad.
+                        Mejora tu escritura con ejercicios de ortografía.
+                        Aprende las reglas y excepciones del español.
                     </p>
-                    <a href="{{ url_for('pronunciacion_trabalenguas') }}" class="activity-btn">
-                        <i class="fas fa-tongue"></i> Practicar Trabalenguas
+                    <a href="{{ url_for('ejercicios_ortografia') }}" class="activity-btn">
+                        <i class="fas fa-pen"></i> Practicar Ortografía
                     </a>
                 </div>
             </div>

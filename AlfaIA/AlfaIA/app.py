@@ -19,16 +19,19 @@ except ImportError as e:
     DB_AVAILABLE = False
     db_manager = None
 
-# Importar generador de juegos
+# Importar generador de juegos y ejercicios
 try:
     from modules.juegos_interactivos import JuegosInteractivos
+    from modules.generador_ejercicios import GeneradorEjercicios
 
     juegos_generator = JuegosInteractivos()
+    ejercicios_generator = GeneradorEjercicios()
     JUEGOS_AVAILABLE = True
 except ImportError as e:
     logging.error(f"Error importando juegos_interactivos: {e}")
     JUEGOS_AVAILABLE = False
     juegos_generator = None
+    ejercicios_generator = None
 
 # Configurar logging básico
 logging.basicConfig(level=logging.INFO)
@@ -492,14 +495,31 @@ def ejercicios():
 @login_required
 def ejercicio_diario():
     """Ejercicio diario"""
+    nivel = request.args.get('nivel', 1, type=int)
+
     ejercicios_pendientes = [
-        {'tipo': 'ordenar_frase', 'titulo': 'Ordenar palabras', 'dificultad': 2, 'url': '/ejercicios/ordenar-frase'},
-        {'tipo': 'completar_palabra', 'titulo': 'Completar palabras', 'dificultad': 1,
-         'url': '/ejercicios/completar-palabra'},
-        {'tipo': 'pronunciacion', 'titulo': 'Pronunciar vocales', 'dificultad': 1, 'url': '/ejercicios/pronunciacion'},
-        {'tipo': 'lectura', 'titulo': 'Lectura comprensiva', 'dificultad': 2, 'url': '/ejercicios/lectura'},
-        {'tipo': 'trivia', 'titulo': 'Pregunta del día', 'dificultad': 3, 'url': '/juegos/trivia'}
+        {
+            'tipo': 'ordenar_frase',
+            'titulo': 'Ordenar palabras',
+            'url': url_for('ordenar_frase', nivel=nivel)
+        },
+        {
+            'tipo': 'completar_palabra',
+            'titulo': 'Completar palabras',
+            'url': url_for('completar_palabra', nivel=nivel)
+        },
+        {
+            'tipo': 'pronunciacion',
+            'titulo': 'Pronunciar vocales',
+            'url': url_for('ejercicio_pronunciacion', nivel=nivel)
+        },
+        {
+            'tipo': 'lectura',
+            'titulo': 'Lectura comprensiva',
+            'url': url_for('ejercicios_lectura', nivel=nivel)
+        }
     ]
+
     return render_template('ejercicios/diario.html', ejercicios=ejercicios_pendientes)
 
 
@@ -508,29 +528,11 @@ def ejercicio_diario():
 @login_required
 def ejercicios_lectura():
     """Ejercicios de lectura comprensiva"""
-    ejercicio_actual = {
-        'titulo': 'El Día en el Parque',
-        'texto': 'María salió temprano hacia el parque. El sol brillaba intensamente y los pájaros cantaban en los árboles. Decidió sentarse en un banco cerca del lago para leer su libro favorito.',
-        'preguntas': [
-            {
-                'pregunta': '¿A dónde fue María?',
-                'opciones': ['A la biblioteca', 'Al parque', 'A la escuela', 'A casa'],
-                'respuesta_correcta': 'Al parque'
-            },
-            {
-                'pregunta': '¿Cómo estaba el tiempo?',
-                'opciones': ['Nublado', 'Lluvioso', 'Soleado', 'Nevado'],
-                'respuesta_correcta': 'Soleado'
-            },
-            {
-                'pregunta': '¿Qué hizo María en el parque?',
-                'opciones': ['Correr', 'Leer', 'Jugar', 'Dormir'],
-                'respuesta_correcta': 'Leer'
-            }
-        ],
-        'nivel': 1,
-        'puntos_posibles': 30
-    }
+    nivel = request.args.get('nivel', 1, type=int)
+    tema = request.args.get('tema', 'general')
+
+    ejercicio_actual = ejercicios_generator.generar_lectura_guiada(nivel, tema)
+
     return render_template('ejercicios/lectura.html', ejercicio=ejercicio_actual)
 
 
@@ -538,12 +540,11 @@ def ejercicios_lectura():
 @login_required
 def ejercicio_pronunciacion():
     """Ejercicios de pronunciación"""
-    ejercicio_actual = {
-        'vocales': ['A', 'E', 'I', 'O', 'U'],
-        'palabras': ['casa', 'mesa', 'libro', 'oso', 'uva'],
-        'nivel': 1,
-        'puntos_posibles': 25
-    }
+    nivel = request.args.get('nivel', 1, type=int)
+    tipo = request.args.get('tipo', 'vocales')
+
+    ejercicio_actual = ejercicios_generator.generar_ejercicio_pronunciacion(tipo, nivel)
+
     return render_template('ejercicios/pronunciacion.html', ejercicio=ejercicio_actual)
 
 
@@ -569,12 +570,7 @@ def ejercicio_ortografia():
 def ordenar_frase():
     """Ejercicio de ordenar frases"""
     nivel = request.args.get('nivel', 1, type=int)
-    ejercicio = {
-        'frase_correcta': 'El gato come pescado',
-        'palabras_desordenadas': ['pescado', 'El', 'come', 'gato'],
-        'nivel': nivel,
-        'puntos': nivel * 10
-    }
+    ejercicio = ejercicios_generator.generar_ordena_frase(nivel)
     return render_template('ejercicios/ordenar_frase.html', ejercicio=ejercicio)
 
 
@@ -583,13 +579,7 @@ def ordenar_frase():
 def completar_palabra():
     """Ejercicio de completar palabras"""
     nivel = request.args.get('nivel', 1, type=int)
-    ejercicio = {
-        'palabra_incompleta': 'c_sa',
-        'palabra_completa': 'casa',
-        'nivel': nivel,
-        'puntos': 15,
-        'pista': 'Lugar donde vives'
-    }
+    ejercicio = ejercicios_generator.generar_completa_palabra(nivel)
     return render_template('ejercicios/completar_palabra.html', ejercicio=ejercicio)
 
 

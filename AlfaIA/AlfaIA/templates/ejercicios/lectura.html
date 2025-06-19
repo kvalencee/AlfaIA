@@ -4,347 +4,1176 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ejercicio de Lectura - AlfaIA</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
     <style>
+        :root {
+            --primary: #667eea;
+            --primary-dark: #5a67d8;
+            --secondary: #764ba2;
+            --success: #48bb78;
+            --warning: #ed8936;
+            --danger: #f56565;
+            --info: #4299e1;
+            --light: #f7fafc;
+            --dark: #2d3748;
+            --border-radius: 12px;
+            --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
-            color: white;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
+            color: var(--dark);
         }
-        .exercise-container {
-            background: rgba(255, 255, 255, 0.95);
-            color: #333;
-            border-radius: 20px;
-            padding: 30px;
-            margin: 20px 0;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-        }
-        .reading-text {
-            background: #f8f9fa;
-            padding: 25px;
-            border-radius: 15px;
-            margin: 20px 0;
-            line-height: 1.8;
-            font-size: 1.1rem;
-            border-left: 5px solid #74b9ff;
-        }
-        .question-card {
+
+        /* Header */
+        .exercise-header {
             background: white;
-            border-radius: 15px;
-            padding: 20px;
-            margin: 15px 0;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            border: 2px solid #e9ecef;
-            transition: all 0.3s ease;
-        }
-        .question-card:hover {
-            border-color: #74b9ff;
-            transform: translateY(-2px);
-        }
-        .option-btn {
-            background: #f8f9fa;
-            border: 2px solid #dee2e6;
-            color: #333;
-            padding: 12px 20px;
-            border-radius: 10px;
-            margin: 5px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            width: 100%;
-            text-align: left;
-        }
-        .option-btn:hover {
-            background: #e9ecef;
-            border-color: #74b9ff;
-        }
-        .option-btn.selected {
-            background: #74b9ff;
-            border-color: #0984e3;
-            color: white;
-        }
-        .option-btn.correct {
-            background: #00b894;
-            border-color: #00a085;
-            color: white;
-        }
-        .option-btn.incorrect {
-            background: #fd79a8;
-            border-color: #e84393;
-            color: white;
-        }
-        .btn-modern {
-            background: linear-gradient(45deg, #74b9ff, #0984e3);
-            border: none;
-            color: white;
-            padding: 12px 25px;
-            border-radius: 25px;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-            margin: 5px;
-        }
-        .btn-modern:hover {
-            background: linear-gradient(45deg, #0984e3, #0066cc);
-            transform: translateY(-2px);
-            color: white;
-            text-decoration: none;
-        }
-        .progress-custom {
-            height: 8px;
-            border-radius: 10px;
-            background: #e9ecef;
-        }
-        .progress-bar-custom {
-            background: linear-gradient(45deg, #74b9ff, #0984e3);
-            border-radius: 10px;
-            transition: width 0.3s ease;
-        }
-        .results-container {
-            display: none;
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: var(--box-shadow);
             text-align: center;
-            background: rgba(0, 184, 148, 0.1);
-            padding: 30px;
-            border-radius: 15px;
-            margin: 20px 0;
-            border: 2px solid #00b894;
         }
+
+        .exercise-title {
+            color: var(--primary);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .exercise-subtitle {
+            color: #718096;
+            font-size: 1.1rem;
+        }
+
+        /* Controles superiores */
+        .reading-controls {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--box-shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .level-badge {
+            background: linear-gradient(135deg, var(--success), #38a169);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .timer-display {
+            background: var(--light);
+            padding: 0.75rem 1.25rem;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            color: var(--dark);
+            border: 2px solid #e2e8f0;
+        }
+
+        .text-controls button {
+            background: var(--light);
+            border: 2px solid #e2e8f0;
+            color: var(--dark);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            margin: 0 0.25rem;
+            transition: var(--transition);
+        }
+
+        .text-controls button:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* Contenedor del texto */
+        .reading-container {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--box-shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .reading-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+
+        .text-metadata {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #f7fafc;
+        }
+
+        .text-title {
+            color: var(--primary);
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .text-info {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            font-size: 0.9rem;
+            color: #718096;
+        }
+
+        .text-content {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: var(--dark);
+            text-align: justify;
+            margin-bottom: 1.5rem;
+        }
+
+        .reading-progress {
+            width: 100%;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success), #38a169);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        /* Sección de preguntas */
+        .questions-container {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            box-shadow: var(--box-shadow);
+            margin-bottom: 2rem;
+        }
+
+        .questions-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #f7fafc;
+        }
+
+        .questions-title {
+            color: var(--primary);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .question-card {
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: var(--transition);
+        }
+
+        .question-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .question-number {
+            background: var(--primary);
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        .question-type {
+            background: var(--info);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .question-text {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: var(--dark);
+            margin-bottom: 1rem;
+        }
+
+        .options-container {
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        .option-item {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .option-item:hover {
+            border-color: var(--primary);
+            background: #f0f4ff;
+        }
+
+        .option-item.selected {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: white;
+        }
+
+        .option-letter {
+            background: #e2e8f0;
+            color: var(--dark);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+
+        .option-item.selected .option-letter {
+            background: white;
+            color: var(--primary);
+        }
+
+        /* Botones de acción */
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .btn-custom {
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary-custom {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+
+        .btn-primary-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary-custom {
+            background: white;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .btn-secondary-custom:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Resultados */
+        .results-container {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            margin-top: 2rem;
+            box-shadow: var(--box-shadow);
+            text-align: center;
+            display: none;
+        }
+
+        .results-header {
+            margin-bottom: 2rem;
+        }
+
         .final-score {
             font-size: 3rem;
-            font-weight: bold;
-            color: #f39c12;
-            margin: 20px 0;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--warning), #dd6b20);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 1rem 0;
+        }
+
+        .score-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .score-card {
+            background: #f7fafc;
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            border: 2px solid #e2e8f0;
+        }
+
+        .score-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .score-label {
+            color: #718096;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Feedback */
+        .feedback-section {
+            background: #f0fff4;
+            border: 2px solid var(--success);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .feedback-title {
+            color: var(--success);
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .recommendations {
+            background: #fef5e7;
+            border: 2px solid var(--warning);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .recommendations-title {
+            color: var(--warning);
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .recommendation-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .recommendation-list li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f6e05e;
+            color: #744210;
+        }
+
+        .recommendation-list li:last-child {
+            border-bottom: none;
+        }
+
+        .recommendation-list li::before {
+            content: "💡";
+            margin-right: 0.5rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .reading-controls {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+
+            .control-group {
+                justify-content: center;
+            }
+
+            .reading-container {
+                padding: 1.5rem;
+            }
+
+            .text-metadata {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .score-details {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+
+        /* Estados de carga */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .disabled {
+            opacity: 0.6;
+            pointer-events: none;
         }
     </style>
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark">
-        <div class="container">
-            <a class="navbar-brand" href="/">
-                <i class="fas fa-graduation-cap me-2"></i>AlfaIA
-            </a>
-            <div class="navbar-nav ms-auto">
-                <span class="navbar-text">Ejercicio de Lectura</span>
+    <div class="container my-4">
+        <!-- Header del ejercicio -->
+        <div class="exercise-header">
+            <h1 class="exercise-title">
+                <i class="fas fa-book-open me-2"></i>
+                {{ ejercicio.texto.titulo if ejercicio else 'Ejercicio de Lectura' }}
+            </h1>
+            <p class="exercise-subtitle">
+                {{ ejercicio.instrucciones if ejercicio else 'Mejora tu comprensión lectora con este ejercicio personalizado' }}
+            </p>
+        </div>
+
+        <!-- Controles de lectura -->
+        <div class="reading-controls">
+            <div class="control-group">
+                <div class="level-badge">
+                    <i class="fas fa-star me-1"></i>
+                    Nivel {{ ejercicio.nivel if ejercicio else 1 }}
+                </div>
+                <div class="level-badge" style="background: linear-gradient(135deg, var(--info), #3182ce);">
+                    <i class="fas fa-tag me-1"></i>
+                    {{ ejercicio.texto.categoria.title() if ejercicio else 'General' }}
+                </div>
+            </div>
+
+            <div class="control-group">
+                <div class="timer-display">
+                    <i class="fas fa-stopwatch me-2"></i>
+                    <span id="timer">00:00</span>
+                </div>
+                <div class="timer-display">
+                    <i class="fas fa-clock me-2"></i>
+                    Estimado: {{ ejercicio.tiempo_limite // 60 if ejercicio else 3 }}min
+                </div>
+            </div>
+
+            <div class="text-controls">
+                <button type="button" onclick="adjustTextSize(-1)" title="Reducir tamaño del texto">
+                    <i class="fas fa-minus"></i>
+                </button>
+                <button type="button" onclick="adjustTextSize(1)" title="Aumentar tamaño del texto">
+                    <i class="fas fa-plus"></i>
+                </button>
+                <button type="button" onclick="toggleHighlighting()" title="Resaltar párrafos" id="highlightBtn">
+                    <i class="fas fa-highlighter"></i>
+                </button>
             </div>
         </div>
-    </nav>
 
-    <div class="container mt-4">
-        <div class="row justify-content-center">
-            <div class="col-md-10">
-                <div class="exercise-container">
-                    <div class="text-center mb-4">
-                        <h2><i class="fas fa-book-open me-2"></i>{{ ejercicio.titulo }}</h2>
-                        <p class="lead">Lee el texto y responde las preguntas de comprensión</p>
-                        <span class="badge bg-primary fs-6">Nivel {{ ejercicio.nivel }}</span>
-                        <span class="badge bg-success fs-6">{{ ejercicio.puntos_posibles }} puntos posibles</span>
-                    </div>
-
-                    <!-- Barra de progreso -->
-                    <div class="progress progress-custom mb-4">
-                        <div class="progress-bar progress-bar-custom" id="progressBar" style="width: 0%"></div>
-                    </div>
-
-                    <!-- Texto de lectura -->
-                    <div class="reading-text">
-                        <h4 class="mb-3"><i class="fas fa-bookmark me-2"></i>{{ ejercicio.titulo }}</h4>
-                        <p>{{ ejercicio.texto }}</p>
-                    </div>
-
-                    <!-- Preguntas -->
-                    <div id="questionsContainer">
-                        {% for pregunta in ejercicio.preguntas %}
-                        <div class="question-card" data-question="{{ loop.index0 }}">
-                            <h5 class="mb-3">
-                                <i class="fas fa-question-circle me-2"></i>
-                                Pregunta {{ loop.index }}: {{ pregunta.pregunta }}
-                            </h5>
-                            <div class="options-container">
-                                {% for opcion in pregunta.opciones %}
-                                <button class="option-btn"
-                                        data-question="{{ loop.index0 }}"
-                                        data-answer="{{ opcion }}"
-                                        onclick="selectAnswer({{ loop.index0 }}, '{{ opcion }}', '{{ pregunta.respuesta_correcta }}')">
-                                    {{ loop.index }}. {{ opcion }}
-                                </button>
-                                {% endfor %}
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-
-                    <!-- Botón para finalizar -->
-                    <div class="text-center mt-4" id="finishButton" style="display: none;">
-                        <button class="btn-modern" onclick="finishExercise()">
-                            <i class="fas fa-check me-2"></i>Finalizar Ejercicio
-                        </button>
-                    </div>
-
-                    <!-- Resultados -->
-                    <div class="results-container" id="resultsContainer">
-                        <h3><i class="fas fa-trophy me-2"></i>¡Ejercicio Completado!</h3>
-                        <div class="final-score" id="finalScore">0</div>
-                        <p id="resultMessage">¡Buen trabajo!</p>
-
-                        <div class="row text-center mt-4">
-                            <div class="col-md-4">
-                                <h5 id="correctAnswers">0</h5>
-                                <small>Respuestas correctas</small>
-                            </div>
-                            <div class="col-md-4">
-                                <h5 id="totalQuestions">{{ ejercicio.preguntas|length }}</h5>
-                                <small>Total de preguntas</small>
-                            </div>
-                            <div class="col-md-4">
-                                <h5 id="accuracy">0%</h5>
-                                <small>Precisión</small>
-                            </div>
-                        </div>
-
-                        <div class="mt-4">
-                            <a href="/ejercicios/lectura" class="btn-modern">
-                                <i class="fas fa-redo me-2"></i>Nuevo Ejercicio
-                            </a>
-                            <a href="/ejercicios" class="btn-modern">
-                                <i class="fas fa-book me-2"></i>Más Ejercicios
-                            </a>
-                        </div>
-                    </div>
-
-                    <!-- Botones de navegación -->
-                    <div class="text-center mt-4" id="navigationButtons">
-                        <a href="/ejercicios" class="btn-modern">
-                            <i class="fas fa-arrow-left me-2"></i>Volver a Ejercicios
-                        </a>
-                        <a href="/dashboard" class="btn-modern">
-                            <i class="fas fa-home me-2"></i>Dashboard
-                        </a>
-                    </div>
+        <!-- Contenedor del texto -->
+        <div class="reading-container">
+            <div class="text-metadata">
+                <h2 class="text-title">{{ ejercicio.texto.titulo if ejercicio else 'Título del texto' }}</h2>
+                <div class="text-info">
+                    <span><i class="fas fa-book me-1"></i>{{ ejercicio.texto.categoria.title() if ejercicio else 'Categoría' }}</span>
+                    <span><i class="fas fa-clock me-1"></i>{{ ejercicio.texto.tiempo_estimado // 60 if ejercicio else 2 }} min</span>
+                    <span><i class="fas fa-award me-1"></i>{{ ejercicio.puntos_totales if ejercicio else 50 }} puntos</span>
                 </div>
+            </div>
+
+            <div class="text-content" id="textContent">
+                {% if ejercicio and ejercicio.texto.contenido %}
+                    {{ ejercicio.texto.contenido|safe }}
+                {% else %}
+                    <p>María salió temprano hacia el parque. El sol brillaba intensamente y los pájaros cantaban en los árboles. Decidió sentarse en un banco cerca del lago para leer su libro favorito.</p>
+
+                    <p>Mientras leía, observó a los niños jugando alegremente cerca de la fuente. El aire fresco de la mañana y el sonido del agua la tranquilizaron profundamente. Era el lugar perfecto para disfrutar de una buena lectura.</p>
+
+                    <p>De repente, escuchó el sonido de una pelota que rodaba hacia ella. Un niño pequeño corrió detrás de ella, sonriendo tímidamente. María le devolvió la pelota y el niño le agradeció antes de volver a jugar con sus amigos.</p>
+                {% endif %}
+            </div>
+
+            <div class="reading-progress">
+                <div class="progress-bar" id="readingProgress"></div>
+            </div>
+        </div>
+
+        <!-- Contenedor de preguntas -->
+        <div class="questions-container" id="questionsContainer" style="display: none;">
+            <div class="questions-header">
+                <h3 class="questions-title">
+                    <i class="fas fa-question-circle me-2"></i>
+                    Preguntas de Comprensión
+                </h3>
+                <p class="text-muted">Responde las siguientes preguntas basándote en el texto que acabas de leer.</p>
+            </div>
+
+            <form id="questionsForm">
+                {% if ejercicio and ejercicio.preguntas %}
+                    {% for pregunta in ejercicio.preguntas %}
+                    <div class="question-card" data-question="{{ loop.index0 }}">
+                        <div class="question-header">
+                            <div class="question-number">{{ loop.index }}</div>
+                            <div class="question-type">{{ pregunta.tipo.title() }}</div>
+                        </div>
+
+                        <div class="question-text">{{ pregunta.pregunta }}</div>
+
+                        <div class="options-container">
+                            {% for opcion in pregunta.opciones %}
+                            <div class="option-item" onclick="selectOption({{ loop.index0 }}, {{ pregunta.id }})">
+                                <div class="option-letter">{{ ['A', 'B', 'C', 'D'][loop.index0] }}</div>
+                                <div class="option-text">{{ opcion }}</div>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <input type="hidden" name="respuesta_{{ pregunta.id }}" id="respuesta_{{ pregunta.id }}">
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <!-- Preguntas de ejemplo si no hay datos -->
+                    <div class="question-card" data-question="0">
+                        <div class="question-header">
+                            <div class="question-number">1</div>
+                            <div class="question-type">Literal</div>
+                        </div>
+
+                        <div class="question-text">¿Dónde decidió sentarse María?</div>
+
+                        <div class="options-container">
+                            <div class="option-item" onclick="selectOption(0, 0)">
+                                <div class="option-letter">A</div>
+                                <div class="option-text">En el césped</div>
+                            </div>
+                            <div class="option-item" onclick="selectOption(1, 0)">
+                                <div class="option-letter">B</div>
+                                <div class="option-text">En un banco cerca del lago</div>
+                            </div>
+                            <div class="option-item" onclick="selectOption(2, 0)">
+                                <div class="option-letter">C</div>
+                                <div class="option-text">Junto a la fuente</div>
+                            </div>
+                            <div class="option-item" onclick="selectOption(3, 0)">
+                                <div class="option-letter">D</div>
+                                <div class="option-text">Debajo de un árbol</div>
+                            </div>
+                        </div>
+
+                        <input type="hidden" name="respuesta_0" id="respuesta_0">
+                    </div>
+
+                    <div class="question-card" data-question="1">
+                        <div class="question-header">
+                            <div class="question-number">2</div>
+                            <div class="question-type">Inferencial</div>
+                        </div>
+
+                        <div class="question-text">¿Cómo se sentía María en el parque?</div>
+
+                        <div class="options-container">
+                            <div class="option-item" onclick="selectOption(0, 1)">
+                                <div class="option-letter">A</div>
+                                <div class="option-text">Nerviosa</div>
+                            </div>
+                            <div class="option-item" onclick="selectOption(1, 1)">
+                                <div class="option-letter">B</div>
+                                <div class="option-text">Tranquila y relajada</div>
+                            </div>
+                            <div class="option-item" onclick="selectOption(2, 1)">
+                                <div class="option-letter">C</div>
+                                <div class="option-text">Preocupada</div>
+                            </div>
+                            <div class="option-item" onclick="selectOption(3, 1)">
+                                <div class="option-letter">D</div>
+                                <div class="option-text">Aburrida</div>
+                            </div>
+                        </div>
+
+                        <input type="hidden" name="respuesta_1" id="respuesta_1">
+                    </div>
+                {% endif %}
+            </form>
+
+            <div class="action-buttons">
+                <button type="button" class="btn-custom btn-secondary-custom" onclick="showText()">
+                    <i class="fas fa-eye me-2"></i>Ver Texto Nuevamente
+                </button>
+                <button type="button" class="btn-custom btn-primary-custom" onclick="submitAnswers()" id="submitBtn">
+                    <i class="fas fa-check me-2"></i>Enviar Respuestas
+                </button>
+            </div>
+        </div>
+
+        <!-- Contenedor de resultados -->
+        <div class="results-container" id="resultsContainer">
+            <div class="results-header">
+                <h3><i class="fas fa-trophy me-2"></i>¡Ejercicio Completado!</h3>
+                <div class="final-score" id="finalScore">85%</div>
+            </div>
+
+            <div class="score-details" id="scoreDetails">
+                <!-- Se llenará dinámicamente -->
+            </div>
+
+            <div class="feedback-section" id="feedbackSection">
+                <!-- Se llenará dinámicamente -->
+            </div>
+
+            <div class="recommendations" id="recommendationsSection">
+                <!-- Se llenará dinámicamente -->
+            </div>
+
+            <div class="action-buttons">
+                <a href="/ejercicios" class="btn-custom btn-secondary-custom">
+                    <i class="fas fa-arrow-left me-2"></i>Volver a Ejercicios
+                </a>
+                <button type="button" class="btn-custom btn-primary-custom" onclick="tryAgain()">
+                    <i class="fas fa-redo me-2"></i>Intentar de Nuevo
+                </button>
+                <a href="/ejercicios/lectura?nivel={{ (ejercicio.nivel + 1) if ejercicio and ejercicio.nivel < 5 else 2 }}" class="btn-custom btn-primary-custom">
+                    <i class="fas fa-arrow-right me-2"></i>Siguiente Nivel
+                </a>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
     <script>
-        // Datos del ejercicio
-        const exerciseData = {
-            questions: {{ ejercicio.preguntas | tojsonfilter }},
-            totalPoints: {{ ejercicio.puntos_posibles }},
-            level: {{ ejercicio.nivel }}
-        };
+        // Variables globales
+        let startTime = Date.now();
+        let timer;
+        let selectedAnswers = {};
+        let currentTextSize = 1.1;
+        let isHighlighting = false;
 
-        // Variables del ejercicio
-        let answers = {};
-        let questionsAnswered = 0;
-        let correctAnswers = 0;
-        let exerciseCompleted = false;
-
-        // Seleccionar respuesta
-        function selectAnswer(questionIndex, selectedAnswer, correctAnswer) {
-            if (exerciseCompleted) return;
-
-            // Remover selección anterior
-            const questionCard = document.querySelector(`[data-question="${questionIndex}"]`);
-            const options = questionCard.querySelectorAll('.option-btn');
-            options.forEach(btn => {
-                btn.classList.remove('selected');
-            });
-
-            // Marcar nueva selección
-            const selectedBtn = document.querySelector(`[data-question="${questionIndex}"][data-answer="${selectedAnswer}"]`);
-            selectedBtn.classList.add('selected');
-
-            // Guardar respuesta
-            if (!answers[questionIndex]) {
-                questionsAnswered++;
-            }
-            answers[questionIndex] = {
-                selected: selectedAnswer,
-                correct: correctAnswer,
-                isCorrect: selectedAnswer === correctAnswer
-            };
-
-            updateProgress();
-            checkCompletion();
-        }
-
-        // Actualizar progreso
-        function updateProgress() {
-            const progress = (questionsAnswered / exerciseData.questions.length) * 100;
-            document.getElementById('progressBar').style.width = progress + '%';
-        }
-
-        // Verificar si se completó
-        function checkCompletion() {
-            if (questionsAnswered === exerciseData.questions.length) {
-                document.getElementById('finishButton').style.display = 'block';
-            }
-        }
-
-        // Finalizar ejercicio
-        function finishExercise() {
-            if (exerciseCompleted) return;
-
-            exerciseCompleted = true;
-            correctAnswers = 0;
-
-            // Evaluar respuestas
-            for (let i = 0; i < exerciseData.questions.length; i++) {
-                const answer = answers[i];
-                const questionCard = document.querySelector(`[data-question="${i}"]`);
-                const options = questionCard.querySelectorAll('.option-btn');
-
-                options.forEach(btn => {
-                    const btnAnswer = btn.dataset.answer;
-                    if (btnAnswer === answer.correct) {
-                        btn.classList.add('correct');
-                    } else if (btnAnswer === answer.selected && !answer.isCorrect) {
-                        btn.classList.add('incorrect');
-                    }
-                    btn.disabled = true;
-                });
-
-                if (answer.isCorrect) {
-                    correctAnswers++;
-                }
-            }
-
-            showResults();
-        }
-
-        // Mostrar resultados
-        function showResults() {
-            const accuracy = Math.round((correctAnswers / exerciseData.questions.length) * 100);
-            const score = Math.round((correctAnswers / exerciseData.questions.length) * exerciseData.totalPoints);
-
-            document.getElementById('finalScore').textContent = score;
-            document.getElementById('correctAnswers').textContent = correctAnswers;
-            document.getElementById('accuracy').textContent = accuracy + '%';
-
-            let message = '';
-            if (accuracy === 100) {
-                message = '¡Perfecto! 🏆 ¡No cometiste ningún error!';
-            } else if (accuracy >= 80) {
-                message = '¡Excelente trabajo! 🌟 Muy buena comprensión.';
-            } else if (accuracy >= 60) {
-                message = '¡Bien hecho! 👍 Sigue practicando.';
-            } else {
-                message = '¡Buen intento! 💪 La práctica hace al maestro.';
-            }
-
-            document.getElementById('resultMessage').textContent = message;
-            document.getElementById('resultsContainer').style.display = 'block';
-            document.getElementById('finishButton').style.display = 'none';
-            document.getElementById('navigationButtons').style.display = 'none';
-        }
+        // Datos del ejercicio (se pasarían desde el backend)
+        const ejercicioData = {{ ejercicio|tojson if ejercicio else '{}' }};
 
         // Inicialización
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('📚 Inicializando ejercicio de lectura');
-            console.log('📊 Datos del ejercicio:', exerciseData);
+            initializeExercise();
+            startTimer();
+            simulateReadingProgress();
+        });
+
+        function initializeExercise() {
+            // Mostrar botón para comenzar las preguntas después de un tiempo
+            setTimeout(() => {
+                showQuestionsButton();
+            }, 30000); // 30 segundos mínimo de lectura
+        }
+
+        function startTimer() {
+            timer = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                const minutes = Math.floor(elapsed / 60);
+                const seconds = elapsed % 60;
+                document.getElementById('timer').textContent =
+                    `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        function simulateReadingProgress() {
+            let progress = 0;
+            const progressBar = document.getElementById('readingProgress');
+
+            const interval = setInterval(() => {
+                progress += 0.5;
+                progressBar.style.width = `${Math.min(progress, 100)}%`;
+
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    setTimeout(showQuestionsButton, 2000);
+                }
+            }, 500);
+        }
+
+        function showQuestionsButton() {
+            // Agregar botón para mostrar preguntas
+            const readingContainer = document.querySelector('.reading-container');
+            const existingBtn = document.getElementById('showQuestionsBtn');
+
+            if (!existingBtn) {
+                const button = document.createElement('div');
+                button.innerHTML = `
+                    <div class="text-center mt-3">
+                        <button type="button" class="btn-custom btn-primary-custom" onclick="showQuestions()" id="showQuestionsBtn">
+                            <i class="fas fa-arrow-down me-2"></i>Continuar con las Preguntas
+                        </button>
+                    </div>
+                `;
+                readingContainer.appendChild(button);
+            }
+        }
+
+        function showQuestions() {
+            document.getElementById('questionsContainer').style.display = 'block';
+            document.getElementById('questionsContainer').scrollIntoView({
+                behavior: 'smooth'
+            });
+        }
+
+        function showText() {
+            document.querySelector('.reading-container').scrollIntoView({
+                behavior: 'smooth'
+            });
+        }
+
+        function selectOption(optionIndex, questionId) {
+            // Limpiar selecciones anteriores para esta pregunta
+            const questionCard = document.querySelector(`[data-question="${questionId}"]`);
+            const options = questionCard.querySelectorAll('.option-item');
+
+            options.forEach(option => option.classList.remove('selected'));
+
+            // Seleccionar la nueva opción
+            options[optionIndex].classList.add('selected');
+
+            // Guardar la respuesta
+            selectedAnswers[questionId] = optionIndex;
+            document.getElementById(`respuesta_${questionId}`).value = optionIndex;
+
+            // Verificar si todas las preguntas están respondidas
+            updateSubmitButton();
+        }
+
+        function updateSubmitButton() {
+            const totalQuestions = document.querySelectorAll('.question-card').length;
+            const answeredQuestions = Object.keys(selectedAnswers).length;
+            const submitBtn = document.getElementById('submitBtn');
+
+            if (answeredQuestions === totalQuestions) {
+                submitBtn.classList.remove('disabled');
+                submitBtn.innerHTML = '<i class="fas fa-check me-2"></i>Enviar Respuestas';
+            } else {
+                submitBtn.classList.add('disabled');
+                submitBtn.innerHTML = `<i class="fas fa-check me-2"></i>Responder todas (${answeredQuestions}/${totalQuestions})`;
+            }
+        }
+
+        function adjustTextSize(change) {
+            currentTextSize += change * 0.1;
+            currentTextSize = Math.max(0.8, Math.min(2.0, currentTextSize));
+
+            const textContent = document.getElementById('textContent');
+            textContent.style.fontSize = `${currentTextSize}rem`;
+        }
+
+        function toggleHighlighting() {
+            const textContent = document.getElementById('textContent');
+            const highlightBtn = document.getElementById('highlightBtn');
+
+            isHighlighting = !isHighlighting;
+
+            if (isHighlighting) {
+                textContent.classList.add('highlighting-mode');
+                highlightBtn.style.background = 'var(--warning)';
+                highlightBtn.style.color = 'white';
+
+                // Agregar efecto de resaltado a párrafos
+                const paragraphs = textContent.querySelectorAll('p');
+                paragraphs.forEach((p, index) => {
+                    p.style.transition = 'all 0.3s ease';
+                    p.addEventListener('mouseenter', () => {
+                        p.style.background = '#fff3cd';
+                        p.style.padding = '0.5rem';
+                        p.style.borderRadius = '8px';
+                    });
+                    p.addEventListener('mouseleave', () => {
+                        p.style.background = 'transparent';
+                        p.style.padding = '0';
+                    });
+                });
+            } else {
+                textContent.classList.remove('highlighting-mode');
+                highlightBtn.style.background = '';
+                highlightBtn.style.color = '';
+
+                const paragraphs = textContent.querySelectorAll('p');
+                paragraphs.forEach(p => {
+                    p.style.background = 'transparent';
+                    p.style.padding = '0';
+                });
+            }
+        }
+
+        async function submitAnswers() {
+            const submitBtn = document.getElementById('submitBtn');
+            const totalQuestions = document.querySelectorAll('.question-card').length;
+
+            if (Object.keys(selectedAnswers).length !== totalQuestions) {
+                alert('Por favor responde todas las preguntas antes de enviar.');
+                return;
+            }
+
+            // Mostrar loading
+            submitBtn.innerHTML = '<span class="loading-spinner"></span> Evaluando...';
+            submitBtn.classList.add('disabled');
+
+            // Detener el timer
+            clearInterval(timer);
+            const totalTime = Math.floor((Date.now() - startTime) / 1000);
+
+            try {
+                // Simular envío al servidor
+                await new Promise(resolve => setTimeout(resolve, 2000));
+
+                // Simular respuesta del servidor
+                const results = await evaluateAnswers(selectedAnswers, totalTime);
+                showResults(results);
+
+            } catch (error) {
+                console.error('Error al enviar respuestas:', error);
+                alert('Error al evaluar las respuestas. Por favor intenta de nuevo.');
+                submitBtn.innerHTML = '<i class="fas fa-check me-2"></i>Enviar Respuestas';
+                submitBtn.classList.remove('disabled');
+            }
+        }
+
+        async function evaluateAnswers(answers, timeSpent) {
+            // En un caso real, esto se haría en el servidor
+            // Aquí simulamos la evaluación
+
+            const correctAnswers = {
+                0: 1, // Respuestas correctas de ejemplo
+                1: 1
+            };
+
+            let correctCount = 0;
+            const totalQuestions = Object.keys(correctAnswers).length;
+            const questionResults = [];
+
+            for (const [questionId, userAnswer] of Object.entries(answers)) {
+                const isCorrect = correctAnswers[questionId] === userAnswer;
+                if (isCorrect) correctCount++;
+
+                questionResults.push({
+                    questionId: parseInt(questionId),
+                    userAnswer,
+                    correctAnswer: correctAnswers[questionId],
+                    isCorrect,
+                    explanation: isCorrect ?
+                        '¡Correcto! Has entendido bien el texto.' :
+                        'Revisa el texto nuevamente para encontrar la respuesta correcta.'
+                });
+            }
+
+            const precision = (correctCount / totalQuestions) * 100;
+            const puntos = Math.round((correctCount / totalQuestions) * (ejercicioData.puntos_totales || 50));
+
+            return {
+                precision: precision,
+                correctCount: correctCount,
+                totalQuestions: totalQuestions,
+                puntos: puntos,
+                timeSpent: timeSpent,
+                questionResults: questionResults,
+                feedback: getFeedback(precision),
+                recommendations: getRecommendations(precision, questionResults)
+            };
+        }
+
+        function getFeedback(precision) {
+            if (precision >= 90) {
+                return {
+                    type: 'excellent',
+                    message: '¡Excelente comprensión lectora! Dominas muy bien este nivel.',
+                    icon: 'fas fa-star'
+                };
+            } else if (precision >= 75) {
+                return {
+                    type: 'good',
+                    message: '¡Muy bien! Tu comprensión es buena, sigue practicando.',
+                    icon: 'fas fa-thumbs-up'
+                };
+            } else if (precision >= 60) {
+                return {
+                    type: 'okay',
+                    message: 'Comprensión aceptable. Te recomiendo leer más despacio.',
+                    icon: 'fas fa-info-circle'
+                };
+            } else {
+                return {
+                    type: 'needs-improvement',
+                    message: 'Es importante que practiques más la lectura comprensiva.',
+                    icon: 'fas fa-exclamation-triangle'
+                };
+            }
+        }
+
+        function getRecommendations(precision, questionResults) {
+            const recommendations = [];
+
+            const incorrectTypes = questionResults
+                .filter(q => !q.isCorrect)
+                .map(q => 'literal'); // En un caso real, esto vendría del servidor
+
+            if (incorrectTypes.includes('literal')) {
+                recommendations.push('Practica identificar información explícita en el texto');
+            }
+
+            if (incorrectTypes.includes('inferencial')) {
+                recommendations.push('Trabaja en hacer conexiones e inferencias a partir del texto');
+            }
+
+            if (precision < 60) {
+                recommendations.push('Lee el texto completo antes de responder las preguntas');
+                recommendations.push('Tómate más tiempo para comprender cada párrafo');
+            }
+
+            if (recommendations.length === 0) {
+                recommendations.push('¡Continúa con tu excelente trabajo de comprensión!');
+            }
+
+            return recommendations;
+        }
+
+        function showResults(results) {
+            // Ocultar preguntas
+            document.getElementById('questionsContainer').style.display = 'none';
+
+            // Mostrar resultados
+            const resultsContainer = document.getElementById('resultsContainer');
+            resultsContainer.style.display = 'block';
+
+            // Actualizar puntuación principal
+            document.getElementById('finalScore').textContent = `${results.precision.toFixed(1)}%`;
+
+            // Crear detalles de puntuación
+            const scoreDetails = document.getElementById('scoreDetails');
+            scoreDetails.innerHTML = `
+                <div class="score-card">
+                    <div class="score-value">${results.correctCount}/${results.totalQuestions}</div>
+                    <div class="score-label">Respuestas Correctas</div>
+                </div>
+                <div class="score-card">
+                    <div class="score-value">${results.puntos}</div>
+                    <div class="score-label">Puntos Obtenidos</div>
+                </div>
+                <div class="score-card">
+                    <div class="score-value">${Math.floor(results.timeSpent / 60)}:${(results.timeSpent % 60).toString().padStart(2, '0')}</div>
+                    <div class="score-label">Tiempo Empleado</div>
+                </div>
+                <div class="score-card">
+                    <div class="score-value">${results.precision >= 75 ? 'Aprobado' : 'Mejorar'}</div>
+                    <div class="score-label">Estado</div>
+                </div>
+            `;
+
+            // Crear feedback
+            const feedbackSection = document.getElementById('feedbackSection');
+            feedbackSection.innerHTML = `
+                <div class="feedback-title">
+                    <i class="${results.feedback.icon} me-2"></i>Retroalimentación
+                </div>
+                <p>${results.feedback.message}</p>
+            `;
+
+            // Crear recomendaciones
+            const recommendationsSection = document.getElementById('recommendationsSection');
+            const recommendationsList = results.recommendations
+                .map(rec => `<li>${rec}</li>`)
+                .join('');
+
+            recommendationsSection.innerHTML = `
+                <div class="recommendations-title">
+                    <i class="fas fa-lightbulb me-2"></i>Recomendaciones para Mejorar
+                </div>
+                <ul class="recommendation-list">
+                    ${recommendationsList}
+                </ul>
+            `;
+
+            // Scroll a resultados
+            resultsContainer.scrollIntoView({ behavior: 'smooth' });
+
+            // Guardar resultados (en un caso real, se enviarían al servidor)
+            saveResults(results);
+        }
+
+        function saveResults(results) {
+            // En un caso real, esto se enviaría al servidor
+            const resultData = {
+                ejercicioId: ejercicioData.id || 'demo',
+                fecha: new Date().toISOString(),
+                precision: results.precision,
+                puntos: results.puntos,
+                tiempoEmpleado: results.timeSpent,
+                respuestasDetalladas: results.questionResults
+            };
+
+            // Guardar en localStorage como demostración
+            const historial = JSON.parse(localStorage.getItem('historial_lectura') || '[]');
+            historial.push(resultData);
+            localStorage.setItem('historial_lectura', JSON.stringify(historial));
+
+            console.log('Resultados guardados:', resultData);
+        }
+
+        function tryAgain() {
+            if (confirm('¿Estás seguro de que quieres reiniciar el ejercicio?')) {
+                location.reload();
+            }
+        }
+
+        // Funciones de utilidad
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }
+
+        // Eventos del teclado
+        document.addEventListener('keydown', function(event) {
+            // Atajos de teclado
+            if (event.ctrlKey || event.metaKey) {
+                switch(event.key) {
+                    case '=':
+                    case '+':
+                        event.preventDefault();
+                        adjustTextSize(1);
+                        break;
+                    case '-':
+                        event.preventDefault();
+                        adjustTextSize(-1);
+                        break;
+                    case 'h':
+                        event.preventDefault();
+                        toggleHighlighting();
+                        break;
+                }
+            }
+
+            // Enter para enviar respuestas
+            if (event.key === 'Enter' && event.ctrlKey) {
+                const submitBtn = document.getElementById('submitBtn');
+                if (!submitBtn.classList.contains('disabled')) {
+                    submitAnswers();
+                }
+            }
+        });
+
+        // Prevenir salida accidental
+        window.addEventListener('beforeunload', function(event) {
+            if (Object.keys(selectedAnswers).length > 0 && !document.getElementById('resultsContainer').style.display) {
+                event.preventDefault();
+                event.returnValue = '¿Estás seguro de que quieres salir? Perderás tu progreso.';
+            }
+        });
+
+        // Auto-guardar progreso cada 30 segundos
+        setInterval(() => {
+            if (Object.keys(selectedAnswers).length > 0) {
+                const progreso = {
+                    ejercicioId: ejercicioData.id || 'demo',
+                    fecha: new Date().toISOString(),
+                    tiempoTranscurrido: Math.floor((Date.now() - startTime) / 1000),
+                    respuestasTemporales: selectedAnswers
+                };
+
+                localStorage.setItem('progreso_lectura_temporal', JSON.stringify(progreso));
+            }
+        }, 30000);
+
+        // Recuperar progreso si existe
+        window.addEventListener('load', function() {
+            const progresoGuardado = localStorage.getItem('progreso_lectura_temporal');
+            if (progresoGuardado) {
+                const progreso = JSON.parse(progresoGuardado);
+                if (progreso.ejercicioId === (ejercicioData.id || 'demo')) {
+                    // Restaurar respuestas
+                    for (const [questionId, answer] of Object.entries(progreso.respuestasTemporales)) {
+                        selectOption(answer, parseInt(questionId));
+                    }
+
+                    // Limpiar progreso temporal
+                    localStorage.removeItem('progreso_lectura_temporal');
+                }
+            }
         });
     </script>
 </body>

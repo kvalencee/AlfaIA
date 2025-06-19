@@ -8,6 +8,8 @@ import logging
 from datetime import datetime, timedelta
 import json
 import random
+from modules.ejercicios_lectura import EjerciciosLectura
+
 
 # Importar gestor de base de datos
 try:

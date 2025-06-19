@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Completar Palabras - AlfaIA</title>
+    <title>Ejercicio de Ortografía - AlfaIA</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         body {
-            background: linear-gradient(135deg, #00cec9 0%, #55a3ff 100%);
+            background: linear-gradient(135deg, #fd79a8 0%, #fdcb6e 100%);
             color: white;
             min-height: 100vh;
         }
@@ -30,61 +30,44 @@
             transition: all 0.3s ease;
         }
         .word-card:hover {
-            border-color: #00cec9;
+            border-color: #fd79a8;
             transform: translateY(-2px);
         }
         .word-display {
-            font-size: 2.5rem;
+            font-size: 2rem;
             font-weight: bold;
             text-align: center;
             margin: 20px 0;
             font-family: 'Courier New', monospace;
-            letter-spacing: 0.3rem;
         }
-        .missing-letter {
-            color: #00cec9;
-            background: #e3f2fd;
-            padding: 5px 10px;
-            border-radius: 8px;
-            border: 2px dashed #00cec9;
+        .word-incorrect {
+            color: #e17055;
+            text-decoration: line-through;
         }
-        .hint-box {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 10px;
-            margin: 15px 0;
-            border-left: 4px solid #00cec9;
-        }
-        .letter-input {
-            font-size: 2rem;
+        .word-input {
+            font-size: 1.5rem;
             text-align: center;
-            border: 3px solid #00cec9;
+            border: 3px solid #fd79a8;
             border-radius: 10px;
             padding: 15px;
-            width: 80px;
-            height: 80px;
+            width: 100%;
             font-family: 'Courier New', monospace;
-            font-weight: bold;
-            margin: 0 auto;
-            display: block;
         }
-        .letter-input:focus {
+        .word-input:focus {
             outline: none;
-            border-color: #0984e3;
-            box-shadow: 0 0 0 0.2rem rgba(0, 206, 201, 0.25);
+            border-color: #e84393;
+            box-shadow: 0 0 0 0.2rem rgba(253, 121, 168, 0.25);
         }
-        .letter-input.correct {
+        .word-input.correct {
             border-color: #00b894;
             background: #d4edda;
-            color: #155724;
         }
-        .letter-input.incorrect {
+        .word-input.incorrect {
             border-color: #e17055;
             background: #f8d7da;
-            color: #721c24;
         }
         .btn-modern {
-            background: linear-gradient(45deg, #00cec9, #0984e3);
+            background: linear-gradient(45deg, #fd79a8, #e84393);
             border: none;
             color: white;
             padding: 12px 25px;
@@ -96,7 +79,7 @@
             margin: 5px;
         }
         .btn-modern:hover {
-            background: linear-gradient(45deg, #0984e3, #0066cc);
+            background: linear-gradient(45deg, #e84393, #d63384);
             transform: translateY(-2px);
             color: white;
             text-decoration: none;
@@ -107,18 +90,18 @@
             background: #e9ecef;
         }
         .progress-bar-custom {
-            background: linear-gradient(45deg, #00cec9, #0984e3);
+            background: linear-gradient(45deg, #fd79a8, #e84393);
             border-radius: 10px;
             transition: width 0.3s ease;
         }
         .results-container {
             display: none;
             text-align: center;
-            background: rgba(0, 206, 201, 0.1);
+            background: rgba(253, 121, 168, 0.1);
             padding: 30px;
             border-radius: 15px;
             margin: 20px 0;
-            border: 2px solid #00cec9;
+            border: 2px solid #fd79a8;
         }
         .final-score {
             font-size: 3rem;
@@ -127,10 +110,9 @@
             margin: 20px 0;
         }
         .feedback {
-            margin-top: 15px;
+            margin-top: 10px;
             font-weight: bold;
-            font-size: 1rem;
-            text-align: center;
+            font-size: 0.9rem;
         }
         .feedback.correct {
             color: #00b894;
@@ -148,7 +130,7 @@
                 <i class="fas fa-graduation-cap me-2"></i>AlfaIA
             </a>
             <div class="navbar-nav ms-auto">
-                <span class="navbar-text">Completar Palabras</span>
+                <span class="navbar-text">Ejercicio de Ortografía</span>
             </div>
         </div>
     </nav>
@@ -158,8 +140,8 @@
             <div class="col-md-8">
                 <div class="exercise-container">
                     <div class="text-center mb-4">
-                        <h2><i class="fas fa-puzzle-piece me-2"></i>Completar Palabras</h2>
-                        <p class="lead">Completa las palabras escribiendo la letra que falta</p>
+                        <h2><i class="fas fa-spell-check me-2"></i>Ejercicio de Ortografía</h2>
+                        <p class="lead">Corrige las palabras escribiéndolas correctamente</p>
                         <span class="badge bg-primary fs-6">Nivel {{ ejercicio.nivel }}</span>
                         <span class="badge bg-success fs-6">{{ ejercicio.puntos_posibles }} puntos posibles</span>
                     </div>
@@ -169,33 +151,22 @@
                         <div class="progress-bar progress-bar-custom" id="progressBar" style="width: 0%"></div>
                     </div>
 
-                    <!-- Palabras para completar -->
+                    <!-- Palabras para corregir -->
                     <div id="wordsContainer">
                         {% for palabra in ejercicio.palabras %}
                         <div class="word-card" data-word-index="{{ loop.index0 }}">
-                            <div class="word-display">
-                                {% set incomplete = palabra.palabra_incompleta %}
-                                {% set parts = incomplete.split('_') %}
-                                {{ parts[0] }}<span class="missing-letter">_</span>{{ parts[1] if parts|length > 1 }}
+                            <div class="word-display word-incorrect">{{ palabra.incorrecta }}</div>
+                            <div class="text-center mb-3">
+                                <small class="text-muted">Escribe la palabra correcta:</small>
                             </div>
-
-                            <div class="hint-box">
-                                <i class="fas fa-lightbulb me-2"></i>
-                                <strong>Pista:</strong> {{ palabra.pista }}
-                            </div>
-
-                            <div class="text-center">
-                                <input type="text"
-                                       class="letter-input"
-                                       data-word-index="{{ loop.index0 }}"
-                                       data-complete="{{ palabra.palabra_completa }}"
-                                       data-incomplete="{{ palabra.palabra_incompleta }}"
-                                       maxlength="1"
-                                       placeholder="?"
-                                       onkeyup="checkLetter({{ loop.index0 }})"
-                                       onblur="validateLetter({{ loop.index0 }})">
-                                <div class="feedback" id="feedback-{{ loop.index0 }}"></div>
-                            </div>
+                            <input type="text"
+                                   class="word-input"
+                                   data-correct="{{ palabra.correcta }}"
+                                   data-word-index="{{ loop.index0 }}"
+                                   placeholder="Escribe aquí..."
+                                   onkeyup="checkWord({{ loop.index0 }})"
+                                   onblur="validateWord({{ loop.index0 }})">
+                            <div class="feedback" id="feedback-{{ loop.index0 }}"></div>
                         </div>
                         {% endfor %}
                     </div>
@@ -215,12 +186,12 @@
 
                         <div class="row text-center mt-4">
                             <div class="col-md-4">
-                                <h5 id="correctLetters">0</h5>
-                                <small>Letras correctas</small>
+                                <h5 id="correctWords">0</h5>
+                                <small>Palabras correctas</small>
                             </div>
                             <div class="col-md-4">
-                                <h5 id="totalLetters">{{ ejercicio.palabras|length }}</h5>
-                                <small>Total de letras</small>
+                                <h5 id="totalWords">{{ ejercicio.palabras|length }}</h5>
+                                <small>Total de palabras</small>
                             </div>
                             <div class="col-md-4">
                                 <h5 id="accuracy">0%</h5>
@@ -229,7 +200,7 @@
                         </div>
 
                         <div class="mt-4">
-                            <a href="/ejercicios/completar-palabra" class="btn-modern">
+                            <a href="/ejercicios/ortografia" class="btn-modern">
                                 <i class="fas fa-redo me-2"></i>Nuevo Ejercicio
                             </a>
                             <a href="/ejercicios" class="btn-modern">
@@ -263,25 +234,17 @@
 
         // Variables del ejercicio
         let answers = {};
-        let lettersCompleted = 0;
-        let correctLetters = 0;
+        let wordsCompleted = 0;
+        let correctWords = 0;
         let exerciseCompleted = false;
 
-        // Encontrar la letra que falta
-        function findMissingLetter(incomplete, complete) {
-            const missingIndex = incomplete.indexOf('_');
-            return complete[missingIndex];
-        }
-
-        // Verificar letra mientras se escribe
-        function checkLetter(wordIndex) {
+        // Verificar palabra mientras se escribe
+        function checkWord(wordIndex) {
             if (exerciseCompleted) return;
 
             const input = document.querySelector(`[data-word-index="${wordIndex}"]`);
-            const userLetter = input.value.trim().toLowerCase();
-            const completeWord = input.dataset.complete.toLowerCase();
-            const incompleteWord = input.dataset.incomplete;
-            const correctLetter = findMissingLetter(incompleteWord, completeWord);
+            const userAnswer = input.value.trim().toLowerCase();
+            const correctAnswer = input.dataset.correct.toLowerCase();
             const feedback = document.getElementById(`feedback-${wordIndex}`);
 
             // Limpiar clases anteriores
@@ -289,55 +252,49 @@
             feedback.textContent = '';
             feedback.className = 'feedback';
 
-            if (userLetter) {
-                if (userLetter === correctLetter.toLowerCase()) {
-                    input.classList.add('correct');
-                    feedback.textContent = `✓ ¡Correcto! La palabra es: ${input.dataset.complete}`;
-                    feedback.classList.add('correct');
+            if (userAnswer && userAnswer === correctAnswer) {
+                input.classList.add('correct');
+                feedback.textContent = '✓ ¡Correcto!';
+                feedback.classList.add('correct');
 
-                    if (!answers[wordIndex] || !answers[wordIndex].isCorrect) {
-                        answers[wordIndex] = {
-                            userLetter: input.value.trim(),
-                            correctLetter: correctLetter,
-                            isCorrect: true
-                        };
+                if (!answers[wordIndex] || !answers[wordIndex].isCorrect) {
+                    answers[wordIndex] = {
+                        userAnswer: input.value.trim(),
+                        correctAnswer: input.dataset.correct,
+                        isCorrect: true
+                    };
 
-                        if (!answers[wordIndex].counted) {
-                            lettersCompleted++;
-                            answers[wordIndex].counted = true;
-                        }
+                    if (!answers[wordIndex].counted) {
+                        wordsCompleted++;
+                        answers[wordIndex].counted = true;
                     }
-                } else {
-                    input.classList.add('incorrect');
-                    feedback.textContent = '✗ Intenta de nuevo';
-                    feedback.classList.add('incorrect');
                 }
+            } else if (userAnswer) {
+                input.classList.add('incorrect');
+                feedback.textContent = '✗ Intenta de nuevo';
+                feedback.classList.add('incorrect');
             }
 
             updateProgress();
         }
 
-        // Validar letra al perder el foco
-        function validateLetter(wordIndex) {
+        // Validar palabra al perder el foco
+        function validateWord(wordIndex) {
             if (exerciseCompleted) return;
 
             const input = document.querySelector(`[data-word-index="${wordIndex}"]`);
-            const userLetter = input.value.trim();
+            const userAnswer = input.value.trim();
 
-            if (userLetter && !answers[wordIndex]) {
-                const completeWord = input.dataset.complete;
-                const incompleteWord = input.dataset.incomplete;
-                const correctLetter = findMissingLetter(incompleteWord, completeWord);
-
+            if (userAnswer && !answers[wordIndex]) {
                 answers[wordIndex] = {
-                    userLetter: userLetter,
-                    correctLetter: correctLetter,
-                    isCorrect: userLetter.toLowerCase() === correctLetter.toLowerCase(),
+                    userAnswer: userAnswer,
+                    correctAnswer: input.dataset.correct,
+                    isCorrect: userAnswer.toLowerCase() === input.dataset.correct.toLowerCase(),
                     counted: false
                 };
 
                 if (answers[wordIndex].isCorrect && !answers[wordIndex].counted) {
-                    lettersCompleted++;
+                    wordsCompleted++;
                     answers[wordIndex].counted = true;
                 }
             }
@@ -347,10 +304,10 @@
 
         // Actualizar progreso
         function updateProgress() {
-            const progress = (lettersCompleted / exerciseData.words.length) * 100;
+            const progress = (wordsCompleted / exerciseData.words.length) * 100;
             document.getElementById('progressBar').style.width = progress + '%';
 
-            if (lettersCompleted === exerciseData.words.length) {
+            if (wordsCompleted === exerciseData.words.length) {
                 document.getElementById('finishButton').style.display = 'block';
             }
         }
@@ -360,7 +317,7 @@
             if (exerciseCompleted) return;
 
             exerciseCompleted = true;
-            correctLetters = 0;
+            correctWords = 0;
 
             // Evaluar todas las respuestas
             for (let i = 0; i < exerciseData.words.length; i++) {
@@ -368,15 +325,13 @@
                 input.disabled = true;
 
                 if (answers[i] && answers[i].isCorrect) {
-                    correctLetters++;
+                    correctWords++;
                     input.classList.add('correct');
-                    const feedback = document.getElementById(`feedback-${i}`);
-                    feedback.textContent = `✓ Palabra completa: ${input.dataset.complete}`;
-                    feedback.classList.add('correct');
                 } else {
                     input.classList.add('incorrect');
+                    // Mostrar la respuesta correcta
                     const feedback = document.getElementById(`feedback-${i}`);
-                    feedback.textContent = `Correcto: ${exerciseData.words[i].palabra_completa}`;
+                    feedback.textContent = `Correcto: ${exerciseData.words[i].correcta}`;
                     feedback.classList.add('incorrect');
                 }
             }
@@ -386,22 +341,22 @@
 
         // Mostrar resultados
         function showResults() {
-            const accuracy = Math.round((correctLetters / exerciseData.words.length) * 100);
-            const score = Math.round((correctLetters / exerciseData.words.length) * exerciseData.totalPoints);
+            const accuracy = Math.round((correctWords / exerciseData.words.length) * 100);
+            const score = Math.round((correctWords / exerciseData.words.length) * exerciseData.totalPoints);
 
             document.getElementById('finalScore').textContent = score;
-            document.getElementById('correctLetters').textContent = correctLetters;
+            document.getElementById('correctWords').textContent = correctWords;
             document.getElementById('accuracy').textContent = accuracy + '%';
 
             let message = '';
             if (accuracy === 100) {
-                message = '¡Perfecto! 🏆 ¡Completaste todas las palabras!';
+                message = '¡Perfecto! 🏆 ¡Excelente ortografía!';
             } else if (accuracy >= 80) {
-                message = '¡Muy bien! 🌟 Excelente comprensión.';
+                message = '¡Muy bien! 🌟 Tienes buena ortografía.';
             } else if (accuracy >= 60) {
                 message = '¡Bien hecho! 👍 Sigue practicando.';
             } else {
-                message = '¡Buen intento! 💪 Cada letra cuenta.';
+                message = '¡Buen intento! 💪 La práctica mejora la ortografía.';
             }
 
             document.getElementById('resultMessage').textContent = message;
@@ -410,26 +365,16 @@
             document.getElementById('navigationButtons').style.display = 'none';
         }
 
-        // Permitir solo letras
-        document.addEventListener('input', function(event) {
-            if (event.target.classList.contains('letter-input')) {
-                const value = event.target.value;
-                if (!/^[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ]$/.test(value)) {
-                    event.target.value = '';
-                }
-            }
-        });
-
         // Permitir Enter para continuar
         document.addEventListener('keydown', function(event) {
-            if (event.key === 'Enter' && lettersCompleted === exerciseData.words.length) {
+            if (event.key === 'Enter' && wordsCompleted === exerciseData.words.length) {
                 finishExercise();
             }
         });
 
         // Inicialización
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🧩 Inicializando ejercicio de completar palabras');
+            console.log('✏️ Inicializando ejercicio de ortografía');
             console.log('📊 Datos del ejercicio:', exerciseData);
         });
     </script>

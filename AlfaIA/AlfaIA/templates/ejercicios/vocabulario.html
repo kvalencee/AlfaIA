@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Completar Palabras - AlfaIA</title>
+    <title>Ejercicio de Vocabulario - AlfaIA</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         body {
-            background: linear-gradient(135deg, #00cec9 0%, #55a3ff 100%);
+            background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%);
             color: white;
             min-height: 100vh;
         }
@@ -24,67 +24,57 @@
             background: white;
             border-radius: 15px;
             padding: 25px;
-            margin: 15px 0;
+            margin: 20px 0;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             border: 2px solid #e9ecef;
             transition: all 0.3s ease;
         }
         .word-card:hover {
-            border-color: #00cec9;
+            border-color: #a29bfe;
             transform: translateY(-2px);
         }
-        .word-display {
+        .word-title {
             font-size: 2.5rem;
             font-weight: bold;
             text-align: center;
-            margin: 20px 0;
-            font-family: 'Courier New', monospace;
-            letter-spacing: 0.3rem;
+            color: #6c5ce7;
+            margin-bottom: 15px;
         }
-        .missing-letter {
-            color: #00cec9;
-            background: #e3f2fd;
-            padding: 5px 10px;
-            border-radius: 8px;
-            border: 2px dashed #00cec9;
-        }
-        .hint-box {
+        .definition {
             background: #f8f9fa;
             padding: 15px;
             border-radius: 10px;
             margin: 15px 0;
-            border-left: 4px solid #00cec9;
+            border-left: 4px solid #a29bfe;
         }
-        .letter-input {
-            font-size: 2rem;
-            text-align: center;
-            border: 3px solid #00cec9;
+        .synonyms-container {
+            margin: 20px 0;
+        }
+        .synonym-input {
+            background: #f8f9fa;
+            border: 2px solid #a29bfe;
+            color: #333;
+            padding: 12px 15px;
             border-radius: 10px;
-            padding: 15px;
-            width: 80px;
-            height: 80px;
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            margin: 0 auto;
-            display: block;
+            margin: 5px;
+            width: 100%;
+            font-size: 1.1rem;
         }
-        .letter-input:focus {
+        .synonym-input:focus {
             outline: none;
-            border-color: #0984e3;
-            box-shadow: 0 0 0 0.2rem rgba(0, 206, 201, 0.25);
+            border-color: #6c5ce7;
+            box-shadow: 0 0 0 0.2rem rgba(162, 155, 254, 0.25);
         }
-        .letter-input.correct {
+        .synonym-input.correct {
             border-color: #00b894;
             background: #d4edda;
-            color: #155724;
         }
-        .letter-input.incorrect {
+        .synonym-input.incorrect {
             border-color: #e17055;
             background: #f8d7da;
-            color: #721c24;
         }
         .btn-modern {
-            background: linear-gradient(45deg, #00cec9, #0984e3);
+            background: linear-gradient(45deg, #a29bfe, #6c5ce7);
             border: none;
             color: white;
             padding: 12px 25px;
@@ -96,7 +86,7 @@
             margin: 5px;
         }
         .btn-modern:hover {
-            background: linear-gradient(45deg, #0984e3, #0066cc);
+            background: linear-gradient(45deg, #6c5ce7, #5f3dc4);
             transform: translateY(-2px);
             color: white;
             text-decoration: none;
@@ -107,18 +97,18 @@
             background: #e9ecef;
         }
         .progress-bar-custom {
-            background: linear-gradient(45deg, #00cec9, #0984e3);
+            background: linear-gradient(45deg, #a29bfe, #6c5ce7);
             border-radius: 10px;
             transition: width 0.3s ease;
         }
         .results-container {
             display: none;
             text-align: center;
-            background: rgba(0, 206, 201, 0.1);
+            background: rgba(162, 155, 254, 0.1);
             padding: 30px;
             border-radius: 15px;
             margin: 20px 0;
-            border: 2px solid #00cec9;
+            border: 2px solid #a29bfe;
         }
         .final-score {
             font-size: 3rem;
@@ -126,11 +116,25 @@
             color: #f39c12;
             margin: 20px 0;
         }
+        .hints-list {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+        .hint-item {
+            display: inline-block;
+            background: #a29bfe;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            margin: 3px;
+            font-size: 0.9rem;
+        }
         .feedback {
-            margin-top: 15px;
+            margin-top: 10px;
             font-weight: bold;
-            font-size: 1rem;
-            text-align: center;
+            font-size: 0.9rem;
         }
         .feedback.correct {
             color: #00b894;
@@ -148,18 +152,18 @@
                 <i class="fas fa-graduation-cap me-2"></i>AlfaIA
             </a>
             <div class="navbar-nav ms-auto">
-                <span class="navbar-text">Completar Palabras</span>
+                <span class="navbar-text">Ejercicio de Vocabulario</span>
             </div>
         </div>
     </nav>
 
     <div class="container mt-4">
         <div class="row justify-content-center">
-            <div class="col-md-8">
+            <div class="col-md-10">
                 <div class="exercise-container">
                     <div class="text-center mb-4">
-                        <h2><i class="fas fa-puzzle-piece me-2"></i>Completar Palabras</h2>
-                        <p class="lead">Completa las palabras escribiendo la letra que falta</p>
+                        <h2><i class="fas fa-book me-2"></i>Ejercicio de Vocabulario</h2>
+                        <p class="lead">Encuentra los sinónimos de cada palabra</p>
                         <span class="badge bg-primary fs-6">Nivel {{ ejercicio.nivel }}</span>
                         <span class="badge bg-success fs-6">{{ ejercicio.puntos_posibles }} puntos posibles</span>
                     </div>
@@ -169,31 +173,37 @@
                         <div class="progress-bar progress-bar-custom" id="progressBar" style="width: 0%"></div>
                     </div>
 
-                    <!-- Palabras para completar -->
+                    <!-- Palabras de vocabulario -->
                     <div id="wordsContainer">
                         {% for palabra in ejercicio.palabras %}
                         <div class="word-card" data-word-index="{{ loop.index0 }}">
-                            <div class="word-display">
-                                {% set incomplete = palabra.palabra_incompleta %}
-                                {% set parts = incomplete.split('_') %}
-                                {{ parts[0] }}<span class="missing-letter">_</span>{{ parts[1] if parts|length > 1 }}
+                            <div class="word-title">{{ palabra.palabra }}</div>
+
+                            <div class="definition">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Definición:</strong> {{ palabra.definicion }}
                             </div>
 
-                            <div class="hint-box">
+                            <div class="hints-list">
                                 <i class="fas fa-lightbulb me-2"></i>
-                                <strong>Pista:</strong> {{ palabra.pista }}
+                                <strong>Pistas:</strong>
+                                {% for sinonimo in palabra.sinonimos %}
+                                <span class="hint-item">{{ sinonimo[:2] }}...</span>
+                                {% endfor %}
                             </div>
 
-                            <div class="text-center">
+                            <div class="synonyms-container">
+                                <label class="form-label">
+                                    <i class="fas fa-pencil-alt me-2"></i>
+                                    Escribe {{ palabra.sinonimos|length }} sinónimos (separados por comas):
+                                </label>
                                 <input type="text"
-                                       class="letter-input"
+                                       class="synonym-input"
                                        data-word-index="{{ loop.index0 }}"
-                                       data-complete="{{ palabra.palabra_completa }}"
-                                       data-incomplete="{{ palabra.palabra_incompleta }}"
-                                       maxlength="1"
-                                       placeholder="?"
-                                       onkeyup="checkLetter({{ loop.index0 }})"
-                                       onblur="validateLetter({{ loop.index0 }})">
+                                       data-synonyms="{{ palabra.sinonimos | join(',') }}"
+                                       placeholder="Ejemplo: alegre, contento, gozoso"
+                                       onkeyup="checkSynonyms({{ loop.index0 }})"
+                                       onblur="validateSynonyms({{ loop.index0 }})">
                                 <div class="feedback" id="feedback-{{ loop.index0 }}"></div>
                             </div>
                         </div>
@@ -215,12 +225,12 @@
 
                         <div class="row text-center mt-4">
                             <div class="col-md-4">
-                                <h5 id="correctLetters">0</h5>
-                                <small>Letras correctas</small>
+                                <h5 id="correctSynonyms">0</h5>
+                                <small>Sinónimos correctos</small>
                             </div>
                             <div class="col-md-4">
-                                <h5 id="totalLetters">{{ ejercicio.palabras|length }}</h5>
-                                <small>Total de letras</small>
+                                <h5 id="totalSynonyms">{{ ejercicio.palabras|sum(attribute='sinonimos')|length }}</h5>
+                                <small>Total de sinónimos</small>
                             </div>
                             <div class="col-md-4">
                                 <h5 id="accuracy">0%</h5>
@@ -229,7 +239,7 @@
                         </div>
 
                         <div class="mt-4">
-                            <a href="/ejercicios/completar-palabra" class="btn-modern">
+                            <a href="/ejercicios/vocabulario" class="btn-modern">
                                 <i class="fas fa-redo me-2"></i>Nuevo Ejercicio
                             </a>
                             <a href="/ejercicios" class="btn-modern">
@@ -263,25 +273,23 @@
 
         // Variables del ejercicio
         let answers = {};
-        let lettersCompleted = 0;
-        let correctLetters = 0;
+        let wordsCompleted = 0;
+        let totalCorrectSynonyms = 0;
+        let totalPossibleSynonyms = 0;
         let exerciseCompleted = false;
 
-        // Encontrar la letra que falta
-        function findMissingLetter(incomplete, complete) {
-            const missingIndex = incomplete.indexOf('_');
-            return complete[missingIndex];
-        }
+        // Calcular total de sinónimos posibles
+        exerciseData.words.forEach(word => {
+            totalPossibleSynonyms += word.sinonimos.length;
+        });
 
-        // Verificar letra mientras se escribe
-        function checkLetter(wordIndex) {
+        // Verificar sinónimos mientras se escribe
+        function checkSynonyms(wordIndex) {
             if (exerciseCompleted) return;
 
             const input = document.querySelector(`[data-word-index="${wordIndex}"]`);
-            const userLetter = input.value.trim().toLowerCase();
-            const completeWord = input.dataset.complete.toLowerCase();
-            const incompleteWord = input.dataset.incomplete;
-            const correctLetter = findMissingLetter(incompleteWord, completeWord);
+            const userAnswer = input.value.trim();
+            const correctSynonyms = input.dataset.synonyms.split(',');
             const feedback = document.getElementById(`feedback-${wordIndex}`);
 
             // Limpiar clases anteriores
@@ -289,27 +297,44 @@
             feedback.textContent = '';
             feedback.className = 'feedback';
 
-            if (userLetter) {
-                if (userLetter === correctLetter.toLowerCase()) {
+            if (userAnswer) {
+                const userSynonyms = userAnswer.split(',').map(s => s.trim().toLowerCase());
+                const correctSynonymsLower = correctSynonyms.map(s => s.trim().toLowerCase());
+
+                let matchCount = 0;
+                userSynonyms.forEach(synonym => {
+                    if (correctSynonymsLower.includes(synonym)) {
+                        matchCount++;
+                    }
+                });
+
+                const accuracy = (matchCount / correctSynonyms.length) * 100;
+
+                if (accuracy >= 80) {
                     input.classList.add('correct');
-                    feedback.textContent = `✓ ¡Correcto! La palabra es: ${input.dataset.complete}`;
+                    feedback.textContent = `✓ ¡Excelente! ${matchCount}/${correctSynonyms.length} correctos`;
                     feedback.classList.add('correct');
 
                     if (!answers[wordIndex] || !answers[wordIndex].isCorrect) {
                         answers[wordIndex] = {
-                            userLetter: input.value.trim(),
-                            correctLetter: correctLetter,
+                            userAnswer: userAnswer,
+                            correctSynonyms: correctSynonyms,
+                            matchCount: matchCount,
                             isCorrect: true
                         };
 
                         if (!answers[wordIndex].counted) {
-                            lettersCompleted++;
+                            wordsCompleted++;
                             answers[wordIndex].counted = true;
                         }
                     }
-                } else {
+                } else if (matchCount > 0) {
                     input.classList.add('incorrect');
-                    feedback.textContent = '✗ Intenta de nuevo';
+                    feedback.textContent = `⚠ Bien, pero puedes encontrar más: ${matchCount}/${correctSynonyms.length}`;
+                    feedback.classList.add('incorrect');
+                } else if (userSynonyms.length > 0) {
+                    input.classList.add('incorrect');
+                    feedback.textContent = '✗ Intenta con otras palabras';
                     feedback.classList.add('incorrect');
                 }
             }
@@ -317,27 +342,35 @@
             updateProgress();
         }
 
-        // Validar letra al perder el foco
-        function validateLetter(wordIndex) {
+        // Validar sinónimos al perder el foco
+        function validateSynonyms(wordIndex) {
             if (exerciseCompleted) return;
 
             const input = document.querySelector(`[data-word-index="${wordIndex}"]`);
-            const userLetter = input.value.trim();
+            const userAnswer = input.value.trim();
 
-            if (userLetter && !answers[wordIndex]) {
-                const completeWord = input.dataset.complete;
-                const incompleteWord = input.dataset.incomplete;
-                const correctLetter = findMissingLetter(incompleteWord, completeWord);
+            if (userAnswer && !answers[wordIndex]) {
+                const correctSynonyms = input.dataset.synonyms.split(',');
+                const userSynonyms = userAnswer.split(',').map(s => s.trim().toLowerCase());
+                const correctSynonymsLower = correctSynonyms.map(s => s.trim().toLowerCase());
+
+                let matchCount = 0;
+                userSynonyms.forEach(synonym => {
+                    if (correctSynonymsLower.includes(synonym)) {
+                        matchCount++;
+                    }
+                });
 
                 answers[wordIndex] = {
-                    userLetter: userLetter,
-                    correctLetter: correctLetter,
-                    isCorrect: userLetter.toLowerCase() === correctLetter.toLowerCase(),
+                    userAnswer: userAnswer,
+                    correctSynonyms: correctSynonyms,
+                    matchCount: matchCount,
+                    isCorrect: (matchCount / correctSynonyms.length) >= 0.8,
                     counted: false
                 };
 
                 if (answers[wordIndex].isCorrect && !answers[wordIndex].counted) {
-                    lettersCompleted++;
+                    wordsCompleted++;
                     answers[wordIndex].counted = true;
                 }
             }
@@ -347,10 +380,10 @@
 
         // Actualizar progreso
         function updateProgress() {
-            const progress = (lettersCompleted / exerciseData.words.length) * 100;
+            const progress = (wordsCompleted / exerciseData.words.length) * 100;
             document.getElementById('progressBar').style.width = progress + '%';
 
-            if (lettersCompleted === exerciseData.words.length) {
+            if (wordsCompleted === exerciseData.words.length) {
                 document.getElementById('finishButton').style.display = 'block';
             }
         }
@@ -360,78 +393,32 @@
             if (exerciseCompleted) return;
 
             exerciseCompleted = true;
-            correctLetters = 0;
+            totalCorrectSynonyms = 0;
 
             // Evaluar todas las respuestas
             for (let i = 0; i < exerciseData.words.length; i++) {
                 const input = document.querySelector(`[data-word-index="${i}"]`);
                 input.disabled = true;
 
-                if (answers[i] && answers[i].isCorrect) {
-                    correctLetters++;
-                    input.classList.add('correct');
-                    const feedback = document.getElementById(`feedback-${i}`);
-                    feedback.textContent = `✓ Palabra completa: ${input.dataset.complete}`;
-                    feedback.classList.add('correct');
+                if (answers[i]) {
+                    totalCorrectSynonyms += answers[i].matchCount || 0;
+
+                    if (answers[i].isCorrect) {
+                        input.classList.add('correct');
+                    } else {
+                        input.classList.add('incorrect');
+                        // Mostrar respuestas correctas
+                        const feedback = document.getElementById(`feedback-${i}`);
+                        feedback.textContent = `Correctos: ${answers[i].correctSynonyms.join(', ')}`;
+                        feedback.classList.add('incorrect');
+                    }
                 } else {
                     input.classList.add('incorrect');
                     const feedback = document.getElementById(`feedback-${i}`);
-                    feedback.textContent = `Correcto: ${exerciseData.words[i].palabra_completa}`;
+                    feedback.textContent = `Correctos: ${exerciseData.words[i].sinonimos.join(', ')}`;
                     feedback.classList.add('incorrect');
                 }
             }
 
             showResults();
         }
-
-        // Mostrar resultados
-        function showResults() {
-            const accuracy = Math.round((correctLetters / exerciseData.words.length) * 100);
-            const score = Math.round((correctLetters / exerciseData.words.length) * exerciseData.totalPoints);
-
-            document.getElementById('finalScore').textContent = score;
-            document.getElementById('correctLetters').textContent = correctLetters;
-            document.getElementById('accuracy').textContent = accuracy + '%';
-
-            let message = '';
-            if (accuracy === 100) {
-                message = '¡Perfecto! 🏆 ¡Completaste todas las palabras!';
-            } else if (accuracy >= 80) {
-                message = '¡Muy bien! 🌟 Excelente comprensión.';
-            } else if (accuracy >= 60) {
-                message = '¡Bien hecho! 👍 Sigue practicando.';
-            } else {
-                message = '¡Buen intento! 💪 Cada letra cuenta.';
-            }
-
-            document.getElementById('resultMessage').textContent = message;
-            document.getElementById('resultsContainer').style.display = 'block';
-            document.getElementById('finishButton').style.display = 'none';
-            document.getElementById('navigationButtons').style.display = 'none';
-        }
-
-        // Permitir solo letras
-        document.addEventListener('input', function(event) {
-            if (event.target.classList.contains('letter-input')) {
-                const value = event.target.value;
-                if (!/^[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ]$/.test(value)) {
-                    event.target.value = '';
-                }
-            }
-        });
-
-        // Permitir Enter para continuar
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Enter' && lettersCompleted === exerciseData.words.length) {
-                finishExercise();
-            }
-        });
-
-        // Inicialización
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('🧩 Inicializando ejercicio de completar palabras');
-            console.log('📊 Datos del ejercicio:', exerciseData);
-        });
-    </script>
-</body>
-</html>

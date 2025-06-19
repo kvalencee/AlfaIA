@@ -1,4 +1,8 @@
-# Configuración completa corregida
+# fix_database.py - Arreglar DatabaseConfig
+import shutil
+
+# Configuración corregida
+config_fixed = '''# Configuración corregida
 import os
 from typing import Dict, Any
 from dataclasses import dataclass
@@ -11,9 +15,8 @@ class DatabaseConfig:
     user: str
     password: str
     charset: str = 'utf8mb4'
-    autocommit: bool = False
     pool_size: int = 10
-    pool_name: str = "alfaia_pool"
+    pool_name: str = "alfaia_pool"  # <- ESTO FALTABA
 
 class TempConfig:
     def __init__(self):
@@ -51,9 +54,8 @@ class TempConfig:
             user=self.get('database.user'),
             password=self.get('database.password'),
             charset=self.get('database.charset'),
-            autocommit=False,
             pool_size=self.get('database.pool_size'),
-            pool_name="alfaia_pool"
+            pool_name="alfaia_pool"  # <- Y ESTO TAMBIÉN
         )
 
     def get_exercise_config(self, exercise_type: str) -> Dict[str, Any]:
@@ -78,3 +80,11 @@ def is_feature_enabled(feature_name: str):
 
 def initialize_config():
     return True
+'''
+
+# Reemplazar config
+with open('modules/config.py', 'w', encoding='utf-8') as f:
+    f.write(config_fixed)
+
+print("✅ DatabaseConfig arreglado")
+print("🔄 Reinicia el servidor: python app.py")

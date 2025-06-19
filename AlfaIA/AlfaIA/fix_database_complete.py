@@ -1,4 +1,8 @@
-# Configuración completa corregida
+# fix_database_complete.py - Arreglar DatabaseConfig completo
+import shutil
+
+# Configuración completa y corregida
+config_complete = '''# Configuración completa corregida
 import os
 from typing import Dict, Any
 from dataclasses import dataclass
@@ -78,3 +82,11 @@ def is_feature_enabled(feature_name: str):
 
 def initialize_config():
     return True
+'''
+
+# Reemplazar config
+with open('modules/config.py', 'w', encoding='utf-8') as f:
+    f.write(config_complete)
+
+print("✅ DatabaseConfig completamente arreglado")
+print("🔄 Reinicia: python app.py")

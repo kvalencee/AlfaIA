@@ -1,5 +1,6 @@
-# app.py - Aplicación AlfaIA Completa y Funcional
-# Ubicación: AlfaIA/AlfaIA/app.py
+# app.py - AlfaIA Sistema de Alfabetización con IA - Versión Modernizada
+# Versión: 2.0.0
+# Fecha: Enero 2025
 
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
 from flask_cors import CORS
@@ -8,93 +9,218 @@ import logging
 from datetime import datetime, timedelta
 import json
 import random
-from modules.ejercicios_lectura import EjerciciosLectura
+import traceback
+from functools import wraps
+from typing import Dict, Any, Optional
 
+# ==================== IMPORTACIONES DE MÓDULOS ====================
 
-# Importar gestor de base de datos
+# Configuración moderna
 try:
-    from modules.database_manager import db_manager
+    from modules.config import config, initialize_config, get_database_config
 
-    DB_AVAILABLE = db_manager.is_connected if db_manager else False
+    CONFIG_AVAILABLE = True
+    logger = logging.getLogger(__name__)
+    logger.info("✅ Sistema de configuración moderno cargado")
 except ImportError as e:
-    logging.error(f"Error importando database_manager: {e}")
+    CONFIG_AVAILABLE = False
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger(__name__)
+    logger.error(f"❌ Error cargando configuración: {e}")
+
+# Database Manager moderno
+try:
+    from modules.database_manager import DatabaseManager, DatabaseConfig
+    from modules.config import get_database_config
+
+    # Inicializar Database Manager con configuración moderna
+    if CONFIG_AVAILABLE:
+        db_config = get_database_config()
+        db_manager = DatabaseManager(db_config)
+        DB_AVAILABLE = True
+        logger.info("✅ Database Manager moderno inicializado")
+    else:
+        # Configuración de fallback
+        fallback_config = DatabaseConfig(
+            host=os.getenv('DB_HOST', 'localhost'),
+            port=int(os.getenv('DB_PORT', 3306)),
+            database=os.getenv('DB_NAME', 'alfaia_db'),
+            user=os.getenv('DB_USER', 'root'),
+            password=os.getenv('DB_PASSWORD', 'tired2019')
+        )
+        db_manager = DatabaseManager(fallback_config)
+        DB_AVAILABLE = True
+        logger.warning("⚠️ Database Manager con configuración de fallback")
+
+except Exception as e:
+    logger.error(f"❌ Error inicializando Database Manager: {e}")
     DB_AVAILABLE = False
     db_manager = None
 
-# Importar generador de juegos y ejercicios
+# Módulos de ejercicios
 try:
+    from modules.ejercicios_lectura import EjerciciosLectura
     from modules.juegos_interactivos import JuegosInteractivos
     from modules.generador_ejercicios import GeneradorEjercicios
 
+    ejercicios_lectura = EjerciciosLectura()
     juegos_generator = JuegosInteractivos()
     ejercicios_generator = GeneradorEjercicios()
-    JUEGOS_AVAILABLE = True
+    EJERCICIOS_AVAILABLE = True
+    logger.info("✅ Módulos de ejercicios cargados")
 except ImportError as e:
-    logging.error(f"Error importando juegos_interactivos: {e}")
-    JUEGOS_AVAILABLE = False
+    logger.error(f"⚠️ Error cargando módulos de ejercicios: {e}")
+    EJERCICIOS_AVAILABLE = False
+    ejercicios_lectura = None
     juegos_generator = None
     ejercicios_generator = None
 
-# Configurar logging básico
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# ==================== CONFIGURACIÓN DE FLASK ====================
 
 # Inicializar Flask
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'alfaia-secret-key-2025-super-secure')
 
-# Configuración CORS
-CORS(app, origins=['http://localhost:5000', 'http://127.0.0.1:5000'])
+# Configuración desde sistema moderno o fallback
+if CONFIG_AVAILABLE:
+    app.config.update({
+        'SECRET_KEY': config.get('security.secret_key', 'alfaia-fallback-key-2025'),
+        'DEBUG': config.get('app.debug', False),
+        'TESTING': config.get('app.testing', False),
+        'SESSION_COOKIE_SECURE': config.get('security.session_cookie_secure', False),
+        'SESSION_COOKIE_HTTPONLY': config.get('security.session_cookie_httponly', True),
+        'SESSION_COOKIE_SAMESITE': config.get('security.session_cookie_samesite', 'Lax'),
+        'PERMANENT_SESSION_LIFETIME': timedelta(hours=config.get('security.session_timeout_hours', 24)),
+        'MAX_CONTENT_LENGTH': config.get('media.max_upload_size', 16 * 1024 * 1024),
+        'UPLOAD_FOLDER': config.get('media.upload_folder', 'static/uploads'),
+        'SQLALCHEMY_TRACK_MODIFICATIONS': False,
+        'JSON_AS_ASCII': False
+    })
 
-# Configuración de la aplicación
-app.config.update(
-    SESSION_COOKIE_SECURE=False,
-    SESSION_COOKIE_HTTPONLY=True,
-    SESSION_COOKIE_SAMESITE='Lax',
-    PERMANENT_SESSION_LIFETIME=timedelta(days=7),
-    MAX_CONTENT_LENGTH=16 * 1024 * 1024,
-    UPLOAD_FOLDER='static/uploads'
-)
+    # Configurar CORS desde configuración
+    cors_origins = config.get('security.cors_origins', ['http://localhost:5000', 'http://127.0.0.1:5000'])
+    CORS(app, origins=cors_origins)
+
+    logger.info(f"✅ Flask configurado con configuración moderna")
+    logger.info(f"   Debug: {app.config['DEBUG']}")
+    logger.info(f"   Upload folder: {app.config['UPLOAD_FOLDER']}")
+
+else:
+    # Configuración de fallback
+    app.config.update({
+        'SECRET_KEY': os.environ.get('SECRET_KEY', 'alfaia-fallback-key-2025'),
+        'DEBUG': os.environ.get('FLASK_DEBUG', 'False').lower() == 'true',
+        'SESSION_COOKIE_SECURE': False,
+        'SESSION_COOKIE_HTTPONLY': True,
+        'SESSION_COOKIE_SAMESITE': 'Lax',
+        'PERMANENT_SESSION_LIFETIME': timedelta(days=7),
+        'MAX_CONTENT_LENGTH': 16 * 1024 * 1024,
+        'UPLOAD_FOLDER': 'static/uploads'
+    })
+
+    CORS(app, origins=['http://localhost:5000', 'http://127.0.0.1:5000'])
+    logger.warning("⚠️ Flask configurado con configuración de fallback")
+
+# ==================== CONFIGURACIÓN DE LOGGING ====================
+
+if CONFIG_AVAILABLE:
+    log_level = getattr(logging, config.get('logging.level', 'INFO').upper())
+    log_format = config.get('logging.format', '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+    logging.basicConfig(
+        level=log_level,
+        format=log_format,
+        handlers=[
+            logging.FileHandler(config.get('logging.file', 'logs/alfaia.log')),
+            logging.StreamHandler()
+        ]
+    )
+else:
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
 
 # Crear directorios necesarios
-os.makedirs('logs', exist_ok=True)
-os.makedirs('data', exist_ok=True)
-os.makedirs('static/uploads', exist_ok=True)
-os.makedirs('templates/errors', exist_ok=True)
+required_directories = [
+    'logs', 'data', 'static/uploads', 'templates/errors',
+    'static/css', 'static/js', 'static/images', 'temp'
+]
 
-# Datos de respaldo si no hay base de datos
+for directory in required_directories:
+    os.makedirs(directory, exist_ok=True)
+
+# ==================== DATOS DE FALLBACK ====================
+
 FALLBACK_USER = {
     'id': 1,
     'username': 'demo_user',
     'nombre': 'Usuario',
     'apellido': 'Demo',
-    'email': 'demo@alfaia.com'
+    'email': 'demo@alfaia.com',
+    'nivel_lectura': 1,
+    'nivel_escritura': 1,
+    'nivel_pronunciacion': 1,
+    'puntos_totales': 100,
+    'activo': True
 }
 
+FALLBACK_STATS = {
+    'ejercicios_completados': 15,
+    'tiempo_total_minutos': 60,
+    'precision_promedio': 87.5,
+    'racha_dias_consecutivos': 5,
+    'puntos_totales': 450,
+    'nivel_lectura': 2,
+    'nivel_escritura': 2,
+    'nivel_pronunciacion': 1,
+    'progreso_semanal': [10, 15, 8, 20, 12, 18, 25]
+}
 
-# ==================== FUNCIONES AUXILIARES ====================
+FALLBACK_CATEGORIES = [
+    {'id': 1, 'nombre': 'Vocales', 'descripcion': 'Ejercicios con vocales', 'tipo': 'pronunciacion'},
+    {'id': 2, 'nombre': 'Consonantes', 'descripcion': 'Ejercicios con consonantes', 'tipo': 'pronunciacion'},
+    {'id': 3, 'nombre': 'Palabras Básicas', 'descripcion': 'Vocabulario fundamental', 'tipo': 'lectura'},
+    {'id': 4, 'nombre': 'Oraciones Simples', 'descripcion': 'Estructura de oraciones', 'tipo': 'lectura'}
+]
+
+
+# ==================== DECORADORES Y FUNCIONES AUXILIARES ====================
 
 def login_required(f):
     """Decorador para rutas que requieren autenticación"""
-    from functools import wraps
+
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'user_id' not in session:
-            flash('Debes iniciar sesión para acceder a esta página.', 'error')
+            flash('Debes iniciar sesión para acceder a esta página.', 'warning')
             return redirect(url_for('login', next=request.url))
         return f(*args, **kwargs)
 
     return decorated_function
 
 
-def get_current_user():
+def admin_required(f):
+    """Decorador para rutas que requieren permisos de administrador"""
+
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        user = get_current_user()
+        if not user or not user.get('es_admin', False):
+            flash('No tienes permisos para acceder a esta página.', 'error')
+            return redirect(url_for('dashboard'))
+        return f(*args, **kwargs)
+
+    return decorated_function
+
+
+def get_current_user() -> Optional[Dict[str, Any]]:
     """Obtener datos del usuario actual"""
     if 'user_id' not in session:
         return None
 
     user_id = session['user_id']
 
-    if DB_AVAILABLE:
+    if DB_AVAILABLE and db_manager:
         try:
             user = db_manager.get_user_by_id(user_id)
             if not user:
@@ -103,49 +229,66 @@ def get_current_user():
             return user
         except Exception as e:
             logger.error(f"Error obteniendo usuario {user_id}: {e}")
-            # Usar datos de fallback como respaldo
+            # Fallback para usuario demo
             if user_id == 1:
                 return FALLBACK_USER
             return None
     else:
-        # En modo sin base de datos, solo permitir usuario de demostración
+        # Modo sin base de datos
         if user_id == 1:
             return FALLBACK_USER
         return None
 
 
-def init_user_session(user):
+def init_user_session(user: Dict[str, Any]) -> None:
     """Inicializar la sesión del usuario"""
+    session.permanent = True
     session['user_id'] = user['id']
     session['username'] = user['username']
     session['nombre'] = user['nombre']
     session['apellido'] = user['apellido']
     session['email'] = user['email']
-    session.permanent = True
+    session['nivel_lectura'] = user.get('nivel_lectura', 1)
+    session['nivel_escritura'] = user.get('nivel_escritura', 1)
+    session['nivel_pronunciacion'] = user.get('nivel_pronunciacion', 1)
+
+    logger.info(f"✅ Sesión inicializada para usuario: {user['username']}")
 
 
-def get_fallback_stats():
-    """Obtener estadísticas de respaldo para modo sin BD"""
+def get_user_stats(user_id: int) -> Dict[str, Any]:
+    """Obtener estadísticas del usuario"""
+    if DB_AVAILABLE and db_manager:
+        try:
+            return db_manager.get_user_progress_summary(user_id)
+        except Exception as e:
+            logger.error(f"Error obteniendo estadísticas: {e}")
+            return FALLBACK_STATS
+    return FALLBACK_STATS
+
+
+def get_user_config(user_id: int) -> Dict[str, Any]:
+    """Obtener configuración del usuario"""
+    if DB_AVAILABLE and db_manager:
+        try:
+            return db_manager.get_user_config(user_id) or {}
+        except Exception as e:
+            logger.error(f"Error obteniendo configuración: {e}")
+            return {}
+    return {}
+
+
+def handle_error(error_type: str, error: Exception, user_context: str = ""):
+    """Manejar errores de manera centralizada"""
+    error_id = f"ERR_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{random.randint(1000, 9999)}"
+
+    logger.error(f"Error {error_id} [{error_type}] {user_context}: {str(error)}")
+    logger.error(f"Traceback: {traceback.format_exc()}")
+
     return {
-        'ejercicios_completados': 12,
-        'tiempo_total_minutos': 45,
-        'precision_promedio': 85.5,
-        'racha_dias': 3,
-        'puntos_totales': 250,
-        'nivel_lectura': 2,
-        'nivel_ejercicios': 2,
-        'nivel_pronunciacion': 1
-    }
-
-
-def get_fallback_config():
-    """Obtener configuración de respaldo para modo sin BD"""
-    return {
-        'velocidad_lectura': 500,
-        'dificultad_preferida': 'medio',
-        'tema_preferido': 'brown',
-        'notificaciones_activas': True,
-        'sonidos_activos': True
+        'error_id': error_id,
+        'error_type': error_type,
+        'message': str(error),
+        'timestamp': datetime.now().isoformat()
     }
 
 
@@ -154,15 +297,51 @@ def get_fallback_config():
 @app.route('/')
 def index():
     """Página de inicio"""
-    user = get_current_user()
-    return render_template('index.html', user=user)
+    try:
+        user = get_current_user()
+
+        # Obtener estadísticas generales si hay usuario
+        stats = None
+        if user:
+            stats = get_user_stats(user['id'])
+
+        # Verificar estado del sistema
+        system_status = {
+            'database': DB_AVAILABLE,
+            'exercises': EJERCICIOS_AVAILABLE,
+            'config': CONFIG_AVAILABLE
+        }
+
+        return render_template('index.html',
+                               user=user,
+                               stats=stats,
+                               system_status=system_status)
+
+    except Exception as e:
+        error_info = handle_error('INDEX_ERROR', e)
+        return render_template('errors/500.html', error=error_info), 500
 
 
 @app.route('/about')
 def about():
-    """Página de información"""
-    return render_template('about.html')
+    """Página de información sobre AlfaIA"""
+    try:
+        # Obtener estadísticas del sistema si está disponible
+        system_info = {}
+        if DB_AVAILABLE and db_manager:
+            try:
+                system_info = db_manager.get_database_stats()
+            except:
+                pass
 
+        return render_template('about.html', system_info=system_info)
+
+    except Exception as e:
+        error_info = handle_error('ABOUT_ERROR', e)
+        return render_template('errors/500.html', error=error_info), 500
+
+
+# ==================== AUTENTICACIÓN ====================
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -171,724 +350,1271 @@ def login():
         return redirect(url_for('dashboard'))
 
     if request.method == 'POST':
-        username = request.form.get('username', '')
-        password = request.form.get('password', '')
+        try:
+            username = request.form.get('username', '').strip()
+            password = request.form.get('password', '')
 
-        message = ''
+            if not username or not password:
+                flash('Por favor, completa todos los campos.', 'warning')
+                return render_template('login.html', db_available=DB_AVAILABLE)
 
-        if DB_AVAILABLE:
-            try:
-                user = db_manager.authenticate_user(username, password)
-                if user:
-                    init_user_session(user)
-                    if request.is_json:
-                        return jsonify({'success': True, 'redirect': url_for('dashboard')})
-                    flash('¡Bienvenido de nuevo!', 'success')
-                    return redirect(url_for('dashboard'))
-                else:
-                    message = 'Credenciales incorrectas. Verifica tu usuario y contraseña.'
-            except Exception as e:
-                logger.error(f"Error en autenticación: {e}")
-                message = 'Error del servidor. Intenta de nuevo.'
-        else:
-            # Modo fallback sin base de datos
-            if username == 'demo_user' and password == 'demo123':
-                init_user_session(FALLBACK_USER)
-                if request.is_json:
-                    return jsonify({'success': True, 'redirect': url_for('dashboard')})
-                flash('¡Bienvenido! (Modo sin base de datos)', 'success')
+            # Autenticación
+            user = None
+            if DB_AVAILABLE and db_manager:
+                try:
+                    user = db_manager.authenticate_user(username, password)
+                except Exception as e:
+                    logger.error(f"Error en autenticación: {e}")
+                    flash('Error de conexión. Intenta nuevamente.', 'error')
+                    return render_template('login.html', db_available=DB_AVAILABLE)
+            else:
+                # Modo demo sin base de datos
+                if username == 'demo_user' and password == 'demo123':
+                    user = FALLBACK_USER
+
+            if user:
+                init_user_session(user)
+
+                # Verificar y desbloquear logros de conexión
+                if DB_AVAILABLE and db_manager:
+                    try:
+                        db_manager.check_and_unlock_achievements(user['id'], 'login')
+                    except Exception as e:
+                        logger.warning(f"Error verificando logros: {e}")
+
+                flash(f'¡Bienvenido de nuevo, {user["nombre"]}!', 'success')
+
+                # Redirección
+                next_page = request.form.get('next') or request.args.get('next')
+                if next_page and next_page.startswith('/'):
+                    return redirect(next_page)
                 return redirect(url_for('dashboard'))
             else:
-                message = 'Credenciales incorrectas. Usa: demo_user / demo123 (modo sin BD)'
+                flash('Usuario o contraseña incorrectos.', 'error')
 
-        if request.is_json:
-            return jsonify({'success': False, 'message': message})
-        flash(message, 'error')
+        except Exception as e:
+            error_info = handle_error('LOGIN_ERROR', e, f"Usuario: {username}")
+            flash('Error interno. Intenta nuevamente.', 'error')
 
-    return render_template('auth/login.html')
+    return render_template('login.html', db_available=DB_AVAILABLE)
+
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    """Página de registro de nuevos usuarios"""
+    if 'user_id' in session:
+        return redirect(url_for('dashboard'))
+
+    if request.method == 'POST':
+        try:
+            # Validar datos
+            required_fields = ['username', 'email', 'password', 'confirm_password', 'nombre', 'apellido']
+            user_data = {}
+
+            for field in required_fields:
+                value = request.form.get(field, '').strip()
+                if not value:
+                    flash(f'El campo {field} es obligatorio.', 'warning')
+                    return render_template('register.html')
+                user_data[field] = value
+
+            # Validar contraseñas
+            if user_data['password'] != user_data['confirm_password']:
+                flash('Las contraseñas no coinciden.', 'warning')
+                return render_template('register.html')
+
+            if len(user_data['password']) < 6:
+                flash('La contraseña debe tener al menos 6 caracteres.', 'warning')
+                return render_template('register.html')
+
+            # Datos opcionales
+            optional_fields = ['fecha_nacimiento', 'genero', 'nivel_educativo', 'pais', 'ciudad', 'telefono']
+            for field in optional_fields:
+                user_data[field] = request.form.get(field, '').strip() or None
+
+            # Crear usuario
+            if DB_AVAILABLE and db_manager:
+                try:
+                    user_id = db_manager.create_user(user_data)
+
+                    # Crear perfil inicial
+                    profile_data = {
+                        'objetivo_diario_minutos': 30,
+                        'objetivo_diario_ejercicios': 5,
+                        'estilo_aprendizaje': 'mixto'
+                    }
+                    db_manager.create_user_profile(user_id, profile_data)
+
+                    # Obtener usuario creado
+                    user = db_manager.get_user_by_id(user_id)
+                    init_user_session(user)
+
+                    # Crear notificación de bienvenida
+                    try:
+                        db_manager.create_notification(
+                            user_id=user_id,
+                            tipo='bienvenida',
+                            titulo='¡Bienvenido a AlfaIA!',
+                            mensaje='Comienza tu viaje de aprendizaje con nosotros.',
+                            datos_json={'first_login': True}
+                        )
+                    except Exception as e:
+                        logger.warning(f"Error creando notificación de bienvenida: {e}")
+
+                    flash('¡Cuenta creada exitosamente! Bienvenido a AlfaIA.', 'success')
+                    return redirect(url_for('dashboard'))
+
+                except ValueError as e:
+                    flash(str(e), 'error')
+                except Exception as e:
+                    error_info = handle_error('REGISTER_ERROR', e, f"Usuario: {user_data['username']}")
+                    flash('Error creando la cuenta. Intenta nuevamente.', 'error')
+            else:
+                flash('Registro no disponible en modo demo.', 'warning')
+
+        except Exception as e:
+            error_info = handle_error('REGISTER_FORM_ERROR', e)
+            flash('Error procesando el formulario.', 'error')
+
+    return render_template('register.html')
 
 
 @app.route('/logout')
 def logout():
     """Cerrar sesión"""
-    user_name = session.get('nombre', 'Usuario')
+    username = session.get('username', 'Usuario')
     session.clear()
-    flash(f'¡Hasta luego, {user_name}!', 'info')
+    flash(f'Hasta luego, {username}. ¡Vuelve pronto!', 'info')
     return redirect(url_for('index'))
 
+
+# ==================== DASHBOARD Y PERFIL ====================
 
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    """Dashboard principal del usuario"""
-    user = get_current_user()
-
-    if DB_AVAILABLE and user:
-        try:
-            estadisticas = db_manager.get_user_statistics(user['id'])
-            configuracion = db_manager.get_user_config(user['id'])
-            logros_recientes = db_manager.get_recent_achievements(user['id'], limit=3)
-        except Exception as e:
-            logger.error(f"Error cargando datos del dashboard: {e}")
-            estadisticas = get_fallback_stats()
-            configuracion = get_fallback_config()
-            logros_recientes = []
-    else:
-        estadisticas = get_fallback_stats()
-        configuracion = get_fallback_config()
-        logros_recientes = []
-
-    return render_template('dashboard.html',
-                           user=user,
-                           stats=estadisticas,
-                           config=configuracion,
-                           logros=logros_recientes)
-
-
-# ==================== RUTAS DE JUEGOS ====================
-
-@app.route('/juegos')
-@login_required
-def juegos():
-    """Página principal de juegos"""
-    juegos_disponibles = [
-        {
-            'id': 'memoria',
-            'nombre': 'Juego de Memoria',
-            'descripcion': 'Encuentra las parejas de palabras sinónimas',
-            'icono': 'brain',
-            'url': '/juegos/memoria',
-            'dificultad': 'Fácil',
-            'jugadores': '1',
-            'tiempo': '5-10 min'
-        },
-        {
-            'id': 'ahorcado',
-            'nombre': 'Ahorcado',
-            'descripcion': 'Adivina la palabra letra por letra',
-            'icono': 'spell-check',
-            'url': '/juegos/ahorcado',
-            'dificultad': 'Medio',
-            'jugadores': '1',
-            'tiempo': '3-7 min'
-        },
-        {
-            'id': 'trivia',
-            'nombre': 'Trivia Educativa',
-            'descripcion': 'Responde preguntas sobre diferentes temas educativos',
-            'icono': 'question-circle',
-            'url': '/juegos/trivia',
-            'dificultad': 'Variada',
-            'jugadores': '1',
-            'tiempo': '10-15 min'
-        },
-        {
-            'id': 'crucigrama',
-            'nombre': 'Crucigrama',
-            'descripcion': 'Completa el crucigrama con las palabras correctas',
-            'icono': 'th',
-            'url': '/juegos/crucigrama',
-            'dificultad': 'Intermedio',
-            'jugadores': '1',
-            'tiempo': '15-20 min'
-        }
-    ]
-    return render_template('juegos.html', juegos=juegos_disponibles)
-
-
-@app.route('/juegos/memoria')
-@login_required
-def juego_memoria():
-    """Juego de memoria"""
+    """Panel principal del usuario"""
     try:
-        nivel = request.args.get('nivel', 1, type=int)
+        user = get_current_user()
+        if not user:
+            return redirect(url_for('login'))
 
-        # Datos por defecto para el juego de memoria
-        pares_por_nivel = {
-            1: [["Grande", "Enorme"], ["Pequeño", "Chico"], ["Bonito", "Hermoso"], ["Rápido", "Veloz"]],
-            2: [["Feliz", "Alegre"], ["Triste", "Melancólico"], ["Fuerte", "Robusto"], ["Débil", "Frágil"],
-                ["Caliente", "Cálido"], ["Frío", "Helado"]],
-            3: [["Inteligente", "Listo"], ["Valiente", "Audaz"], ["Generoso", "Dadivoso"], ["Trabajador", "Laborioso"],
-                ["Limpio", "Aseado"], ["Difícil", "Complicado"]]
-        }
+        # Obtener estadísticas del usuario
+        stats = get_user_stats(user['id'])
 
-        pares = pares_por_nivel.get(nivel, pares_por_nivel[1])
-        random.shuffle(pares)
-        pares = pares[:min(6, len(pares))]  # Máximo 6 pares
+        # Obtener notificaciones no leídas
+        notifications = []
+        if DB_AVAILABLE and db_manager:
+            try:
+                notifications = db_manager.get_user_notifications(user['id'], unread_only=True, limit=5)
+            except Exception as e:
+                logger.warning(f"Error obteniendo notificaciones: {e}")
 
-        tiempo_limite = 60 + (nivel * 20)
-        puntos_maximos = len(pares) * 20
+        # Obtener logros recientes
+        recent_achievements = []
+        if DB_AVAILABLE and db_manager:
+            try:
+                recent_achievements = db_manager.get_user_achievements(user['id'], limit=3)
+            except Exception as e:
+                logger.warning(f"Error obteniendo logros: {e}")
 
-        return render_template('juegos/memoria.html',
-                               pares=pares,
-                               nivel=nivel,
-                               tiempo_limite=tiempo_limite,
-                               puntos_maximos=puntos_maximos)
+        # Actividad reciente
+        recent_activity = []
+        if DB_AVAILABLE and db_manager:
+            try:
+                recent_activity = db_manager.get_user_recent_activity(user['id'], limit=5)
+            except Exception as e:
+                logger.warning(f"Error obteniendo actividad reciente: {e}")
+
+        # Recomendaciones de ejercicios
+        recommended_exercises = []
+        if EJERCICIOS_AVAILABLE:
+            try:
+                # Lógica de recomendaciones basada en nivel y progreso
+                user_level = user.get('nivel_lectura', 1)
+                if user_level <= 2:
+                    recommended_exercises = [
+                        {'tipo': 'lectura', 'nombre': 'Lectura Básica', 'dificultad': 'facil'},
+                        {'tipo': 'pronunciacion', 'nombre': 'Práctica de Vocales', 'dificultad': 'facil'},
+                    ]
+                else:
+                    recommended_exercises = [
+                        {'tipo': 'lectura', 'nombre': 'Comprensión Avanzada', 'dificultad': 'medio'},
+                        {'tipo': 'ortografia', 'nombre': 'Ortografía Intermedia', 'dificultad': 'medio'},
+                    ]
+            except Exception as e:
+                logger.warning(f"Error generando recomendaciones: {e}")
+
+        return render_template('dashboard.html',
+                               user=user,
+                               stats=stats,
+                               notifications=notifications,
+                               recent_achievements=recent_achievements,
+                               recent_activity=recent_activity,
+                               recommended_exercises=recommended_exercises,
+                           db_available=DB_AVAILABLE)
+
     except Exception as e:
-        logger.error(f"Error en juego de memoria: {e}")
-        flash('Error cargando el juego de memoria.', 'error')
-        return redirect('/juegos')
+        error_info = handle_error('DASHBOARD_ERROR', e, f"Usuario: {session.get('username')}")
+        return render_template('errors/500.html', error=error_info), 500
 
 
-@app.route('/juegos/ahorcado')
+@app.route('/profile')
 @login_required
-def juego_ahorcado():
-    """Juego de ahorcado"""
+def profile():
+    """Página de perfil del usuario"""
     try:
-        nivel = request.args.get('nivel', 1, type=int)
+        user = get_current_user()
+        if not user:
+            return redirect(url_for('login'))
 
-        palabras_por_nivel = {
-            1: [
-                {'palabra': 'GATO', 'pista': 'Animal doméstico que dice miau'},
-                {'palabra': 'CASA', 'pista': 'Lugar donde vives'},
-                {'palabra': 'SOL', 'pista': 'Estrella que nos da luz'},
-                {'palabra': 'MAR', 'pista': 'Agua salada muy grande'}
-            ],
-            2: [
-                {'palabra': 'ESCUELA', 'pista': 'Lugar donde los niños aprenden'},
-                {'palabra': 'FAMILIA', 'pista': 'Papá, mamá e hijos'},
-                {'palabra': 'JARDIN', 'pista': 'Lugar con plantas y flores'},
-                {'palabra': 'MUSICA', 'pista': 'Arte de los sonidos'}
-            ],
-            3: [
-                {'palabra': 'NAVEGACION', 'pista': 'Acción de dirigir una embarcación'},
-                {'palabra': 'COMPRENSION', 'pista': 'Capacidad de entender algo'},
-                {'palabra': 'EXTRAORDINARIO', 'pista': 'Algo fuera de lo común'},
-                {'palabra': 'REFRIGERADOR', 'pista': 'Electrodoméstico para enfriar'}
-            ]
-        }
+        # Obtener configuración del usuario
+        user_config = get_user_config(user['id'])
 
-        palabras = palabras_por_nivel.get(nivel, palabras_por_nivel[1])
-        palabra_seleccionada = random.choice(palabras)
+        # Obtener estadísticas detalladas
+        detailed_stats = get_user_stats(user['id'])
 
-        juego_data = {
-            'palabra': palabra_seleccionada['palabra'],
-            'pista': palabra_seleccionada['pista'],
-            'letras_adivinadas': [],
-            'letras_incorrectas': [],
-            'intentos_restantes': 6,
-            'nivel': nivel,
-            'puntos': len(palabra_seleccionada['palabra']) * 5
-        }
+        # Obtener historial de logros
+        achievements = []
+        if DB_AVAILABLE and db_manager:
+            try:
+                achievements = db_manager.get_user_achievements(user['id'])
+            except Exception as e:
+                logger.warning(f"Error obteniendo logros: {e}")
 
-        return render_template('juegos/ahorcado.html', juego=juego_data, nivel=nivel)
+        return render_template('profile.html',
+                               user=user,
+                               user_config=user_config,
+                               detailed_stats=detailed_stats,
+                               achievements=achievements)
+
     except Exception as e:
-        logger.error(f"Error en juego de ahorcado: {e}")
-        flash('Error cargando el juego de ahorcado.', 'error')
-        return redirect('/juegos')
+        error_info = handle_error('PROFILE_ERROR', e, f"Usuario: {session.get('username')}")
+        return render_template('errors/500.html', error=error_info), 500
 
 
-@app.route('/juegos/trivia')
+@app.route('/update_profile', methods=['POST'])
 @login_required
-def juego_trivia():
-    """Juego de trivia"""
+def update_profile():
+    """Actualizar perfil del usuario"""
     try:
-        nivel = request.args.get('nivel', 1, type=int)
+        user = get_current_user()
+        if not user:
+            return jsonify({'success': False, 'message': 'Usuario no encontrado'})
 
-        preguntas = [
-            {
-                'pregunta': '¿Cuántas vocales tiene el español?',
-                'opciones': ['3', '5', '7', '10'],
-                'respuesta_correcta': '5',
-                'explicacion': 'El español tiene 5 vocales: a, e, i, o, u'
-            },
-            {
-                'pregunta': '¿Qué palabra es un sinónimo de "grande"?',
-                'opciones': ['pequeño', 'enorme', 'medio', 'chico'],
-                'respuesta_correcta': 'enorme',
-                'explicacion': 'Enorme significa de gran tamaño, igual que grande'
-            },
-            {
-                'pregunta': '¿Cuál es el plural de "lápiz"?',
-                'opciones': ['lápizes', 'lápis', 'lápices', 'lapices'],
-                'respuesta_correcta': 'lápices',
-                'explicacion': 'Las palabras que terminan en z cambian a ces en plural'
-            }
-        ]
-
-        # Seleccionar preguntas según nivel
-        if nivel > 1:
-            preguntas.extend([
-                {
-                    'pregunta': '¿Cuál de estas palabras tiene acento?',
-                    'opciones': ['casa', 'mesa', 'arbol', 'azul'],
-                    'respuesta_correcta': 'arbol',
-                    'explicacion': 'La palabra correcta es "árbol" y lleva acento en la a'
-                },
-                {
-                    'pregunta': '¿Qué signo va al principio de una pregunta en español?',
-                    'opciones': ['¿', '¡', '?', '.'],
-                    'respuesta_correcta': '¿',
-                    'explicacion': 'Las preguntas en español empiezan con ¿ y terminan con ?'
-                }
-            ])
-
-        # Mezclar preguntas
-        random.shuffle(preguntas)
-        preguntas = preguntas[:5]  # Limitar a 5 preguntas
-
-        # Puntuación
-        puntos_por_pregunta = 10 * nivel
-        puntos_maximos = len(preguntas) * puntos_por_pregunta
-
-        return render_template('juegos/trivia.html',
-                               preguntas=preguntas,
-                               nivel=nivel,
-                               puntos_maximos=puntos_maximos,
-                               puntos_por_pregunta=puntos_por_pregunta)
-    except Exception as e:
-        logger.error(f"Error en juego de trivia: {e}")
-        flash('Error cargando el juego de trivia.', 'error')
-        return redirect('/juegos')
-
-
-@app.route('/juegos/crucigrama')
-@login_required
-def juego_crucigrama():
-    """Juego de crucigrama"""
-    try:
-        nivel = request.args.get('nivel', 1, type=int)
-
-        # Datos de ejemplo para el crucigrama
-        crucigrama_data = {
-            'nivel': nivel,
-            'puntos_maximos': 50 * nivel,
-            'mensaje': 'Crucigrama en desarrollo. Estará disponible próximamente.'
+        # Obtener datos del formulario
+        profile_data = {
+            'nombre': request.form.get('nombre', '').strip(),
+            'apellido': request.form.get('apellido', '').strip(),
+            'email': request.form.get('email', '').strip(),
+            'telefono': request.form.get('telefono', '').strip(),
+            'ciudad': request.form.get('ciudad', '').strip(),
+            'objetivo_diario_minutos': int(request.form.get('objetivo_diario_minutos', 30)),
+            'objetivo_diario_ejercicios': int(request.form.get('objetivo_diario_ejercicios', 5)),
+            'estilo_aprendizaje': request.form.get('estilo_aprendizaje', 'mixto')
         }
 
-        return render_template('juegos/crucigrama.html', crucigrama=crucigrama_data)
+        # Validar datos básicos
+        if not profile_data['nombre'] or not profile_data['apellido'] or not profile_data['email']:
+            return jsonify({'success': False, 'message': 'Nombre, apellido y email son obligatorios'})
+
+        # Actualizar en base de datos
+        if DB_AVAILABLE and db_manager:
+            try:
+                # Actualizar datos del usuario
+                success = db_manager.update_user_profile(user['id'], profile_data)
+
+                if success:
+                    # Actualizar sesión
+                    session['nombre'] = profile_data['nombre']
+                    session['apellido'] = profile_data['apellido']
+                    session['email'] = profile_data['email']
+
+                    return jsonify({'success': True, 'message': 'Perfil actualizado exitosamente'})
+                else:
+                    return jsonify({'success': False, 'message': 'Error actualizando el perfil'})
+
+            except Exception as e:
+                logger.error(f"Error actualizando perfil: {e}")
+                return jsonify({'success': False, 'message': 'Error interno del servidor'})
+        else:
+            return jsonify({'success': False, 'message': 'Funcionalidad no disponible en modo demo'})
+
     except Exception as e:
-        logger.error(f"Error en juego de crucigrama: {e}")
-        flash('Error cargando el juego de crucigrama.', 'error')
-        return redirect('/juegos')
+        error_info = handle_error('UPDATE_PROFILE_ERROR', e, f"Usuario: {session.get('username')}")
+        return jsonify({'success': False, 'message': 'Error procesando la actualización'})
 
 
-@app.route('/juegos/rapido')
-@login_required
-def juego_rapido():
-    """Juego rápido aleatorio"""
-    juegos_disponibles = ['/juegos/memoria', '/juegos/ahorcado', '/juegos/trivia']
-    juego_seleccionado = random.choice(juegos_disponibles)
-    return redirect(juego_seleccionado)
-
-
-# ==================== RUTAS DE EJERCICIOS ====================
+# ==================== EJERCICIOS ====================
 
 @app.route('/ejercicios')
 @login_required
 def ejercicios():
     """Página principal de ejercicios"""
-    user = get_current_user()
-    return render_template('ejercicios.html', user=user)
+    try:
+        user = get_current_user()
+        if not user:
+            return redirect(url_for('login'))
 
+        # Obtener categorías disponibles
+        categories = []
+        if DB_AVAILABLE and db_manager:
+            try:
+                categories = db_manager.get_categories()
+            except Exception as e:
+                logger.warning(f"Error obteniendo categorías: {e}")
+                categories = FALLBACK_CATEGORIES
+        else:
+            categories = FALLBACK_CATEGORIES
+
+        # Obtener progreso por tipo de ejercicio
+        exercise_progress = {}
+        if DB_AVAILABLE and db_manager:
+            try:
+                exercise_progress = db_manager.get_exercise_progress_by_type(user['id'])
+            except Exception as e:
+                logger.warning(f"Error obteniendo progreso: {e}")
+
+        # Tipos de ejercicios disponibles
+        exercise_types = [
+            {
+                'id': 'lectura',
+                'nombre': 'Lectura',
+                'descripcion': 'Ejercicios de comprensión lectora',
+                'icon': 'book',
+                'dificultad': user.get('nivel_lectura', 1),
+                'disponible': EJERCICIOS_AVAILABLE
+            },
+            {
+                'id': 'pronunciacion',
+                'nombre': 'Pronunciación',
+                'descripcion': 'Práctica de pronunciación y fonética',
+                'icon': 'microphone',
+                'dificultad': user.get('nivel_pronunciacion', 1),
+                'disponible': EJERCICIOS_AVAILABLE
+            },
+            {
+                'id': 'memoria',
+                'nombre': 'Memoria',
+                'descripcion': 'Juegos de memoria y retención',
+                'icon': 'brain',
+                'dificultad': 1,
+                'disponible': EJERCICIOS_AVAILABLE
+            },
+            {
+                'id': 'ahorcado',
+                'nombre': 'Ahorcado',
+                'descripcion': 'Juego del ahorcado educativo',
+                'icon': 'game',
+                'dificultad': 1,
+                'disponible': EJERCICIOS_AVAILABLE
+            },
+            {
+                'id': 'trivia',
+                'nombre': 'Trivia',
+                'descripcion': 'Preguntas y respuestas educativas',
+                'icon': 'question',
+                'dificultad': 1,
+                'disponible': EJERCICIOS_AVAILABLE
+            },
+            {
+                'id': 'completar_palabra',
+                'nombre': 'Completar Palabra',
+                'descripcion': 'Completa las palabras faltantes',
+                'icon': 'edit',
+                'dificultad': 1,
+                'disponible': EJERCICIOS_AVAILABLE
+            },
+            {
+                'id': 'ordenar_frase',
+                'nombre': 'Ordenar Frase',
+                'descripcion': 'Ordena las palabras para formar frases',
+                'icon': 'sort',
+                'dificultad': 1,
+                'disponible': EJERCICIOS_AVAILABLE
+            },
+            {
+                'id': 'ortografia',
+                'nombre': 'Ortografía',
+                'descripcion': 'Ejercicios de escritura y ortografía',
+                'icon': 'spell-check',
+                'dificultad': user.get('nivel_escritura', 1),
+                'disponible': EJERCICIOS_AVAILABLE
+            }
+        ]
+
+        return render_template('ejercicios.html',
+                               user=user,
+                               categories=categories,
+                               exercise_types=exercise_types,
+                               exercise_progress=exercise_progress)
+
+    except Exception as e:
+        error_info = handle_error('EJERCICIOS_ERROR', e, f"Usuario: {session.get('username')}")
+        return render_template('errors/500.html', error=error_info), 500
+
+
+# ==================== RUTAS DE EJERCICIOS ESPECÍFICOS ====================
 
 @app.route('/ejercicios/lectura')
-@app.route('/lectura')
 @login_required
 def ejercicios_lectura():
-    """Ejercicios de lectura comprensiva"""
-    nivel = request.args.get('nivel', 1, type=int)
+    """Ejercicios de lectura"""
+    try:
+        user = get_current_user()
+        if not user:
+            return redirect(url_for('login'))
 
-    ejercicio_data = {
-        'titulo': 'El Gato Aventurero',
-        'texto': 'Había una vez un gato muy curioso llamado Michi. Un día decidió explorar el jardín de su casa. Encontró mariposas coloridas, flores bonitas y un pequeño estanque con peces dorados. Michi se divirtió mucho observando todo lo que había en el jardín.',
-        'preguntas': [
-            {
-                'pregunta': '¿Cómo se llamaba el gato?',
-                'opciones': ['Michi', 'Felix', 'Garfield', 'Tom'],
-                'respuesta_correcta': 'Michi'
-            },
-            {
-                'pregunta': '¿Qué encontró en el jardín?',
-                'opciones': ['Solo flores', 'Mariposas, flores y un estanque', 'Solo mariposas', 'Solo un estanque'],
-                'respuesta_correcta': 'Mariposas, flores y un estanque'
-            },
-            {
-                'pregunta': '¿Cómo era el gato?',
-                'opciones': ['Perezoso', 'Curioso', 'Tímido', 'Agresivo'],
-                'respuesta_correcta': 'Curioso'
-            }
-        ],
-        'nivel': nivel,
-        'puntos_posibles': 30
-    }
+        # Obtener configuración de lectura
+        lectura_config = {}
+        if CONFIG_AVAILABLE:
+            lectura_config = config.get_exercise_config('lectura')
 
-    return render_template('ejercicios/lectura.html', ejercicio=ejercicio_data)
+        # Obtener contenidos para lectura
+        contenidos = []
+        if DB_AVAILABLE and db_manager:
+            try:
+                contenidos = db_manager.get_content_by_criteria(
+                    tipo_contenido='lectura',
+                    nivel_dificultad=user.get('nivel_lectura', 1),
+                    limit=10
+                )
+            except Exception as e:
+                logger.warning(f"Error obteniendo contenidos: {e}")
+
+        return render_template('ejercicios/lectura.html',
+                               user=user,
+                               contenidos=contenidos,
+                               config=lectura_config)
+
+    except Exception as e:
+        error_info = handle_error('LECTURA_ERROR', e, f"Usuario: {session.get('username')}")
+        return render_template('errors/500.html', error=error_info), 500
 
 
 @app.route('/ejercicios/pronunciacion')
 @login_required
 def ejercicios_pronunciacion():
     """Ejercicios de pronunciación"""
-    tipo = request.args.get('tipo', 'vocales')
-    nivel = request.args.get('nivel', 1, type=int)
+    try:
+        user = get_current_user()
+        if not user:
+            return redirect(url_for('login'))
 
-    ejercicio_data = {
-        'tipo': tipo,
-        'nivel': nivel,
-        'elementos': ['a', 'e', 'i', 'o', 'u'] if tipo == 'vocales' else ['ma', 'me', 'mi', 'mo', 'mu'],
-        'instrucciones': 'Pronuncia claramente cada elemento cuando aparezca en pantalla.',
-        'puntos_posibles': 25
-    }
+        # Obtener configuración de pronunciación
+        pronunciacion_config = {}
+        if CONFIG_AVAILABLE:
+            pronunciacion_config = config.get_exercise_config('pronunciacion')
 
-    return render_template('ejercicios/pronunciacion.html', ejercicio=ejercicio_data)
+        # Obtener ejercicios de pronunciación
+        ejercicios_pronunciacion = []
+        if DB_AVAILABLE and db_manager:
+            try:
+                ejercicios_pronunciacion = db_manager.get_content_by_criteria(
+                    tipo_contenido='pronunciacion',
+                    nivel_dificultad=user.get('nivel_pronunciacion', 1),
+                    limit=10
+                )
+            except Exception as e:
+                logger.warning(f"Error obteniendo ejercicios de pronunciación: {e}")
+
+        return render_template('ejercicios/pronunciacion.html',
+                               user=user,
+                               ejercicios=ejercicios_pronunciacion,
+                               config=pronunciacion_config)
+
+    except Exception as e:
+        error_info = handle_error('PRONUNCIACION_ERROR', e, f"Usuario: {session.get('username')}")
+        return render_template('errors/500.html', error=error_info), 500
+
+
+@app.route('/ejercicios/memoria')
+@login_required
+def ejercicios_memoria():
+    """Juegos de memoria"""
+    try:
+        user = get_current_user()
+        if not user:
+            return redirect(url_for('login'))
+
+        # Configuración del juego de memoria
+        memoria_config = {
+            'niveles': [
+                {'nivel': 1, 'pares': 4, 'tiempo_limite': 60},
+                {'nivel': 2, 'pares': 6, 'tiempo_limite': 90},
+                {'nivel': 3, 'pares': 8, 'tiempo_limite': 120}
+            ]
+        }
+
+        return render_template('ejercicios/memoria.html',
+                               user=user,
+                               config=memoria_config)
+
+    except Exception as e:
+        error_info = handle_error('MEMORIA_ERROR', e, f"Usuario: {session.get('username')}")
+        return render_template('errors/500.html', error=error_info), 500
+
+
+@app.route('/ejercicios/ahorcado')
+@login_required
+def ejercicios_ahorcado():
+    """Juego del ahorcado"""
+    try:
+        user = get_current_user()
+        if not user:
+            return redirect(url_for('login'))
+
+        # Obtener palabras para el ahorcado
+        palabras = []
+        if DB_AVAILABLE and db_manager:
+            try:
+                palabras = db_manager.get_content_by_criteria(
+                    tipo_contenido='palabra',
+                    nivel_dificultad=user.get('nivel_lectura', 1),
+                    limit=20
+                )
+            except Exception as e:
+                logger.warning(f"Error obteniendo palabras: {e}")
+                # Palabras de fallback
+                palabras = [
+                    {'contenido': 'CASA', 'descripcion': 'Lugar donde vivimos'},
+                    {'contenido': 'AGUA', 'descripcion': 'Líquido vital'},
+                    {'contenido': 'LIBRO', 'descripcion': 'Objeto para leer'},
+                    {'contenido': 'ESCUELA', 'descripcion': 'Lugar de aprendizaje'}
+                ]
+
+        return render_template('ejercicios/ahorcado.html',
+                               user=user,
+                               palabras=palabras)
+
+    except Exception as e:
+        error_info = handle_error('AHORCADO_ERROR', e, f"Usuario: {session.get('username')}")
+        return render_template('errors/500.html', error=error_info), 500
+
+
+@app.route('/ejercicios/trivia')
+@login_required
+def ejercicios_trivia():
+    """Juego de trivia"""
+    try:
+        user = get_current_user()
+        if not user:
+            return redirect(url_for('login'))
+
+        # Obtener preguntas de trivia
+        preguntas = []
+        if DB_AVAILABLE and db_manager:
+            try:
+                preguntas = db_manager.get_content_by_criteria(
+                    tipo_contenido='trivia',
+                    nivel_dificultad=user.get('nivel_lectura', 1),
+                    limit=10
+                )
+            except Exception as e:
+                logger.warning(f"Error obteniendo preguntas: {e}")
+
+        return render_template('ejercicios/trivia.html',
+                               user=user,
+                               preguntas=preguntas)
+
+    except Exception as e:
+        error_info = handle_error('TRIVIA_ERROR', e, f"Usuario: {session.get('username')}")
+        return render_template('errors/500.html', error=error_info), 500
+
+
+@app.route('/ejercicios/completar_palabra')
+@login_required
+def ejercicios_completar_palabra():
+    """Ejercicios de completar palabra"""
+    try:
+        user = get_current_user()
+        if not user:
+            return redirect(url_for('login'))
+
+        # Obtener ejercicios de completar palabra
+        ejercicios = []
+        if DB_AVAILABLE and db_manager:
+            try:
+                ejercicios = db_manager.get_content_by_criteria(
+                    tipo_contenido='completar_palabra',
+                    nivel_dificultad=user.get('nivel_escritura', 1),
+                    limit=10
+                )
+            except Exception as e:
+                logger.warning(f"Error obteniendo ejercicios: {e}")
+
+        return render_template('ejercicios/completar_palabra.html',
+                               user=user,
+                               ejercicios=ejercicios)
+
+    except Exception as e:
+        error_info = handle_error('COMPLETAR_PALABRA_ERROR', e, f"Usuario: {session.get('username')}")
+        return render_template('errors/500.html', error=error_info), 500
+
+
+@app.route('/ejercicios/ordenar_frase')
+@login_required
+def ejercicios_ordenar_frase():
+    """Ejercicios de ordenar frases"""
+    try:
+        user = get_current_user()
+        if not user:
+            return redirect(url_for('login'))
+
+        # Obtener ejercicios de ordenar frases
+        ejercicios = []
+        if DB_AVAILABLE and db_manager:
+            try:
+                ejercicios = db_manager.get_content_by_criteria(
+                    tipo_contenido='ordenar_frase',
+                    nivel_dificultad=user.get('nivel_lectura', 1),
+                    limit=10
+                )
+            except Exception as e:
+                logger.warning(f"Error obteniendo ejercicios: {e}")
+
+        return render_template('ejercicios/ordenar_frase.html',
+                               user=user,
+                               ejercicios=ejercicios)
+
+    except Exception as e:
+        error_info = handle_error('ORDENAR_FRASE_ERROR', e, f"Usuario: {session.get('username')}")
+        return render_template('errors/500.html', error=error_info), 500
 
 
 @app.route('/ejercicios/ortografia')
 @login_required
 def ejercicios_ortografia():
     """Ejercicios de ortografía"""
-    ejercicio_data = {
-        'palabras': [
-            {'incorrecta': 'kasa', 'correcta': 'casa'},
-            {'incorrecta': 'gato', 'correcta': 'gato'},
-            {'incorrecta': 'arbol', 'correcta': 'árbol'},
-            {'incorrecta': 'lapiz', 'correcta': 'lápiz'},
-            {'incorrecta': 'nino', 'correcta': 'niño'},
-            {'incorrecta': 'musica', 'correcta': 'música'}
-        ],
-        'nivel': 1,
-        'puntos_posibles': 30
-    }
-    return render_template('ejercicios/ortografia.html', ejercicio=ejercicio_data)
+    try:
+        user = get_current_user()
+        if not user:
+            return redirect(url_for('login'))
+
+        # Obtener ejercicios de ortografía
+        ejercicios = []
+        if DB_AVAILABLE and db_manager:
+            try:
+                ejercicios = db_manager.get_content_by_criteria(
+                    tipo_contenido='ortografia',
+                    nivel_dificultad=user.get('nivel_escritura', 1),
+                    limit=10
+                )
+            except Exception as e:
+                logger.warning(f"Error obteniendo ejercicios: {e}")
+
+        return render_template('ejercicios/ortografia.html',
+                               user=user,
+                               ejercicios=ejercicios)
+
+    except Exception as e:
+        error_info = handle_error('ORTOGRAFIA_ERROR', e, f"Usuario: {session.get('username')}")
+        return render_template('errors/500.html', error=error_info), 500
 
 
-@app.route('/ejercicios/vocabulario')
+# ==================== API ENDPOINTS ====================
+
+@app.route('/api/exercise/start', methods=['POST'])
 @login_required
-def ejercicios_vocabulario():
-    """Ejercicios de vocabulario"""
-    nivel = request.args.get('nivel', 1, type=int)
+def api_start_exercise():
+    """API para iniciar un ejercicio"""
+    try:
+        user = get_current_user()
+        if not user:
+            return jsonify({'success': False, 'message': 'Usuario no autenticado'})
 
-    ejercicio_data = {
-        'palabras': [
-            {'palabra': 'FELIZ', 'definicion': 'Que siente alegría', 'sinonimos': ['alegre', 'contento', 'gozoso']},
-            {'palabra': 'GRANDE', 'definicion': 'De mucho tamaño', 'sinonimos': ['enorme', 'gigante', 'inmenso']},
-            {'palabra': 'RÁPIDO', 'definicion': 'Que se mueve con velocidad', 'sinonimos': ['veloz', 'ligero', 'ágil']},
-            {'palabra': 'BONITO', 'definicion': 'Que es agradable a la vista',
-             'sinonimos': ['hermoso', 'bello', 'lindo']}
-        ],
-        'nivel': nivel,
-        'puntos_posibles': 40
-    }
+        data = request.get_json()
+        exercise_type = data.get('exercise_type')
+        exercise_id = data.get('exercise_id')
+        config_data = data.get('config', {})
 
-    return render_template('ejercicios/vocabulario.html', ejercicio=ejercicio_data)
+        if not exercise_type:
+            return jsonify({'success': False, 'message': 'Tipo de ejercicio requerido'})
+
+        # Crear sesión de ejercicio
+        if DB_AVAILABLE and db_manager:
+            try:
+                session_id = db_manager.create_exercise_session(
+                    user_id=user['id'],
+                    exercise_type=exercise_type,
+                    exercise_id=exercise_id,
+                    config_data=config_data
+                )
+
+                return jsonify({
+                    'success': True,
+                    'session_id': session_id,
+                    'message': 'Ejercicio iniciado'
+                })
+
+            except Exception as e:
+                logger.error(f"Error creando sesión de ejercicio: {e}")
+                return jsonify({'success': False, 'message': 'Error interno'})
+        else:
+            # Modo demo - generar ID temporal
+            session_id = f"demo_{int(datetime.now().timestamp())}"
+            return jsonify({
+                'success': True,
+                'session_id': session_id,
+                'message': 'Ejercicio iniciado (modo demo)'
+            })
+
+    except Exception as e:
+        error_info = handle_error('API_START_EXERCISE_ERROR', e, f"Usuario: {session.get('username')}")
+        return jsonify({'success': False, 'message': 'Error procesando solicitud'})
 
 
-@app.route('/ejercicios/completar-palabra')
+@app.route('/api/exercise/submit', methods=['POST'])
 @login_required
-def ejercicios_completar_palabra():
-    """Ejercicios de completar palabras"""
-    nivel = request.args.get('nivel', 1, type=int)
+def api_submit_exercise():
+    """API para enviar resultado de ejercicio"""
+    try:
+        user = get_current_user()
+        if not user:
+            return jsonify({'success': False, 'message': 'Usuario no autenticado'})
 
-    ejercicio_data = {
-        'palabras': [
-            {'palabra_incompleta': 'c_sa', 'palabra_completa': 'casa', 'pista': 'Lugar donde vives'},
-            {'palabra_incompleta': 'g_to', 'palabra_completa': 'gato', 'pista': 'Animal doméstico que dice miau'},
-            {'palabra_incompleta': 's_l', 'palabra_completa': 'sol', 'pista': 'Estrella que nos da luz'},
-            {'palabra_incompleta': 'm_r', 'palabra_completa': 'mar', 'pista': 'Agua salada muy grande'},
-            {'palabra_incompleta': 'l_z', 'palabra_completa': 'luz', 'pista': 'Lo contrario de oscuridad'}
-        ],
-        'nivel': nivel,
-        'puntos_posibles': 25
-    }
+        data = request.get_json()
+        session_id = data.get('session_id')
+        answers = data.get('answers', {})
+        time_spent = data.get('time_spent', 0)
+        completed = data.get('completed', False)
 
-    return render_template('ejercicios/completar_palabra.html', ejercicio=ejercicio_data)
+        if not session_id:
+            return jsonify({'success': False, 'message': 'ID de sesión requerido'})
+
+        # Guardar resultado
+        if DB_AVAILABLE and db_manager:
+            try:
+                result_id = db_manager.save_exercise_result(
+                    session_id=session_id,
+                    user_id=user['id'],
+                    answers=answers,
+                    time_spent=time_spent,
+                    completed=completed
+                )
+
+                # Verificar logros
+                achievements = db_manager.check_and_unlock_achievements(
+                    user['id'],
+                    'exercise_completed',
+                    {'exercise_type': data.get('exercise_type')}
+                )
+
+                return jsonify({
+                    'success': True,
+                    'result_id': result_id,
+                    'achievements': achievements,
+                    'message': 'Resultado guardado'
+                })
+
+            except Exception as e:
+                logger.error(f"Error guardando resultado: {e}")
+                return jsonify({'success': False, 'message': 'Error guardando resultado'})
+        else:
+            return jsonify({
+                'success': True,
+                'message': 'Resultado procesado (modo demo)'
+            })
+
+    except Exception as e:
+        error_info = handle_error('API_SUBMIT_EXERCISE_ERROR', e, f"Usuario: {session.get('username')}")
+        return jsonify({'success': False, 'message': 'Error procesando resultado'})
 
 
-@app.route('/ejercicios/ordenar-frase')
-@app.route('/ordenar-frase')
+@app.route('/api/user/stats')
 @login_required
-def ordenar_frase():
-    """Ejercicios de ordenar frases"""
-    nivel = request.args.get('nivel', 1, type=int)
+def api_user_stats():
+    """API para obtener estadísticas del usuario"""
+    try:
+        user = get_current_user()
+        if not user:
+            return jsonify({'success': False, 'message': 'Usuario no autenticado'})
 
-    # Si el generador de ejercicios está disponible, usarlo
-    if JUEGOS_AVAILABLE and ejercicios_generator:
-        try:
-            ejercicio_data = ejercicios_generator.generar_ordena_frase(nivel)
-        except Exception as e:
-            logger.error(f"Error generando ejercicio de ordenar frase: {e}")
-            ejercicio_data = None
-    else:
-        ejercicio_data = None
+        stats = get_user_stats(user['id'])
 
-    # Si no se pudo generar, usar datos de ejemplo
-    if not ejercicio_data:
-        ejercicio_data = {
-            "frase_correcta": "El gato juega con la pelota",
-            "palabras_desordenadas": ["El", "pelota", "juega", "gato", "la", "con"],
-            "nivel": nivel,
-            "puntos": nivel * 10
-        }
+        return jsonify({
+            'success': True,
+            'stats': stats
+        })
 
-    return render_template('ejercicios/ordenar_frase.html', ejercicio=ejercicio_data)
+    except Exception as e:
+        error_info = handle_error('API_USER_STATS_ERROR', e, f"Usuario: {session.get('username')}")
+        return jsonify({'success': False, 'message': 'Error obteniendo estadísticas'})
 
 
-@app.route('/completar-palabra')
+@app.route('/api/user/progress')
 @login_required
-def completar_palabra():
-    """Redirige a la ruta correcta de ejercicios de completar palabras"""
-    return redirect(url_for('ejercicios_completar_palabra'))
+def api_user_progress():
+    """API para obtener progreso detallado del usuario"""
+    try:
+        user = get_current_user()
+        if not user:
+            return jsonify({'success': False, 'message': 'Usuario no autenticado'})
+
+        progress_data = {}
+        if DB_AVAILABLE and db_manager:
+            try:
+                progress_data = db_manager.get_dashboard_stats(user['id'])
+            except Exception as e:
+                logger.warning(f"Error obteniendo progreso: {e}")
+                progress_data = {'error': 'No disponible'}
+
+        return jsonify({
+            'success': True,
+            'progress': progress_data
+        })
+
+    except Exception as e:
+        error_info = handle_error('API_USER_PROGRESS_ERROR', e, f"Usuario: {session.get('username')}")
+        return jsonify({'success': False, 'message': 'Error obteniendo progreso'})
 
 
-@app.route('/ejercicio-diario')
-@app.route('/ejercicios/diario')
+@app.route('/api/notifications')
 @login_required
-def ejercicio_diario():
-    """Página de ejercicio diario personalizado"""
-    user = get_current_user()
+def api_notifications():
+    """API para obtener notificaciones del usuario"""
+    try:
+        user = get_current_user()
+        if not user:
+            return jsonify({'success': False, 'message': 'Usuario no autenticado'})
 
-    # Obtener la fecha actual para mostrar los ejercicios del día
-    hoy = datetime.now().strftime('%Y-%m-%d')
+        notifications = []
+        if DB_AVAILABLE and db_manager:
+            try:
+                unread_only = request.args.get('unread_only', 'false').lower() == 'true'
+                limit = int(request.args.get('limit', 20))
 
-    # Crear ejercicios diarios de ejemplo (en producción, esto vendría de la base de datos)
-    ejercicios = [
-        {
-            'tipo': 'ordenar_frase',
-            'titulo': 'Ordenar las palabras',
-            'descripcion': 'Organiza las palabras para formar una frase correcta.',
-            'nivel': 1,
-            'dificultad': 1,
-            'puntos': 20,
-            'url': url_for('ordenar_frase', nivel=1)
-        },
-        {
-            'tipo': 'completar_palabra',
-            'titulo': 'Completar palabras',
-            'descripcion': 'Completa las palabras con las letras que faltan.',
-            'nivel': 1,
-            'dificultad': 1,
-            'puntos': 15,
-            'url': url_for('ejercicios_completar_palabra', nivel=1)
-        },
-        {
-            'tipo': 'lectura',
-            'titulo': 'Comprensión de lectura',
-            'descripcion': 'Lee el texto y responde las preguntas.',
-            'nivel': 2,
-            'dificultad': 2,
-            'puntos': 30,
-            'url': url_for('ejercicios_lectura', nivel=2)
-        },
-        {
-            'tipo': 'pronunciacion',
-            'titulo': 'Práctica de pronunciación',
-            'descripcion': 'Practica la pronunciación de vocales y consonantes.',
-            'nivel': 1,
-            'dificultad': 1,
-            'puntos': 25,
-            'url': url_for('ejercicios_pronunciacion')
-        }
-    ]
+                notifications = db_manager.get_user_notifications(
+                    user['id'],
+                    unread_only=unread_only,
+                    limit=limit
+                )
+            except Exception as e:
+                logger.warning(f"Error obteniendo notificaciones: {e}")
 
-    # Estadísticas del usuario para hoy (en producción, esto vendría de la base de datos)
-    estadisticas_diarias = {
-        'ejercicios_completados': 0,
-        'tiempo_total_minutos': 0,
-        'puntos_obtenidos': 0,
-        'precision_promedio': 0
-    }
+        return jsonify({
+            'success': True,
+            'notifications': notifications
+        })
 
-    # Si hay base de datos disponible, obtener datos reales
-    if DB_AVAILABLE and user:
-        try:
-            # Aquí se obtendría la información real de la base de datos
-            # ejercicios = db_manager.get_daily_exercises(user['id'])
-            # estadisticas_diarias = db_manager.get_daily_stats(user['id'], hoy)
-            pass
-        except Exception as e:
-            logger.error(f"Error cargando ejercicio diario: {e}")
-
-    return render_template('ejercicios/diario.html',
-                           user=user,
-                           ejercicios=ejercicios,
-                           estadisticas=estadisticas_diarias,
-                           fecha=hoy)
+    except Exception as e:
+        error_info = handle_error('API_NOTIFICATIONS_ERROR', e, f"Usuario: {session.get('username')}")
+        return jsonify({'success': False, 'message': 'Error obteniendo notificaciones'})
 
 
-# ==================== OTRAS RUTAS ====================
+@app.route('/api/notifications/<int:notification_id>/mark_read', methods=['POST'])
+@login_required
+def api_mark_notification_read(notification_id):
+    """API para marcar notificación como leída"""
+    try:
+        user = get_current_user()
+        if not user:
+            return jsonify({'success': False, 'message': 'Usuario no autenticado'})
+
+        if DB_AVAILABLE and db_manager:
+            try:
+                success = db_manager.mark_notification_as_read(notification_id, user['id'])
+                return jsonify({
+                    'success': success,
+                    'message': 'Notificación marcada como leída' if success else 'Error marcando notificación'
+                })
+            except Exception as e:
+                logger.error(f"Error marcando notificación: {e}")
+                return jsonify({'success': False, 'message': 'Error interno'})
+        else:
+            return jsonify({'success': True, 'message': 'Procesado (modo demo)'})
+
+    except Exception as e:
+        error_info = handle_error('API_MARK_NOTIFICATION_ERROR', e, f"Usuario: {session.get('username')}")
+        return jsonify({'success': False, 'message': 'Error procesando solicitud'})
+
+
+# ==================== RUTAS DE ADMINISTRACIÓN ====================
+
+@app.route('/admin')
+@login_required
+@admin_required
+def admin_dashboard():
+    """Panel de administración"""
+    try:
+        user = get_current_user()
+
+        # Obtener estadísticas del sistema
+        system_stats = {}
+        if DB_AVAILABLE and db_manager:
+            try:
+                system_stats = db_manager.get_database_stats()
+                system_health = db_manager.health_check()
+                system_stats['health'] = system_health
+            except Exception as e:
+                logger.warning(f"Error obteniendo estadísticas del sistema: {e}")
+
+        return render_template('admin/dashboard.html',
+                               user=user,
+                               system_stats=system_stats)
+
+    except Exception as e:
+        error_info = handle_error('ADMIN_DASHBOARD_ERROR', e, f"Usuario: {session.get('username')}")
+        return render_template('errors/500.html', error=error_info), 500
+
+
+# ==================== RUTAS DE PROGRESO Y ESTADÍSTICAS ====================
 
 @app.route('/progreso')
 @login_required
-def mostrar_progreso():
+def progreso():
     """Página de progreso del usuario"""
-    user = get_current_user()
+    try:
+        user = get_current_user()
+        if not user:
+            return redirect(url_for('login'))
 
-    if DB_AVAILABLE and user:
-        try:
-            progreso = db_manager.get_user_progress(user['id'])
-            estadisticas = db_manager.get_user_statistics(user['id'])
-        except Exception as e:
-            logger.error(f"Error cargando progreso: {e}")
-            progreso = {}
-            estadisticas = get_fallback_stats()
-    else:
-        progreso = {}
-        estadisticas = get_fallback_stats()
+        # Obtener estadísticas detalladas
+        detailed_stats = get_user_stats(user['id'])
 
-    return render_template('progreso.html', user=user, progreso=progreso, estadisticas=estadisticas)
+        # Obtener progreso por categorías
+        progress_by_category = {}
+        if DB_AVAILABLE and db_manager:
+            try:
+                progress_by_category = db_manager.get_progress_by_category(user['id'])
+            except Exception as e:
+                logger.warning(f"Error obteniendo progreso por categoría: {e}")
+
+        # Obtener historial de ejercicios
+        exercise_history = []
+        if DB_AVAILABLE and db_manager:
+            try:
+                exercise_history = db_manager.get_user_exercise_history(user['id'], limit=20)
+            except Exception as e:
+                logger.warning(f"Error obteniendo historial: {e}")
+
+        return render_template('progreso.html',
+                               user=user,
+                               detailed_stats=detailed_stats,
+                               progress_by_category=progress_by_category,
+                               exercise_history=exercise_history)
+
+    except Exception as e:
+        error_info = handle_error('PROGRESO_ERROR', e, f"Usuario: {session.get('username')}")
+        return render_template('errors/500.html', error=error_info), 500
 
 
 @app.route('/logros')
 @login_required
 def logros():
-    """Página de logros"""
-    user = get_current_user()
-
-    if DB_AVAILABLE and user:
-        try:
-            logros_obtenidos = db_manager.get_user_achievements(user['id'])
-            if not logros_obtenidos:
-                logros_obtenidos = []
-        except Exception as e:
-            logger.error(f"Error obteniendo logros: {e}")
-            logros_obtenidos = []
-    else:
-        logros_obtenidos = []
-
-    return render_template('logros.html', logros=logros_obtenidos)
-
-
-# ==================== API ENDPOINTS ====================
-
-@app.route('/api/ejercicios/completar', methods=['POST'])
-@login_required
-def api_completar_ejercicio():
-    """Registrar ejercicio completado"""
-    user = get_current_user()
-    if not user:
-        return jsonify({'success': False, 'error': 'Usuario no autenticado'}), 401
-
+    """Página de logros del usuario"""
     try:
-        data = request.json
-        if not data:
-            return jsonify({'success': False, 'error': 'Datos no proporcionados'}), 400
+        user = get_current_user()
+        if not user:
+            return redirect(url_for('login'))
 
-        # Validar datos mínimos
-        required_fields = ['tipo', 'nombre', 'puntos']
-        for field in required_fields:
-            if field not in data:
-                return jsonify({'success': False, 'error': f'Campo requerido faltante: {field}'}), 400
+        # Obtener logros del usuario
+        user_achievements = []
+        available_achievements = []
 
-        # Registro en base de datos
-        if DB_AVAILABLE:
+        if DB_AVAILABLE and db_manager:
             try:
-                resultado = db_manager.register_exercise_completion(
-                    user_id=user['id'],
-                    exercise_type=data['tipo'],
-                    exercise_name=data['nombre'],
-                    points=data['puntos'],
-                    accuracy=data.get('precision', 0),
-                    time_seconds=data.get('tiempo_segundos', 0),
-                    additional_data=data.get('datos_adicionales', {})
-                )
-                if resultado:
-                    return jsonify({'success': True, 'message': 'Ejercicio registrado correctamente'})
-                else:
-                    return jsonify({'success': False, 'error': 'Error registrando ejercicio'}), 500
+                user_achievements = db_manager.get_user_achievements(user['id'])
+                available_achievements = db_manager.get_available_achievements()
             except Exception as e:
-                logger.error(f"Error en API completar ejercicio: {e}")
-                return jsonify({'success': False, 'error': str(e)}), 500
-        else:
-            # Modo sin base de datos - simular éxito
-            return jsonify({
-                'success': True,
-                'message': 'Ejercicio registrado (modo sin base de datos)',
-                'data': {
-                    'puntos': data['puntos'],
-                    'precision': data.get('precision', 0),
-                    'tiempo': data.get('tiempo_segundos', 0)
+                logger.warning(f"Error obteniendo logros: {e}")
+
+        return render_template('logros.html',
+                               user=user,
+                               user_achievements=user_achievements,
+                               available_achievements=available_achievements)
+
+    except Exception as e:
+        error_info = handle_error('LOGROS_ERROR', e, f"Usuario: {session.get('username')}")
+        return render_template('errors/500.html', error=error_info), 500
+
+
+# ==================== CONFIGURACIÓN ====================
+
+@app.route('/configuracion')
+@login_required
+def configuracion():
+    """Página de configuración del usuario"""
+    try:
+        user = get_current_user()
+        if not user:
+            return redirect(url_for('login'))
+
+        # Obtener configuración actual
+        user_config = get_user_config(user['id'])
+
+        # Configuración del sistema disponible
+        system_config = {}
+        if CONFIG_AVAILABLE:
+            try:
+                system_config = {
+                    'themes': config.get('ui.available_themes', ['light', 'dark']),
+                    'languages': config.get('app.supported_languages', ['es', 'en']),
+                    'difficulty_levels': config.get('exercises.difficulty_levels', ['facil', 'medio', 'dificil'])
                 }
-            })
-
-    except Exception as e:
-        logger.error(f"Error general en API completar ejercicio: {e}")
-        return jsonify({'success': False, 'error': 'Error interno del servidor'}), 500
-
-
-@app.route('/api/perfil/actualizar', methods=['POST'])
-@login_required
-def api_actualizar_perfil():
-    """Actualizar perfil del usuario"""
-    user = get_current_user()
-    if not user:
-        return jsonify({'success': False, 'error': 'Usuario no autenticado'}), 401
-
-    try:
-        data = request.json
-        if not data:
-            return jsonify({'success': False, 'error': 'Datos no proporcionados'}), 400
-
-        # Actualizar en base de datos
-        if DB_AVAILABLE:
-            try:
-                resultado = db_manager.update_user_profile(user['id'], data)
-                if resultado:
-                    return jsonify({'success': True, 'message': 'Perfil actualizado correctamente'})
-                else:
-                    return jsonify({'success': False, 'error': 'Error actualizando perfil'}), 500
             except Exception as e:
-                logger.error(f"Error en API actualizar perfil: {e}")
-                return jsonify({'success': False, 'error': str(e)}), 500
-        else:
-            # Modo sin base de datos - simular éxito
-            return jsonify({
-                'success': True,
-                'message': 'Perfil actualizado (modo sin base de datos)',
-                'data': data
-            })
+                logger.warning(f"Error obteniendo configuración del sistema: {e}")
+
+        return render_template('configuracion.html',
+                               user=user,
+                               user_config=user_config,
+                               system_config=system_config)
 
     except Exception as e:
-        logger.error(f"Error general en API actualizar perfil: {e}")
-        return jsonify({'success': False, 'error': 'Error interno del servidor'}), 500
+        error_info = handle_error('CONFIGURACION_ERROR', e, f"Usuario: {session.get('username')}")
+        return render_template('errors/500.html', error=error_info), 500
+
+
+@app.route('/update_config', methods=['POST'])
+@login_required
+def update_config():
+    """Actualizar configuración del usuario"""
+    try:
+        user = get_current_user()
+        if not user:
+            return jsonify({'success': False, 'message': 'Usuario no autenticado'})
+
+        # Obtener datos de configuración
+        config_data = {
+            'velocidad_lectura': int(request.form.get('velocidad_lectura', 500)),
+            'dificultad_preferida': request.form.get('dificultad_preferida', 'medio'),
+            'tema_preferido': request.form.get('tema_preferido', 'light'),
+            'notificaciones_activas': request.form.get('notificaciones_activas') == 'on',
+            'sonidos_activos': request.form.get('sonidos_activos') == 'on',
+            'idioma_preferido': request.form.get('idioma_preferido', 'es')
+        }
+
+        # Guardar configuración
+        if DB_AVAILABLE and db_manager:
+            try:
+                success = db_manager.update_user_config(user['id'], config_data)
+
+                if success:
+                    return jsonify({'success': True, 'message': 'Configuración actualizada'})
+                else:
+                    return jsonify({'success': False, 'message': 'Error actualizando configuración'})
+
+            except Exception as e:
+                logger.error(f"Error actualizando configuración: {e}")
+                return jsonify({'success': False, 'message': 'Error interno'})
+        else:
+            return jsonify({'success': True, 'message': 'Configuración guardada (modo demo)'})
+
+    except Exception as e:
+        error_info = handle_error('UPDATE_CONFIG_ERROR', e, f"Usuario: {session.get('username')}")
+        return jsonify({'success': False, 'message': 'Error procesando configuración'})
 
 
 # ==================== MANEJO DE ERRORES ====================
 
 @app.errorhandler(404)
-def not_found(error):
-    """Página de error 404"""
+def not_found_error(error):
+    """Manejar error 404"""
     return render_template('errors/404.html'), 404
 
 
 @app.errorhandler(500)
 def internal_error(error):
-    """Página de error 500"""
-    return render_template('errors/500.html'), 500
+    """Manejar error 500"""
+    error_info = handle_error('INTERNAL_SERVER_ERROR', error)
+    return render_template('errors/500.html', error=error_info), 500
 
 
 @app.errorhandler(403)
-def forbidden(error):
-    """Página de error 403"""
+def forbidden_error(error):
+    """Manejar error 403"""
     return render_template('errors/403.html'), 403
 
 
-# ==================== FILTROS DE TEMPLATE ====================
+# ==================== RUTAS DE SISTEMA ====================
 
-@app.template_filter('tojsonfilter')
-def to_json_filter(obj):
-    """Filtro para convertir objetos Python a JSON en templates"""
-    return json.dumps(obj, ensure_ascii=False)
+@app.route('/health')
+def health_check():
+    """Endpoint de health check para monitoreo"""
+    try:
+        health_status = {
+            'status': 'healthy',
+            'timestamp': datetime.now().isoformat(),
+            'version': '2.0.0',
+            'components': {
+                'database': 'healthy' if DB_AVAILABLE else 'unavailable',
+                'exercises': 'healthy' if EJERCICIOS_AVAILABLE else 'unavailable',
+                'config': 'healthy' if CONFIG_AVAILABLE else 'fallback'
+            }
+        }
+
+        # Verificar salud de la base de datos
+        if DB_AVAILABLE and db_manager:
+            try:
+                db_health = db_manager.health_check()
+                health_status['components']['database_details'] = db_health
+            except Exception as e:
+                health_status['components']['database'] = 'unhealthy'
+                health_status['components']['database_error'] = str(e)
+
+        # Determinar estado general
+        if health_status['components']['database'] == 'unhealthy':
+            health_status['status'] = 'degraded'
+
+        return jsonify(health_status)
+
+    except Exception as e:
+        return jsonify({
+            'status': 'unhealthy',
+            'timestamp': datetime.now().isoformat(),
+            'error': str(e)
+        }), 500
 
 
-# ==================== CONTEXTO GLOBAL DE TEMPLATES ====================
+@app.route('/system/info')
+def system_info():
+    """Información del sistema"""
+    try:
+        info = {
+            'name': 'AlfaIA',
+            'version': '2.0.0',
+            'description': 'Sistema Avanzado de Alfabetización con IA',
+            'environment': config.get('app.environment', 'unknown') if CONFIG_AVAILABLE else 'fallback',
+            'components': {
+                'database_manager': 'available' if DB_AVAILABLE else 'unavailable',
+                'exercise_modules': 'available' if EJERCICIOS_AVAILABLE else 'unavailable',
+                'modern_config': 'available' if CONFIG_AVAILABLE else 'fallback',
+            },
+            'features': {
+                'user_authentication': True,
+                'progress_tracking': DB_AVAILABLE,
+                'achievements': DB_AVAILABLE,
+                'notifications': DB_AVAILABLE,
+                'analytics': DB_AVAILABLE,
+                'exercise_variety': EJERCICIOS_AVAILABLE
+            }
+        }
+
+        return jsonify(info)
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+# ==================== CONTEXTO DE TEMPLATES ====================
 
 @app.context_processor
-def inject_global_vars():
-    """Inyectar variables globales a todos los templates"""
+def inject_globals():
+    """Inyectar variables globales en templates"""
     return {
-        'DB_AVAILABLE': DB_AVAILABLE,
-        'JUEGOS_AVAILABLE': JUEGOS_AVAILABLE,
+        'current_user': get_current_user(),
+        'system_available': {
+            'database': DB_AVAILABLE,
+            'exercises': EJERCICIOS_AVAILABLE,
+            'config': CONFIG_AVAILABLE
+        },
+        'app_version': '2.0.0',
         'current_year': datetime.now().year
     }
 
 
-# ==================== INICIALIZACIÓN Y MAIN ====================
+# ==================== INICIALIZACIÓN ====================
+
+def initialize_app():
+    """Inicializar aplicación y verificar dependencias"""
+    try:
+        logger.info("🚀 Inicializando AlfaIA v2.0.0...")
+
+        # Verificar configuración
+        if CONFIG_AVAILABLE:
+            logger.info("✅ Sistema de configuración moderno cargado")
+        else:
+            logger.warning("⚠️ Usando configuración de fallback")
+
+        # Verificar base de datos
+        if DB_AVAILABLE and db_manager:
+            try:
+                health = db_manager.health_check()
+                if health['status'] == 'healthy':
+                    logger.info("✅ Base de datos conectada y saludable")
+                else:
+                    logger.warning("⚠️ Base de datos con problemas")
+            except Exception as e:
+                logger.error(f"❌ Error verificando base de datos: {e}")
+        else:
+            logger.warning("⚠️ Base de datos no disponible - modo limitado")
+
+        # Verificar módulos de ejercicios
+        if EJERCICIOS_AVAILABLE:
+            logger.info("✅ Módulos de ejercicios cargados")
+        else:
+            logger.warning("⚠️ Módulos de ejercicios no disponibles")
+
+        logger.info("🎯 AlfaIA inicializado correctamente")
+        return True
+
+    except Exception as e:
+        logger.error(f"❌ Error inicializando aplicación: {e}")
+        return False
+
+
+# ==================== MAIN ====================
 
 if __name__ == '__main__':
-    print("🚀 Iniciando AlfaIA...")
-    print(f"📊 Base de datos: {'✅ Conectada' if DB_AVAILABLE else '❌ No disponible'}")
-    print(f"🎮 Generador de juegos: {'✅ Disponible' if JUEGOS_AVAILABLE else '❌ No disponible'}")
-    print(f"🌐 Servidor: http://127.0.0.1:5000")
+    try:
+        # Inicializar aplicación
+        if not initialize_app():
+            logger.error("❌ Fallo en la inicialización - cerrando aplicación")
+            exit(1)
 
-    app.run(host='127.0.0.1', port=5000, debug=True, use_reloader=True)
+        # Obtener configuración de servidor
+        host = '0.0.0.0'
+        port = 5000
+        debug = False
+
+        if CONFIG_AVAILABLE:
+            host = config.get('app.host', '0.0.0.0')
+            port = config.get('app.port', 5000)
+            debug = config.get('app.debug', False)
+        else:
+            host = os.getenv('HOST', '0.0.0.0')
+            port = int(os.getenv('PORT', 5000))
+            debug = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
+
+        # Mostrar información de inicio
+        logger.info("=" * 60)
+        logger.info("🎓 ALFAIA - Sistema de Alfabetización con IA")
+        logger.info("=" * 60)
+        logger.info(f"🌐 Servidor: http://{host}:{port}")
+        logger.info(f"🔧 Debug: {debug}")
+        logger.info(f"💾 Base de datos: {'✅ Conectada' if DB_AVAILABLE else '❌ No disponible'}")
+        logger.info(f"🎮 Ejercicios: {'✅ Disponibles' if EJERCICIOS_AVAILABLE else '❌ No disponibles'}")
+        logger.info(f"⚙️ Configuración: {'✅ Moderna' if CONFIG_AVAILABLE else '⚠️ Fallback'}")
+        logger.info("=" * 60)
+
+        if not DB_AVAILABLE:
+            logger.warning("⚠️ MODO LIMITADO: La aplicación funcionará con funcionalidades básicas")
+            logger.warning("   - Usuario demo: demo_user / demo123")
+            logger.warning("   - Funciones sin persistencia de datos")
+
+        logger.info("🚀 Iniciando servidor Flask...")
+
+        # Ejecutar aplicación
+        app.run(
+            host=host,
+            port=port,
+            debug=debug,
+            threaded=True,
+            use_reloader=debug
+        )
+
+    except KeyboardInterrupt:
+        logger.info("🛑 Aplicación detenida por el usuario")
+    except Exception as e:
+        logger.error(f"❌ Error fatal al iniciar la aplicación: {e}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
+    finally:
+        # Cleanup
+        if DB_AVAILABLE and db_manager:
+            try:
+                db_manager.close_connections()
+                logger.info("✅ Conexiones de base de datos cerradas")
+            except Exception as e:
+                logger.warning(f"⚠️ Error cerrando conexiones: {e}")
+
+        logger.info("👋 AlfaIA finalizado correctamente")

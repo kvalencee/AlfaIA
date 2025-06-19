@@ -78,58 +78,72 @@ def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'user_id' not in session:
-            flash('Debes iniciar sesión para acceder a esta página.', 'warning')
-            return redirect(url_for('login'))
+            flash('Debes iniciar sesión para acceder a esta página.', 'error')
+            return redirect(url_for('login', next=request.url))
         return f(*args, **kwargs)
 
     return decorated_function
 
 
-def init_user_session(user):
-    """Inicializar sesión de usuario"""
-    session.permanent = True
-    session['user_id'] = user['id']
-    session['username'] = user.get('username', '')
-    session['nombre'] = user.get('nombre', 'Usuario')
-
-
 def get_current_user():
-    """Obtener usuario actual desde la sesión"""
+    """Obtener datos del usuario actual"""
     if 'user_id' not in session:
         return None
 
+    user_id = session['user_id']
+
     if DB_AVAILABLE:
         try:
-            return db_manager.get_user_by_id(session['user_id'])
+            user = db_manager.get_user_by_id(user_id)
+            if not user:
+                session.clear()
+                return None
+            return user
         except Exception as e:
-            logger.error(f"Error obteniendo usuario: {e}")
+            logger.error(f"Error obteniendo usuario {user_id}: {e}")
+            # Usar datos de fallback como respaldo
+            if user_id == 1:
+                return FALLBACK_USER
             return None
     else:
-        return FALLBACK_USER
+        # En modo sin base de datos, solo permitir usuario de demostración
+        if user_id == 1:
+            return FALLBACK_USER
+        return None
+
+
+def init_user_session(user):
+    """Inicializar la sesión del usuario"""
+    session['user_id'] = user['id']
+    session['username'] = user['username']
+    session['nombre'] = user['nombre']
+    session['apellido'] = user['apellido']
+    session['email'] = user['email']
+    session.permanent = True
 
 
 def get_fallback_stats():
-    """Estadísticas por defecto sin base de datos"""
+    """Obtener estadísticas de respaldo para modo sin BD"""
     return {
-        'ejercicios_completados': 15,
+        'ejercicios_completados': 12,
+        'tiempo_total_minutos': 45,
         'precision_promedio': 85.5,
-        'tiempo_total_horas': 12.5,
-        'nivel_actual': 'Intermedio',
-        'puntos_totales': 1250,
-        'insignias_obtenidas': 3
+        'racha_dias': 3,
+        'puntos_totales': 250,
+        'nivel_lectura': 2,
+        'nivel_ejercicios': 2,
+        'nivel_pronunciacion': 1
     }
 
 
 def get_fallback_config():
-    """Configuración por defecto"""
+    """Obtener configuración de respaldo para modo sin BD"""
     return {
         'velocidad_lectura': 500,
         'dificultad_preferida': 'medio',
         'tema_preferido': 'brown',
         'notificaciones_activas': True,
-        'sonidos_activos': True,
-        'modo_oscuro': False,
-        'idioma': 'es'
+        'sonidos_activos': True
     }
 
 
@@ -137,28 +151,29 @@ def get_fallback_config():
 
 @app.route('/')
 def index():
-    """Página principal"""
-    if 'user_id' in session:
-        return redirect(url_for('dashboard'))
-    return render_template('index.html')
+    """Página de inicio"""
+    user = get_current_user()
+    return render_template('index.html', user=user)
+
+
+@app.route('/about')
+def about():
+    """Página de información"""
+    return render_template('about.html')
 
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    """Página de login con autenticación real"""
+    """Página de inicio de sesión"""
+    if 'user_id' in session:
+        return redirect(url_for('dashboard'))
+
     if request.method == 'POST':
-        data = request.get_json() if request.is_json else request.form
-        username = data.get('username', '').strip()
-        password = data.get('password', '')
+        username = request.form.get('username', '')
+        password = request.form.get('password', '')
 
-        if not username or not password:
-            message = 'Por favor ingresa usuario y contraseña'
-            if request.is_json:
-                return jsonify({'success': False, 'message': message})
-            flash(message, 'error')
-            return render_template('auth/login.html')
+        message = ''
 
-        # Autenticación con base de datos
         if DB_AVAILABLE:
             try:
                 user = db_manager.authenticate_user(username, password)
@@ -166,7 +181,7 @@ def login():
                     init_user_session(user)
                     if request.is_json:
                         return jsonify({'success': True, 'redirect': url_for('dashboard')})
-                    flash(f'¡Bienvenido de vuelta, {user["nombre"]}!', 'success')
+                    flash('¡Bienvenido de nuevo!', 'success')
                     return redirect(url_for('dashboard'))
                 else:
                     message = 'Credenciales incorrectas. Verifica tu usuario y contraseña.'
@@ -228,7 +243,7 @@ def dashboard():
                            logros=logros_recientes)
 
 
-# ==================== RUTAS DE JUEGOS CORREGIDAS ====================
+# ==================== RUTAS DE JUEGOS ====================
 
 @app.route('/juegos')
 @login_required
@@ -383,29 +398,45 @@ def juego_trivia():
             },
             {
                 'pregunta': '¿Cuál es el plural de "lápiz"?',
-                'opciones': ['lápizes', 'lápices', 'lapizes', 'lapices'],
+                'opciones': ['lápizes', 'lápis', 'lápices', 'lapices'],
                 'respuesta_correcta': 'lápices',
-                'explicacion': 'El plural correcto de lápiz es lápices'
-            },
-            {
-                'pregunta': '¿Qué tipo de palabra es "rápidamente"?',
-                'opciones': ['sustantivo', 'adjetivo', 'adverbio', 'verbo'],
-                'respuesta_correcta': 'adverbio',
-                'explicacion': 'Las palabras terminadas en -mente son adverbios'
-            },
-            {
-                'pregunta': '¿Cuál lleva tilde?',
-                'opciones': ['cancion', 'corazon', 'árbol', 'feliz'],
-                'respuesta_correcta': 'árbol',
-                'explicacion': 'Árbol lleva tilde por ser una palabra grave terminada en consonante que no es n o s'
+                'explicacion': 'Las palabras que terminan en z cambian a ces en plural'
             }
         ]
 
+        # Seleccionar preguntas según nivel
+        if nivel > 1:
+            preguntas.extend([
+                {
+                    'pregunta': '¿Cuál de estas palabras tiene acento?',
+                    'opciones': ['casa', 'mesa', 'arbol', 'azul'],
+                    'respuesta_correcta': 'arbol',
+                    'explicacion': 'La palabra correcta es "árbol" y lleva acento en la a'
+                },
+                {
+                    'pregunta': '¿Qué signo va al principio de una pregunta en español?',
+                    'opciones': ['¿', '¡', '?', '.'],
+                    'respuesta_correcta': '¿',
+                    'explicacion': 'Las preguntas en español empiezan con ¿ y terminan con ?'
+                }
+            ])
+
+        # Mezclar preguntas
         random.shuffle(preguntas)
-        return render_template('juegos/trivia.html', preguntas=preguntas[:5])
+        preguntas = preguntas[:5]  # Limitar a 5 preguntas
+
+        # Puntuación
+        puntos_por_pregunta = 10 * nivel
+        puntos_maximos = len(preguntas) * puntos_por_pregunta
+
+        return render_template('juegos/trivia.html',
+                               preguntas=preguntas,
+                               nivel=nivel,
+                               puntos_maximos=puntos_maximos,
+                               puntos_por_pregunta=puntos_por_pregunta)
     except Exception as e:
         logger.error(f"Error en juego de trivia: {e}")
-        flash('Error cargando la trivia.', 'error')
+        flash('Error cargando el juego de trivia.', 'error')
         return redirect('/juegos')
 
 
@@ -416,44 +447,17 @@ def juego_crucigrama():
     try:
         nivel = request.args.get('nivel', 1, type=int)
 
+        # Datos de ejemplo para el crucigrama
         crucigrama_data = {
-            "titulo": "Crucigrama Básico",
-            "tamaño": 8,
-            "grid": [
-                ["", "", "", "C", "", "", "", ""],
-                ["", "", "", "A", "", "", "", ""],
-                ["G", "A", "T", "O", "", "", "", ""],
-                ["", "", "", "L", "", "", "", ""],
-                ["", "", "", "O", "", "", "", ""],
-                ["", "", "", "R", "", "", "", ""],
-                ["", "", "", "", "", "", "", ""],
-                ["", "", "", "", "", "", "", ""]
-            ],
-            "palabras": [
-                {
-                    "palabra": "GATO",
-                    "fila": 2,
-                    "columna": 0,
-                    "direccion": "horizontal",
-                    "pista": "Animal doméstico que dice miau",
-                    "numero": 1
-                },
-                {
-                    "palabra": "CALOR",
-                    "fila": 0,
-                    "columna": 3,
-                    "direccion": "vertical",
-                    "pista": "Sensación de temperatura alta",
-                    "numero": 2
-                }
-            ],
-            "puntos": 100
+            'nivel': nivel,
+            'puntos_maximos': 50 * nivel,
+            'mensaje': 'Crucigrama en desarrollo. Estará disponible próximamente.'
         }
 
-        return render_template('juegos/crucigrama.html', crucigrama=crucigrama_data, nivel=nivel)
+        return render_template('juegos/crucigrama.html', crucigrama=crucigrama_data)
     except Exception as e:
         logger.error(f"Error en juego de crucigrama: {e}")
-        flash('Error cargando el crucigrama.', 'error')
+        flash('Error cargando el juego de crucigrama.', 'error')
         return redirect('/juegos')
 
 
@@ -589,6 +593,117 @@ def ejercicios_completar_palabra():
     return render_template('ejercicios/completar_palabra.html', ejercicio=ejercicio_data)
 
 
+@app.route('/ejercicios/ordenar-frase')
+@app.route('/ordenar-frase')
+@login_required
+def ordenar_frase():
+    """Ejercicios de ordenar frases"""
+    nivel = request.args.get('nivel', 1, type=int)
+
+    # Si el generador de ejercicios está disponible, usarlo
+    if JUEGOS_AVAILABLE and ejercicios_generator:
+        try:
+            ejercicio_data = ejercicios_generator.generar_ordena_frase(nivel)
+        except Exception as e:
+            logger.error(f"Error generando ejercicio de ordenar frase: {e}")
+            ejercicio_data = None
+    else:
+        ejercicio_data = None
+
+    # Si no se pudo generar, usar datos de ejemplo
+    if not ejercicio_data:
+        ejercicio_data = {
+            "frase_correcta": "El gato juega con la pelota",
+            "palabras_desordenadas": ["El", "pelota", "juega", "gato", "la", "con"],
+            "nivel": nivel,
+            "puntos": nivel * 10
+        }
+
+    return render_template('ejercicios/ordenar_frase.html', ejercicio=ejercicio_data)
+
+
+@app.route('/completar-palabra')
+@login_required
+def completar_palabra():
+    """Redirige a la ruta correcta de ejercicios de completar palabras"""
+    return redirect(url_for('ejercicios_completar_palabra'))
+
+
+@app.route('/ejercicio-diario')
+@app.route('/ejercicios/diario')
+@login_required
+def ejercicio_diario():
+    """Página de ejercicio diario personalizado"""
+    user = get_current_user()
+
+    # Obtener la fecha actual para mostrar los ejercicios del día
+    hoy = datetime.now().strftime('%Y-%m-%d')
+
+    # Crear ejercicios diarios de ejemplo (en producción, esto vendría de la base de datos)
+    ejercicios = [
+        {
+            'tipo': 'ordenar_frase',
+            'titulo': 'Ordenar las palabras',
+            'descripcion': 'Organiza las palabras para formar una frase correcta.',
+            'nivel': 1,
+            'dificultad': 1,
+            'puntos': 20,
+            'url': url_for('ordenar_frase', nivel=1)
+        },
+        {
+            'tipo': 'completar_palabra',
+            'titulo': 'Completar palabras',
+            'descripcion': 'Completa las palabras con las letras que faltan.',
+            'nivel': 1,
+            'dificultad': 1,
+            'puntos': 15,
+            'url': url_for('ejercicios_completar_palabra', nivel=1)
+        },
+        {
+            'tipo': 'lectura',
+            'titulo': 'Comprensión de lectura',
+            'descripcion': 'Lee el texto y responde las preguntas.',
+            'nivel': 2,
+            'dificultad': 2,
+            'puntos': 30,
+            'url': url_for('ejercicios_lectura', nivel=2)
+        },
+        {
+            'tipo': 'pronunciacion',
+            'titulo': 'Práctica de pronunciación',
+            'descripcion': 'Practica la pronunciación de vocales y consonantes.',
+            'nivel': 1,
+            'dificultad': 1,
+            'puntos': 25,
+            'url': url_for('ejercicios_pronunciacion')
+        }
+    ]
+
+    # Estadísticas del usuario para hoy (en producción, esto vendría de la base de datos)
+    estadisticas_diarias = {
+        'ejercicios_completados': 0,
+        'tiempo_total_minutos': 0,
+        'puntos_obtenidos': 0,
+        'precision_promedio': 0
+    }
+
+    # Si hay base de datos disponible, obtener datos reales
+    if DB_AVAILABLE and user:
+        try:
+            # Aquí se obtendría la información real de la base de datos
+            # ejercicios = db_manager.get_daily_exercises(user['id'])
+            # estadisticas_diarias = db_manager.get_daily_stats(user['id'], hoy)
+            pass
+        except Exception as e:
+            logger.error(f"Error cargando ejercicio diario: {e}")
+
+    return render_template('ejercicios/diario.html',
+                           user=user,
+                           ejercicios=ejercicios,
+                           estadisticas=estadisticas_diarias,
+                           fecha=hoy)
+
+
 # ==================== OTRAS RUTAS ====================
 
 @app.route('/progreso')
@@ -630,6 +745,100 @@ def logros():
         logros_obtenidos = []
 
     return render_template('logros.html', logros=logros_obtenidos)
+
+
+# ==================== API ENDPOINTS ====================
+
+@app.route('/api/ejercicios/completar', methods=['POST'])
+@login_required
+def api_completar_ejercicio():
+    """Registrar ejercicio completado"""
+    user = get_current_user()
+    if not user:
+        return jsonify({'success': False, 'error': 'Usuario no autenticado'}), 401
+
+    try:
+        data = request.json
+        if not data:
+            return jsonify({'success': False, 'error': 'Datos no proporcionados'}), 400
+
+        # Validar datos mínimos
+        required_fields = ['tipo', 'nombre', 'puntos']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({'success': False, 'error': f'Campo requerido faltante: {field}'}), 400
+
+        # Registro en base de datos
+        if DB_AVAILABLE:
+            try:
+                resultado = db_manager.register_exercise_completion(
+                    user_id=user['id'],
+                    exercise_type=data['tipo'],
+                    exercise_name=data['nombre'],
+                    points=data['puntos'],
+                    accuracy=data.get('precision', 0),
+                    time_seconds=data.get('tiempo_segundos', 0),
+                    additional_data=data.get('datos_adicionales', {})
+                )
+                if resultado:
+                    return jsonify({'success': True, 'message': 'Ejercicio registrado correctamente'})
+                else:
+                    return jsonify({'success': False, 'error': 'Error registrando ejercicio'}), 500
+            except Exception as e:
+                logger.error(f"Error en API completar ejercicio: {e}")
+                return jsonify({'success': False, 'error': str(e)}), 500
+        else:
+            # Modo sin base de datos - simular éxito
+            return jsonify({
+                'success': True,
+                'message': 'Ejercicio registrado (modo sin base de datos)',
+                'data': {
+                    'puntos': data['puntos'],
+                    'precision': data.get('precision', 0),
+                    'tiempo': data.get('tiempo_segundos', 0)
+                }
+            })
+
+    except Exception as e:
+        logger.error(f"Error general en API completar ejercicio: {e}")
+        return jsonify({'success': False, 'error': 'Error interno del servidor'}), 500
+
+
+@app.route('/api/perfil/actualizar', methods=['POST'])
+@login_required
+def api_actualizar_perfil():
+    """Actualizar perfil del usuario"""
+    user = get_current_user()
+    if not user:
+        return jsonify({'success': False, 'error': 'Usuario no autenticado'}), 401
+
+    try:
+        data = request.json
+        if not data:
+            return jsonify({'success': False, 'error': 'Datos no proporcionados'}), 400
+
+        # Actualizar en base de datos
+        if DB_AVAILABLE:
+            try:
+                resultado = db_manager.update_user_profile(user['id'], data)
+                if resultado:
+                    return jsonify({'success': True, 'message': 'Perfil actualizado correctamente'})
+                else:
+                    return jsonify({'success': False, 'error': 'Error actualizando perfil'}), 500
+            except Exception as e:
+                logger.error(f"Error en API actualizar perfil: {e}")
+                return jsonify({'success': False, 'error': str(e)}), 500
+        else:
+            # Modo sin base de datos - simular éxito
+            return jsonify({
+                'success': True,
+                'message': 'Perfil actualizado (modo sin base de datos)',
+                'data': data
+            })
+
+    except Exception as e:
+        logger.error(f"Error general en API actualizar perfil: {e}")
+        return jsonify({'success': False, 'error': 'Error interno del servidor'}), 500
 
 
 # ==================== MANEJO DE ERRORES ====================

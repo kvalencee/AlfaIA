@@ -1,0 +1,824 @@
+{% extends "base.html" %}
+
+{% block title %}Ejercicio de Pronunciación - AlfaIA{% endblock %}
+
+{% block extra_css %}
+<style>
+    .exercise-workspace {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px 0;
+    }
+    
+    .exercise-container {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        padding: 30px;
+        margin: 20px auto;
+        max-width: 900px;
+        animation: slideIn 0.8s ease-out;
+    }
+    
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .exercise-header {
+        text-align: center;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid #f8f9fa;
+    }
+    
+    .exercise-title {
+        font-size: 2.5rem;
+        color: #2c3e50;
+        margin-bottom: 10px;
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .exercise-badges {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-top: 15px;
+    }
+    
+    .badge-modern {
+        padding: 8px 20px;
+        border-radius: 25px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .badge-level {
+        background: linear-gradient(45deg, #4facfe, #00f2fe);
+        color: white;
+    }
+    
+    .badge-points {
+        background: linear-gradient(45deg, #43e97b, #38f9d7);
+        color: white;
+    }
+    
+    .instructions-panel {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        padding: 20px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .instructions-panel::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+        animation: shimmer 2s infinite;
+    }
+    
+    @keyframes shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+    
+    .instructions-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .pronunciation-text {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border: 3px solid #667eea;
+        border-radius: 20px;
+        padding: 40px;
+        text-align: center;
+        font-size: 2.8rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin: 30px 0;
+        position: relative;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        user-select: none;
+    }
+    
+    .pronunciation-text:hover {
+        transform: scale(1.02);
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    }
+    
+    .pronunciation-text.speaking {
+        background: linear-gradient(135deg, #43e97b, #38f9d7);
+        color: white;
+        animation: pulse 1s infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+    
+    .pronunciation-text::after {
+        content: '🎤';
+        position: absolute;
+        top: 10px;
+        right: 20px;
+        font-size: 1.5rem;
+        opacity: 0.7;
+    }
+    
+    .audio-controls {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin: 30px 0;
+    }
+    
+    .audio-btn {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        color: white;
+        border: none;
+        border-radius: 50px;
+        padding: 15px 30px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .audio-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+    }
+    
+    .audio-btn:active {
+        transform: translateY(0);
+    }
+    
+    .audio-btn.recording {
+        background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+        animation: recordingPulse 1s infinite;
+    }
+    
+    @keyframes recordingPulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7); }
+        50% { box-shadow: 0 0 0 20px rgba(255, 107, 107, 0); }
+    }
+    
+    .progress-section {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 20px;
+        margin: 30px 0;
+    }
+    
+    .progress-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 15px;
+        text-align: center;
+    }
+    
+    .pronunciation-progress {
+        background: #e9ecef;
+        border-radius: 25px;
+        height: 20px;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .pronunciation-progress-fill {
+        background: linear-gradient(45deg, #43e97b, #38f9d7);
+        height: 100%;
+        border-radius: 25px;
+        transition: width 1s ease;
+        position: relative;
+    }
+    
+    .pronunciation-progress-fill::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+        animation: progressShimmer 2s infinite;
+    }
+    
+    @keyframes progressShimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+    
+    .feedback-panel {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin: 20px 0;
+        border-left: 5px solid #667eea;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .feedback-panel.success {
+        border-left-color: #28a745;
+        background: linear-gradient(135deg, #d4edda, #c3e6cb);
+    }
+    
+    .feedback-panel.warning {
+        border-left-color: #ffc107;
+        background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+    }
+    
+    .feedback-panel.error {
+        border-left-color: #dc3545;
+        background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+    }
+    
+    .action-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin-top: 30px;
+    }
+    
+    .btn-modern {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        color: white;
+        border: none;
+        border-radius: 50px;
+        padding: 15px 35px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+    }
+    
+    .btn-modern:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .btn-secondary {
+        background: linear-gradient(45deg, #6c757d, #495057);
+    }
+    
+    .btn-secondary:hover {
+        box-shadow: 0 10px 25px rgba(108, 117, 125, 0.4);
+    }
+    
+    .btn-success {
+        background: linear-gradient(45deg, #28a745, #20c997);
+    }
+    
+    .btn-success:hover {
+        box-shadow: 0 10px 25px rgba(40, 167, 69, 0.4);
+    }
+    
+    .exercise-stats {
+        display: flex;
+        justify-content: space-around;
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 20px;
+        margin: 20px 0;
+    }
+    
+    .stat-item {
+        text-align: center;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #667eea;
+        display: block;
+    }
+    
+    .stat-label {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-top: 5px;
+    }
+    
+    .timer-display {
+        position: fixed;
+        top: 100px;
+        right: 30px;
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        color: white;
+        border-radius: 50px;
+        padding: 15px 25px;
+        font-size: 1.2rem;
+        font-weight: 700;
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        z-index: 1000;
+    }
+    
+    .microphone-visual {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        margin: 20px auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: white;
+        transition: all 0.3s ease;
+    }
+    
+    .microphone-visual.active {
+        animation: microphonePulse 1s infinite;
+        background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+    }
+    
+    @keyframes microphonePulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+    }
+    
+    @media (max-width: 768px) {
+        .exercise-container {
+            margin: 10px;
+            padding: 20px;
+        }
+        
+        .pronunciation-text {
+            font-size: 2rem;
+            padding: 30px 20px;
+        }
+        
+        .timer-display {
+            position: relative;
+            top: auto;
+            right: auto;
+            margin: 20px auto;
+            display: table;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .btn-modern {
+            width: 100%;
+            max-width: 300px;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="exercise-workspace">
+    <div class="exercise-container">
+        <!-- Header del Ejercicio -->
+        <div class="exercise-header">
+            <h1 class="exercise-title">
+                <i class="fas fa-microphone"></i>
+                Ejercicio de Pronunciación
+            </h1>
+            <div class="exercise-badges">
+                <span class="badge-modern badge-level">
+                    <i class="fas fa-layer-group"></i>
+                    Nivel {{ user.nivel_pronunciacion if user else 1 }}
+                </span>
+                <span class="badge-modern badge-points">
+                    <i class="fas fa-coins"></i>
+                    {{ ejercicio.puntos if ejercicio else 15 }} puntos
+                </span>
+            </div>
+        </div>
+
+        <!-- Timer -->
+        <div class="timer-display" id="timerDisplay">
+            <i class="fas fa-clock"></i>
+            <span id="timerMinutes">05</span>:<span id="timerSeconds">00</span>
+        </div>
+
+        <!-- Panel de Instrucciones -->
+        <div class="instructions-panel">
+            <h3 class="instructions-title">
+                <i class="fas fa-info-circle"></i>
+                Instrucciones
+            </h3>
+            <p class="mb-0">
+                {{ ejercicio.instrucciones if ejercicio else 'Pronuncia claramente cada vocal. Abre bien la boca y articula correctamente cada sonido.' }}
+            </p>
+        </div>
+
+        <!-- Texto para Pronunciar -->
+        <div class="pronunciation-text" id="pronunciationText" onclick="startRecording()">
+            {{ ejercicio.texto if ejercicio else 'A E I O U' }}
+        </div>
+
+        <!-- Visualización del Micrófono -->
+        <div class="microphone-visual" id="microphoneVisual">
+            <i class="fas fa-microphone"></i>
+        </div>
+
+        <!-- Controles de Audio -->
+        <div class="audio-controls">
+            <button class="audio-btn" id="listenBtn" onclick="playExample()">
+                <i class="fas fa-volume-up"></i>
+                Escuchar Ejemplo
+            </button>
+            <button class="audio-btn" id="recordBtn" onclick="toggleRecording()">
+                <i class="fas fa-microphone"></i>
+                <span id="recordBtnText">Empezar a Grabar</span>
+            </button>
+            <button class="audio-btn" id="playbackBtn" onclick="playRecording()" style="display: none;">
+                <i class="fas fa-play"></i>
+                Reproducir Grabación
+            </button>
+        </div>
+
+        <!-- Panel de Progreso -->
+        <div class="progress-section">
+            <div class="progress-title">Progreso del Ejercicio</div>
+            <div class="pronunciation-progress">
+                <div class="pronunciation-progress-fill" id="progressFill" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- Panel de Retroalimentación -->
+        <div class="feedback-panel" id="feedbackPanel" style="display: none;">
+            <div id="feedbackContent"></div>
+        </div>
+
+        <!-- Estadísticas del Ejercicio -->
+        <div class="exercise-stats">
+            <div class="stat-item">
+                <span class="stat-number" id="attemptCount">0</span>
+                <div class="stat-label">Intentos</div>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" id="accuracyScore">0%</span>
+                <div class="stat-label">Precisión</div>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" id="pointsEarned">0</span>
+                <div class="stat-label">Puntos</div>
+            </div>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="action-buttons">
+            <button class="btn-modern btn-secondary" onclick="skipExercise()">
+                <i class="fas fa-forward"></i>
+                Saltar Ejercicio
+            </button>
+            <button class="btn-modern btn-success" id="completeBtn" onclick="completeExercise()" style="display: none;">
+                <i class="fas fa-check"></i>
+                Completar Ejercicio
+            </button>
+            <a href="{{ url_for('ejercicios') }}" class="btn-modern btn-secondary">
+                <i class="fas fa-arrow-left"></i>
+                Volver a Ejercicios
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Variables globales
+let isRecording = false;
+let mediaRecorder = null;
+let audioChunks = [];
+let recordedAudio = null;
+let currentAttempt = 0;
+let totalAttempts = 0;
+let exerciseStartTime = Date.now();
+let timerInterval = null;
+let exerciseTime = 300; // 5 minutos en segundos
+
+// Inicializar ejercicio
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🎤 Inicializando ejercicio de pronunciación');
+    initializeExercise();
+    startTimer();
+    showFeedback('info', 'Haz clic en el texto para comenzar a practicar la pronunciación.');
+});
+
+function initializeExercise() {
+    // Inicializar Web Audio API si está disponible
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        console.log('✅ Micrófono disponible');
+    } else {
+        showFeedback('warning', 'Tu navegador no soporta grabación de audio. Puedes practicar leyendo en voz alta.');
+        document.getElementById('recordBtn').style.display = 'none';
+    }
+    
+    updateStats();
+}
+
+function startTimer() {
+    timerInterval = setInterval(function() {
+        exerciseTime--;
+        
+        const minutes = Math.floor(exerciseTime / 60);
+        const seconds = exerciseTime % 60;
+        
+        document.getElementById('timerMinutes').textContent = minutes.toString().padStart(2, '0');
+        document.getElementById('timerSeconds').textContent = seconds.toString().padStart(2, '0');
+        
+        if (exerciseTime <= 0) {
+            clearInterval(timerInterval);
+            autoCompleteExercise();
+        } else if (exerciseTime <= 30) {
+            document.getElementById('timerDisplay').style.background = 'linear-gradient(45deg, #ff6b6b, #ee5a52)';
+        }
+    }, 1000);
+}
+
+function playExample() {
+    const text = document.getElementById('pronunciationText').textContent;
+    
+    if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'es-ES';
+        utterance.rate = 0.7; // Velocidad más lenta para aprendizaje
+        utterance.pitch = 1;
+        utterance.volume = 1;
+        
+        // Destacar texto mientras se reproduce
+        document.getElementById('pronunciationText').classList.add('speaking');
+        
+        utterance.onend = function() {
+            document.getElementById('pronunciationText').classList.remove('speaking');
+        };
+        
+        speechSynthesis.speak(utterance);
+        showFeedback('info', 'Escucha atentamente la pronunciación correcta.');
+    } else {
+        showFeedback('warning', 'Tu navegador no soporta síntesis de voz.');
+    }
+}
+
+function startRecording() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        showFeedback('warning', 'Grabación no disponible. Practica leyendo en voz alta.');
+        return;
+    }
+    
+    toggleRecording();
+}
+
+async function toggleRecording() {
+    if (!isRecording) {
+        await startAudioRecording();
+    } else {
+        stopAudioRecording();
+    }
+}
+
+async function startAudioRecording() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+        
+        mediaRecorder.ondataavailable = function(event) {
+            audioChunks.push(event.data);
+        };
+        
+        mediaRecorder.onstop = function() {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+            recordedAudio = URL.createObjectURL(audioBlob);
+            document.getElementById('playbackBtn').style.display = 'inline-flex';
+            
+            // Simular análisis de pronunciación
+            setTimeout(() => {
+                analyzeRecording();
+            }, 1000);
+        };
+        
+        mediaRecorder.start();
+        isRecording = true;
+        
+        // Actualizar UI
+        document.getElementById('recordBtn').classList.add('recording');
+        document.getElementById('recordBtnText').textContent = 'Detener Grabación';
+        document.getElementById('microphoneVisual').classList.add('active');
+        
+        showFeedback('info', 'Grabando... Pronuncia el texto claramente.');
+        
+    } catch (error) {
+        console.error('Error accediendo al micrófono:', error);
+        showFeedback('error', 'No se pudo acceder al micrófono. Verifica los permisos.');
+    }
+}
+
+function stopAudioRecording() {
+    if (mediaRecorder && isRecording) {
+        mediaRecorder.stop();
+        isRecording = false;
+        
+        // Detener el stream
+        mediaRecorder.stream.getTracks().forEach(track => track.stop());
+        
+        // Actualizar UI
+        document.getElementById('recordBtn').classList.remove('recording');
+        document.getElementById('recordBtnText').textContent = 'Empezar a Grabar';
+        document.getElementById('microphoneVisual').classList.remove('active');
+        
+        totalAttempts++;
+        currentAttempt++;
+        updateStats();
+        
+        showFeedback('info', 'Analizando tu pronunciación...');
+    }
+}
+
+function playRecording() {
+    if (recordedAudio) {
+        const audio = new Audio(recordedAudio);
+        audio.play();
+        showFeedback('info', 'Reproduciendo tu grabación...');
+    }
+}
+
+function analyzeRecording() {
+    // Simulación de análisis de pronunciación
+    const accuracy = Math.random() * 40 + 60; // Entre 60% y 100%
+    const roundedAccuracy = Math.round(accuracy);
+    
+    let feedbackMessage = '';
+    let feedbackType = '';
+    let points = 0;
+    
+    if (roundedAccuracy >= 90) {
+        feedbackType = 'success';
+        feedbackMessage = `¡Excelente pronunciación! (${roundedAccuracy}%) Has pronunciado muy claramente.`;
+        points = Math.round({{ ejercicio.puntos if ejercicio else 15 }} * (roundedAccuracy / 100));
+    } else if (roundedAccuracy >= 75) {
+        feedbackType = 'success';
+        feedbackMessage = `¡Muy bien! (${roundedAccuracy}%) Tu pronunciación está mejorando.`;
+        points = Math.round({{ ejercicio.puntos if ejercicio else 15 }} * (roundedAccuracy / 100));
+    } else if (roundedAccuracy >= 60) {
+        feedbackType = 'warning';
+        feedbackMessage = `Bien (${roundedAccuracy}%). Intenta pronunciar más claramente las vocales.`;
+        points = Math.round({{ ejercicio.puntos if ejercicio else 15 }} * (roundedAccuracy / 100));
+    } else {
+        feedbackType = 'error';
+        feedbackMessage = `Sigue practicando (${roundedAccuracy}%). Escucha el ejemplo y repite más despacio.`;
+        points = 5; // Puntos mínimos por intento
+    }
+    
+    // Actualizar estadísticas
+    document.getElementById('accuracyScore').textContent = roundedAccuracy + '%';
+    document.getElementById('pointsEarned').textContent = points;
+    
+    // Actualizar progreso
+    const progress = Math.min((currentAttempt / 3) * 100, 100);
+    document.getElementById('progressFill').style.width = progress + '%';
+    
+    showFeedback(feedbackType, feedbackMessage);
+    
+    // Mostrar botón completar si se han hecho suficientes intentos
+    if (currentAttempt >= 3 || roundedAccuracy >= 85) {
+        document.getElementById('completeBtn').style.display = 'inline-flex';
+    }
+    
+    // Enviar resultados al servidor
+    submitAttempt(roundedAccuracy, points);
+}
+
+function submitAttempt(accuracy, points) {
+    fetch('/api/exercise/attempt', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            exercise_type: 'pronunciacion',
+            accuracy: accuracy,
+            points: points,
+            attempt_number: currentAttempt,
+            duration: Math.round((Date.now() - exerciseStartTime) / 1000)
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('✅ Intento enviado:', data);
+    })
+    .catch(error => {
+        console.error('Error enviando intento:', error);
+    });
+}
+
+function updateStats() {
+    document.getElementById('attemptCount').textContent = totalAttempts;
+}
+
+function showFeedback(type, message) {
+    const panel = document.getElementById('feedbackPanel');
+    const content = document.getElementById('feedbackContent');
+    
+    panel.className = `feedback-panel ${type}`;
+    content.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : type === 'error' ? 'times-circle' : 'info-circle'}"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    panel.style.display = 'block';
+}
+
+function skipExercise() {
+    if (confirm('¿Estás seguro de que quieres saltar este ejercicio?')) {
+        window.location.href = '{{ url_for("ejercicios") }}';
+    }
+}
+
+function completeExercise() {
+    const accuracy = parseInt(document.getElementById('accuracyScore').textContent) || 0;
+    const points = parseInt(document.getElementById('pointsEarned').textContent) || 0;
+    const duration = Math.round((Date.now() - exerciseStartTime) / 1000);
+    
+    // Enviar resultado final
+    fetch('/api/exercise/submit', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            exercise_type: 'pronunciacion',
+            accuracy: accuracy,
+            points: points,
+            duration: duration,
+            attempts: totalAttempts,
+            completed: true
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showFeedback('success', `¡Ejercicio completado! Has ganado ${points} puntos.`);
+            setTimeout(() => {
+                window.location.href = '{{ url_for("ejercicios") }}';
+            }, 2000);
+        } else {
+            showFeedback('error', 'Error guardando el progreso.');
+        }
+    })
+    .catch(error => {
+        console.error('Error completando ejercicio:', error);
+        showFeedback('error', 'Error de conexión.');
+    });
+}
+
+function autoCompleteExercise() {
+    showFeedback('info', 'Tiempo agotado. Ejercicio completado automáticamente.');
+    setTimeout(() => {
+        completeExercise();
+    }, 2000);
+}
+
+// Limpiar recursos al salir
+window.addEventListener('beforeunload', function() {
+    if (timerInterval) {
+        clearInterval(timerInterval);
+    }
+    if (mediaRecorder && isRecording) {
+        mediaRecorder.stop();
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,1137 @@
+{% extends "base.html" %}
+
+{% block title %}Juego del Ahorcado - AlfaIA{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hangman-workspace {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px 0;
+    }
+    
+    .hangman-container {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        padding: 30px;
+        margin: 20px auto;
+        max-width: 900px;
+        animation: slideIn 0.8s ease-out;
+    }
+    
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .game-header {
+        text-align: center;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid #f8f9fa;
+    }
+    
+    .game-title {
+        font-size: 2.5rem;
+        color: #2c3e50;
+        margin-bottom: 10px;
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .game-subtitle {
+        color: #6c757d;
+        font-size: 1.1rem;
+        margin-bottom: 20px;
+    }
+    
+    .game-badges {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-top: 15px;
+    }
+    
+    .badge-modern {
+        padding: 8px 20px;
+        border-radius: 25px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .badge-level {
+        background: linear-gradient(45deg, #4facfe, #00f2fe);
+        color: white;
+    }
+    
+    .badge-points {
+        background: linear-gradient(45deg, #43e97b, #38f9d7);
+        color: white;
+    }
+    
+    .hangman-display {
+        background: #f8f9fa;
+        border: 3px solid #667eea;
+        border-radius: 20px;
+        padding: 30px;
+        margin: 30px 0;
+        text-align: center;
+        position: relative;
+        min-height: 300px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .hangman-art {
+        font-family: 'Courier New', monospace;
+        font-size: 1.5rem;
+        line-height: 1.2;
+        color: #2c3e50;
+        white-space: pre-line;
+        text-align: center;
+    }
+    
+    .hangman-art.stage-0 { color: #28a745; }
+    .hangman-art.stage-1 { color: #ffc107; }
+    .hangman-art.stage-2 { color: #fd7e14; }
+    .hangman-art.stage-3 { color: #e74c3c; }
+    .hangman-art.stage-4 { color: #dc3545; }
+    .hangman-art.stage-5 { color: #6f42c1; }
+    .hangman-art.stage-6 { color: #e83e8c; }
+    
+    .game-stats {
+        display: flex;
+        justify-content: space-around;
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border-radius: 15px;
+        padding: 20px;
+        margin: 20px 0;
+        border: 2px solid #667eea;
+    }
+    
+    .stat-item {
+        text-align: center;
+        flex: 1;
+    }
+    
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        display: block;
+        line-height: 1;
+    }
+    
+    .stat-value.lives {
+        color: #e74c3c;
+    }
+    
+    .stat-value.score {
+        color: #43e97b;
+    }
+    
+    .stat-value.attempts {
+        color: #667eea;
+    }
+    
+    .stat-label {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-top: 5px;
+        font-weight: 500;
+    }
+    
+    .hint-panel {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        padding: 20px;
+        border-radius: 15px;
+        margin: 30px 0;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .hint-panel::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+        animation: shimmer 2s infinite;
+    }
+    
+    @keyframes shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+    
+    .hint-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .word-display {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border: 3px solid #43e97b;
+        border-radius: 20px;
+        padding: 30px;
+        text-align: center;
+        font-size: 3rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin: 30px 0;
+        letter-spacing: 10px;
+        font-family: 'Courier New', monospace;
+        min-height: 100px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        user-select: none;
+    }
+    
+    .word-display.completed {
+        background: linear-gradient(135deg, #43e97b, #38f9d7);
+        color: white;
+        animation: celebration 1s ease;
+    }
+    
+    .word-display.failed {
+        background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+        color: white;
+        border-color: #dc3545;
+    }
+    
+    @keyframes celebration {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+    
+    .alphabet-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+        gap: 10px;
+        margin: 30px 0;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    
+    .letter-btn {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 15px;
+        font-size: 1.2rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        min-height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .letter-btn:hover:not(:disabled) {
+        transform: translateY(-3px) scale(1.1);
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+    }
+    
+    .letter-btn.correct {
+        background: linear-gradient(45deg, #28a745, #20c997);
+        animation: correctLetter 0.6s ease;
+        pointer-events: none;
+    }
+    
+    .letter-btn.incorrect {
+        background: linear-gradient(45deg, #dc3545, #e74c3c);
+        animation: incorrectLetter 0.6s ease;
+        pointer-events: none;
+    }
+    
+    .letter-btn:disabled {
+        opacity: 0.5;
+        pointer-events: none;
+        cursor: not-allowed;
+    }
+    
+    @keyframes correctLetter {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.2); }
+        100% { transform: scale(1); }
+    }
+    
+    @keyframes incorrectLetter {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-10px); }
+        75% { transform: translateX(10px); }
+    }
+    
+    .game-complete {
+        background: linear-gradient(135deg, #43e97b, #38f9d7);
+        color: white;
+        border-radius: 20px;
+        padding: 40px;
+        text-align: center;
+        margin: 30px 0;
+        display: none;
+        animation: gameEndAnimation 1s ease;
+    }
+    
+    .game-over {
+        background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+        color: white;
+        border-radius: 20px;
+        padding: 40px;
+        text-align: center;
+        margin: 30px 0;
+        display: none;
+        animation: gameEndAnimation 1s ease;
+    }
+    
+    @keyframes gameEndAnimation {
+        0% { transform: scale(0.8); opacity: 0; }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    
+    .final-score {
+        font-size: 3rem;
+        font-weight: 700;
+        margin: 20px 0;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    .end-message {
+        font-size: 1.2rem;
+        margin-bottom: 30px;
+    }
+    
+    .action-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin-top: 30px;
+    }
+    
+    .btn-modern {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        color: white;
+        border: none;
+        border-radius: 50px;
+        padding: 15px 35px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+    }
+    
+    .btn-modern:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .btn-secondary {
+        background: linear-gradient(45deg, #6c757d, #495057);
+    }
+    
+    .btn-secondary:hover {
+        box-shadow: 0 10px 25px rgba(108, 117, 125, 0.4);
+    }
+    
+    .btn-success {
+        background: linear-gradient(45deg, #28a745, #20c997);
+    }
+    
+    .btn-success:hover {
+        box-shadow: 0 10px 25px rgba(40, 167, 69, 0.4);
+    }
+    
+    .btn-danger {
+        background: linear-gradient(45deg, #dc3545, #e74c3c);
+    }
+    
+    .btn-danger:hover {
+        box-shadow: 0 10px 25px rgba(220, 53, 69, 0.4);
+    }
+    
+    .progress-bar {
+        background: #e9ecef;
+        border-radius: 25px;
+        height: 15px;
+        margin: 20px 0;
+        overflow: hidden;
+    }
+    
+    .progress-fill {
+        background: linear-gradient(45deg, #43e97b, #38f9d7);
+        height: 100%;
+        border-radius: 25px;
+        transition: width 0.5s ease;
+        position: relative;
+    }
+    
+    .progress-fill::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+        animation: progressShimmer 2s infinite;
+    }
+    
+    @keyframes progressShimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+    
+    .feedback-message {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        border-radius: 15px;
+        padding: 20px 30px;
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #2c3e50;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        z-index: 2000;
+        display: none;
+        animation: fadeInOut 2s ease;
+    }
+    
+    @keyframes fadeInOut {
+        0%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+        10%, 90% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    }
+    
+    .feedback-message.correct {
+        border-left: 5px solid #28a745;
+        color: #28a745;
+    }
+    
+    .feedback-message.incorrect {
+        border-left: 5px solid #dc3545;
+        color: #dc3545;
+    }
+    
+    .timer-display {
+        position: fixed;
+        top: 100px;
+        right: 30px;
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        color: white;
+        border-radius: 50px;
+        padding: 15px 25px;
+        font-size: 1.2rem;
+        font-weight: 700;
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        z-index: 1000;
+        transition: all 0.3s ease;
+    }
+    
+    .timer-display.warning {
+        background: linear-gradient(45deg, #ffc107, #fd7e14);
+        animation: timerWarning 1s infinite;
+    }
+    
+    .timer-display.danger {
+        background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+        animation: timerDanger 0.5s infinite;
+    }
+    
+    @keyframes timerWarning {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+    
+    @keyframes timerDanger {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+    }
+    
+    @media (max-width: 768px) {
+        .hangman-container {
+            margin: 10px;
+            padding: 20px;
+        }
+        
+        .word-display {
+            font-size: 2rem;
+            letter-spacing: 5px;
+            padding: 20px;
+        }
+        
+        .alphabet-grid {
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+        }
+        
+        .letter-btn {
+            padding: 10px;
+            font-size: 1rem;
+            min-height: 50px;
+        }
+        
+        .timer-display {
+            position: relative;
+            top: auto;
+            right: auto;
+            margin: 20px auto;
+            display: table;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .btn-modern {
+            width: 100%;
+            max-width: 300px;
+            justify-content: center;
+        }
+        
+        .game-stats {
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .stat-item {
+            min-width: 120px;
+        }
+        
+        .hangman-art {
+            font-size: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hangman-workspace">
+    <div class="hangman-container">
+        <!-- Header del Juego -->
+        <div class="game-header">
+            <h1 class="game-title">
+                <i class="fas fa-search"></i>
+                Juego del Ahorcado
+            </h1>
+            <p class="game-subtitle">Adivina la palabra letra por letra usando las pistas</p>
+            <div class="game-badges">
+                <span class="badge-modern badge-level">
+                    <i class="fas fa-layer-group"></i>
+                    Nivel {{ user.nivel_lectura if user else 1 }}
+                </span>
+                <span class="badge-modern badge-points">
+                    <i class="fas fa-coins"></i>
+                    <span id="maxPoints">40</span> puntos máximos
+                </span>
+            </div>
+        </div>
+
+        <!-- Timer -->
+        <div class="timer-display" id="timerDisplay">
+            <i class="fas fa-clock"></i>
+            <span id="timerMinutes">05</span>:<span id="timerSeconds">00</span>
+        </div>
+
+        <!-- Estadísticas del Juego -->
+        <div class="game-stats">
+            <div class="stat-item">
+                <span class="stat-value lives" id="livesLeft">6</span>
+                <div class="stat-label">Vidas</div>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value attempts" id="totalAttempts">0</span>
+                <div class="stat-label">Intentos</div>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value score" id="currentScore">0</span>
+                <div class="stat-label">Puntos</div>
+            </div>
+        </div>
+
+        <!-- Dibujo del Ahorcado -->
+        <div class="hangman-display">
+            <div class="hangman-art stage-0" id="hangmanArt">
+                ¡Comienza a adivinar!
+            </div>
+        </div>
+
+        <!-- Panel de Pista -->
+        <div class="hint-panel">
+            <h3 class="hint-title">
+                <i class="fas fa-lightbulb"></i>
+                Pista
+            </h3>
+            <p class="mb-0" id="gameHint">
+                Haz clic en "Nueva Palabra" para comenzar el juego
+            </p>
+        </div>
+
+        <!-- Palabra a Adivinar -->
+        <div class="word-display" id="wordDisplay">
+            _ _ _ _
+        </div>
+
+        <!-- Barra de Progreso -->
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+
+        <!-- Alfabeto -->
+        <div class="alphabet-grid" id="alphabetGrid">
+            <!-- Las letras se generan dinámicamente -->
+        </div>
+
+        <!-- Panel de Victoria -->
+        <div class="game-complete" id="gameComplete">
+            <h2><i class="fas fa-trophy"></i> ¡Felicidades!</h2>
+            <div class="final-score" id="finalScore">0</div>
+            <p class="end-message" id="winMessage">¡Has adivinado la palabra!</p>
+            <div class="action-buttons">
+                <button class="btn-modern btn-success" onclick="newGame()">
+                    <i class="fas fa-redo"></i>
+                    Nueva Palabra
+                </button>
+                <a href="{{ url_for('ejercicios') }}" class="btn-modern">
+                    <i class="fas fa-gamepad"></i>
+                    Más Ejercicios
+                </a>
+            </div>
+        </div>
+
+        <!-- Panel de Derrota -->
+        <div class="game-over" id="gameOver">
+            <h2><i class="fas fa-skull-crossbones"></i> Juego Terminado</h2>
+            <div class="final-score" id="gameOverScore">0</div>
+            <p class="end-message">La palabra era: <strong id="correctWord">PALABRA</strong></p>
+            <div class="action-buttons">
+                <button class="btn-modern btn-danger" onclick="newGame()">
+                    <i class="fas fa-redo"></i>
+                    Intentar de Nuevo
+                </button>
+                <a href="{{ url_for('ejercicios') }}" class="btn-modern">
+                    <i class="fas fa-gamepad"></i>
+                    Más Ejercicios
+                </a>
+            </div>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="action-buttons" id="gameButtons">
+            <button class="btn-modern btn-success" onclick="newGame()">
+                <i class="fas fa-play"></i>
+                Nueva Palabra
+            </button>
+            <button class="btn-modern btn-secondary" onclick="giveHint()">
+                <i class="fas fa-question-circle"></i>
+                Revelar Letra
+            </button>
+            <a href="{{ url_for('ejercicios') }}" class="btn-modern btn-secondary">
+                <i class="fas fa-arrow-left"></i>
+                Volver a Ejercicios
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Mensaje de Retroalimentación -->
+<div class="feedback-message" id="feedbackMessage"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Configuración del juego
+const gameConfig = {
+    level: {{ user.nivel_lectura if user else 1 }},
+    timeLimit: 300, // 5 minutos
+    maxLives: 6,
+    pointsPerLetter: 5,
+    hintPenalty: 10
+};
+
+// Palabras por nivel (desde el módulo de juegos interactivos)
+const wordsByLevel = {
+    1: [
+        {palabra: "GATO", pista: "Animal doméstico que dice miau"},
+        {palabra: "CASA", pista: "Lugar donde vives"},
+        {palabra: "SOL", pista: "Estrella que nos da luz"},
+        {palabra: "MAR", pista: "Agua salada muy grande"},
+        {palabra: "PAN", pista: "Alimento hecho con harina"},
+        {palabra: "LUZ", pista: "Lo contrario de oscuridad"},
+        {palabra: "PAZ", pista: "Lo contrario de guerra"},
+        {palabra: "OSO", pista: "Animal grande y peludo"},
+        {palabra: "PEZ", pista: "Animal que vive en el agua"},
+        {palabra: "REY", pista: "Gobernante de un reino"}
+    ],
+    2: [
+        {palabra: "ESCUELA", pista: "Lugar donde los niños aprenden"},
+        {palabra: "FAMILIA", pista: "Papá, mamá e hijos"},
+        {palabra: "JARDIN", pista: "Lugar con plantas y flores"},
+        {palabra: "MUSICA", pista: "Arte de los sonidos"},
+        {palabra: "VENTANA", pista: "Abertura en la pared para ver afuera"},
+        {palabra: "COCINA", pista: "Lugar donde se prepara la comida"},
+        {palabra: "PAISAJE", pista: "Vista de un lugar natural"},
+        {palabra: "MASCOTA", pista: "Animal de compañía"},
+        {palabra: "AMISTAD", pista: "Relación entre amigos"},
+        {palabra: "TRABAJO", pista: "Actividad para ganar dinero"}
+    ],
+    3: [
+        {palabra: "UNIVERSIDAD", pista: "Institución de educación superior"},
+        {palabra: "BIBLIOTECA", pista: "Lugar lleno de libros"},
+        {palabra: "COMPUTADORA", pista: "Máquina para procesar información"},
+        {palabra: "TELEFONO", pista: "Dispositivo para comunicarse a distancia"},
+        {palabra: "REFRIGERADOR", pista: "Electrodoméstico que enfría alimentos"},
+        {palabra: "ARQUITECTURA", pista: "Arte de diseñar edificios"},
+        {palabra: "FOTOGRAFIA", pista: "Arte de capturar imágenes"},
+        {palabra: "DEMOCRACIA", pista: "Sistema de gobierno del pueblo"},
+        {palabra: "TECNOLOGIA", pista: "Aplicación de conocimientos científicos"},
+        {palabra: "MATEMATICAS", pista: "Ciencia de los números"}
+    ]
+};
+
+// Arte ASCII del ahorcado
+const hangmanStages = [
+    "¡Comenzemos!",
+    `   +---+
+       |   |
+           |
+           |
+           |
+           |
+    =========`,
+    `   +---+
+       |   |
+       O   |
+           |
+           |
+           |
+    =========`,
+    `   +---+
+       |   |
+       O   |
+       |   |
+           |
+           |
+    =========`,
+    `   +---+
+       |   |
+       O   |
+      /|   |
+           |
+           |
+    =========`,
+    `   +---+
+       |   |
+       O   |
+      /|\\  |
+           |
+           |
+    =========`,
+    `   +---+
+       |   |
+       O   |
+      /|\\  |
+      /    |
+           |
+    =========`,
+    `   +---+
+       |   |
+       O   |
+      /|\\  |
+      / \\  |
+           |
+    =========`
+];
+
+// Variables del juego
+let gameState = {
+    currentWord: '',
+    currentHint: '',
+    guessedLetters: [],
+    incorrectGuesses: 0,
+    gameActive: false,
+    score: 0,
+    totalAttempts: 0,
+    timeLeft: gameConfig.timeLimit,
+    hintsUsed: 0
+};
+
+let timerInterval = null;
+let gameStartTime = null;
+
+// Inicializar juego
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🎯 Inicializando juego del ahorcado');
+    initializeGame();
+});
+
+function initializeGame() {
+    createAlphabet();
+    updateMaxPoints();
+    resetTimer();
+    updateDisplay();
+    
+    console.log(`✅ Juego inicializado - Nivel ${gameConfig.level}`);
+}
+
+function createAlphabet() {
+    const alphabet = 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ';
+    const grid = document.getElementById('alphabetGrid');
+    grid.innerHTML = '';
+    
+    for (let letter of alphabet) {
+        const button = document.createElement('button');
+        button.className = 'letter-btn';
+        button.textContent = letter;
+        button.onclick = () => guessLetter(letter);
+        button.dataset.letter = letter;
+        grid.appendChild(button);
+    }
+}
+
+function updateMaxPoints() {
+    const level = gameConfig.level;
+    const maxPoints = level === 1 ? 40 : level === 2 ? 60 : 80;
+    gameConfig.maxPoints = maxPoints;
+    document.getElementById('maxPoints').textContent = maxPoints;
+}
+
+function newGame() {
+    // Seleccionar palabra aleatoria del nivel actual
+    const words = wordsByLevel[gameConfig.level] || wordsByLevel[1];
+    const selectedWord = words[Math.floor(Math.random() * words.length)];
+    
+    // Reiniciar estado del juego
+    gameState = {
+        currentWord: selectedWord.palabra,
+        currentHint: selectedWord.pista,
+        guessedLetters: [],
+        incorrectGuesses: 0,
+        gameActive: true,
+        score: 0,
+        totalAttempts: gameState.totalAttempts,
+        timeLeft: gameConfig.timeLimit,
+        hintsUsed: 0
+    };
+    
+    // Ocultar paneles de fin de juego
+    document.getElementById('gameComplete').style.display = 'none';
+    document.getElementById('gameOver').style.display = 'none';
+    document.getElementById('gameButtons').style.display = 'flex';
+    
+    // Actualizar displays
+    updateWordDisplay();
+    updateHangmanDisplay();
+    updateStats();
+    updateHint();
+    resetAlphabet();
+    
+    // Iniciar timer
+    if (!gameStartTime) {
+        gameStartTime = Date.now();
+        startTimer();
+    }
+    
+    console.log(`🎮 Nueva partida: ${gameState.currentWord}`);
+}
+
+function guessLetter(letter) {
+    if (!gameState.gameActive || gameState.guessedLetters.includes(letter)) {
+        return;
+    }
+    
+    gameState.guessedLetters.push(letter);
+    gameState.totalAttempts++;
+    
+    const button = document.querySelector(`[data-letter="${letter}"]`);
+    
+    if (gameState.currentWord.includes(letter)) {
+        // Letra correcta
+        button.classList.add('correct');
+        const points = gameConfig.pointsPerLetter;
+        gameState.score += points;
+        
+        showFeedback('correct', `¡Correcto! +${points} puntos`);
+        
+        // Verificar si se completó la palabra
+        if (isWordComplete()) {
+            winGame();
+        }
+    } else {
+        // Letra incorrecta
+        button.classList.add('incorrect');
+        gameState.incorrectGuesses++;
+        
+        showFeedback('incorrect', 'Letra incorrecta');
+        
+        // Verificar si se perdió el juego
+        if (gameState.incorrectGuesses >= gameConfig.maxLives) {
+            loseGame();
+        }
+    }
+    
+    updateWordDisplay();
+    updateHangmanDisplay();
+    updateStats();
+}
+
+function isWordComplete() {
+    return gameState.currentWord.split('').every(letter => 
+        gameState.guessedLetters.includes(letter)
+    );
+}
+
+function updateWordDisplay() {
+    const display = document.getElementById('wordDisplay');
+    const displayWord = gameState.currentWord
+        .split('')
+        .map(letter => gameState.guessedLetters.includes(letter) ? letter : '_')
+        .join(' ');
+    
+    display.textContent = displayWord;
+    
+    // Actualizar barra de progreso
+    const correctGuesses = gameState.currentWord
+        .split('')
+        .filter(letter => gameState.guessedLetters.includes(letter)).length;
+    const progress = (correctGuesses / gameState.currentWord.length) * 100;
+    document.getElementById('progressFill').style.width = progress + '%';
+}
+
+function updateHangmanDisplay() {
+    const display = document.getElementById('hangmanArt');
+    const stage = Math.min(gameState.incorrectGuesses, hangmanStages.length - 1);
+    
+    display.textContent = hangmanStages[stage];
+    display.className = `hangman-art stage-${stage}`;
+}
+
+function updateStats() {
+    document.getElementById('livesLeft').textContent = gameConfig.maxLives - gameState.incorrectGuesses;
+    document.getElementById('totalAttempts').textContent = gameState.totalAttempts;
+    document.getElementById('currentScore').textContent = gameState.score;
+}
+
+function updateHint() {
+    document.getElementById('gameHint').textContent = gameState.currentHint;
+}
+
+function resetAlphabet() {
+    const buttons = document.querySelectorAll('.letter-btn');
+    buttons.forEach(button => {
+        button.classList.remove('correct', 'incorrect');
+        button.disabled = false;
+    });
+}
+
+function giveHint() {
+    if (!gameState.gameActive || gameState.hintsUsed >= 2) {
+        showFeedback('incorrect', 'No hay más pistas disponibles');
+        return;
+    }
+    
+    // Encontrar una letra no adivinada
+    const unguessedLetters = gameState.currentWord
+        .split('')
+        .filter(letter => !gameState.guessedLetters.includes(letter));
+    
+    if (unguessedLetters.length === 0) return;
+    
+    const hintLetter = unguessedLetters[Math.floor(Math.random() * unguessedLetters.length)];
+    
+    // Aplicar penalización
+    gameState.score = Math.max(0, gameState.score - gameConfig.hintPenalty);
+    gameState.hintsUsed++;
+    
+    // Simular click en la letra
+    guessLetter(hintLetter);
+    
+    showFeedback('correct', `Pista revelada: ${hintLetter} (-${gameConfig.hintPenalty} puntos)`);
+}
+
+function winGame() {
+    gameState.gameActive = false;
+    clearInterval(timerInterval);
+    
+    // Calcular bonus por tiempo y vidas restantes
+    const timeBonus = Math.floor(gameState.timeLeft * 0.1);
+    const livesBonus = (gameConfig.maxLives - gameState.incorrectGuesses) * 5;
+    const totalScore = gameState.score + timeBonus + livesBonus;
+    
+    // Actualizar displays
+    document.getElementById('wordDisplay').classList.add('completed');
+    document.getElementById('finalScore').textContent = totalScore;
+    document.getElementById('winMessage').textContent = 
+        `¡Excelente! Bonus: +${timeBonus + livesBonus} puntos`;
+    
+    // Mostrar panel de victoria
+    document.getElementById('gameComplete').style.display = 'block';
+    document.getElementById('gameButtons').style.display = 'none';
+    
+    // Enviar resultados
+    submitGameResults(true, totalScore);
+    
+    console.log('🎉 ¡Juego ganado!');
+}
+
+function loseGame() {
+    gameState.gameActive = false;
+    clearInterval(timerInterval);
+    
+    // Actualizar displays
+    document.getElementById('wordDisplay').classList.add('failed');
+    document.getElementById('correctWord').textContent = gameState.currentWord;
+    document.getElementById('gameOverScore').textContent = gameState.score;
+    
+    // Mostrar panel de derrota
+    document.getElementById('gameOver').style.display = 'block';
+    document.getElementById('gameButtons').style.display = 'none';
+    
+    // Enviar resultados
+    submitGameResults(false, gameState.score);
+    
+    console.log('💀 Juego perdido');
+}
+
+function startTimer() {
+    timerInterval = setInterval(() => {
+        gameState.timeLeft--;
+        updateTimerDisplay();
+        
+        if (gameState.timeLeft <= 0) {
+            loseGame();
+        }
+    }, 1000);
+}
+
+function resetTimer() {
+    gameState.timeLeft = gameConfig.timeLimit;
+    updateTimerDisplay();
+}
+
+function updateTimerDisplay() {
+    const minutes = Math.floor(gameState.timeLeft / 60);
+    const seconds = gameState.timeLeft % 60;
+    
+    document.getElementById('timerMinutes').textContent = minutes.toString().padStart(2, '0');
+    document.getElementById('timerSeconds').textContent = seconds.toString().padStart(2, '0');
+    
+    const timerDisplay = document.getElementById('timerDisplay');
+    
+    // Cambiar color según tiempo restante
+    if (gameState.timeLeft <= 30) {
+        timerDisplay.classList.add('danger');
+        timerDisplay.classList.remove('warning');
+    } else if (gameState.timeLeft <= 60) {
+        timerDisplay.classList.add('warning');
+        timerDisplay.classList.remove('danger');
+    } else {
+        timerDisplay.classList.remove('warning', 'danger');
+    }
+}
+
+function updateDisplay() {
+    updateWordDisplay();
+    updateHangmanDisplay();
+    updateStats();
+    updateTimerDisplay();
+}
+
+function showFeedback(type, message) {
+    const feedbackElement = document.getElementById('feedbackMessage');
+    feedbackElement.className = `feedback-message ${type}`;
+    feedbackElement.textContent = message;
+    feedbackElement.style.display = 'block';
+    
+    setTimeout(() => {
+        feedbackElement.style.display = 'none';
+    }, 2000);
+}
+
+function submitGameResults(won, finalScore) {
+    const gameData = {
+        exercise_type: 'ahorcado',
+        level: gameConfig.level,
+        word: gameState.currentWord,
+        score: finalScore,
+        attempts: gameState.totalAttempts,
+        incorrect_guesses: gameState.incorrectGuesses,
+        hints_used: gameState.hintsUsed,
+        time_taken: gameConfig.timeLimit - gameState.timeLeft,
+        completed: won,
+        accuracy: won ? 100 : Math.max(0, 100 - (gameState.incorrectGuesses * 16.67)) // Cada error = -16.67%
+    };
+    
+    fetch('/api/exercise/submit', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(gameData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('✅ Resultados enviados correctamente');
+        } else {
+            console.error('❌ Error enviando resultados:', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('❌ Error de conexión:', error);
+    });
+}
+
+// Atajos de teclado
+document.addEventListener('keydown', function(event) {
+    if (!gameState.gameActive) return;
+    
+    const key = event.key.toUpperCase();
+    const validLetters = 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ';
+    
+    if (validLetters.includes(key) && !gameState.guessedLetters.includes(key)) {
+        event.preventDefault();
+        guessLetter(key);
+    } else if (event.code === 'Space') {
+        event.preventDefault();
+        newGame();
+    } else if (event.code === 'KeyH') {
+        event.preventDefault();
+        giveHint();
+    }
+});
+
+// Limpiar recursos al salir
+window.addEventListener('beforeunload', function() {
+    if (timerInterval) {
+        clearInterval(timerInterval);
+    }
+});
+</script>
+{% endblock %}

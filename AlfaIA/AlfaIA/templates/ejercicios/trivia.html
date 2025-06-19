@@ -1,0 +1,1302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% extends "base.html" %}
+
+{% block title %}Trivia Educativa - AlfaIA{% endblock %}
+
+{% block extra_css %}
+<style>
+    .trivia-workspace {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px 0;
+    }
+    
+    .trivia-container {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        padding: 30px;
+        margin: 20px auto;
+        max-width: 900px;
+        animation: slideIn 0.8s ease-out;
+    }
+    
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .game-header {
+        text-align: center;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid #f8f9fa;
+    }
+    
+    .game-title {
+        font-size: 2.5rem;
+        color: #2c3e50;
+        margin-bottom: 10px;
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .game-subtitle {
+        color: #6c757d;
+        font-size: 1.1rem;
+        margin-bottom: 20px;
+    }
+    
+    .game-badges {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-top: 15px;
+    }
+    
+    .badge-modern {
+        padding: 8px 20px;
+        border-radius: 25px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .badge-level {
+        background: linear-gradient(45deg, #4facfe, #00f2fe);
+        color: white;
+    }
+    
+    .badge-points {
+        background: linear-gradient(45deg, #43e97b, #38f9d7);
+        color: white;
+    }
+    
+    .badge-category {
+        background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+        color: white;
+    }
+    
+    .game-stats {
+        display: flex;
+        justify-content: space-around;
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border-radius: 15px;
+        padding: 20px;
+        margin: 20px 0;
+        border: 2px solid #667eea;
+    }
+    
+    .stat-item {
+        text-align: center;
+        flex: 1;
+    }
+    
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        display: block;
+        line-height: 1;
+    }
+    
+    .stat-value.question {
+        color: #667eea;
+    }
+    
+    .stat-value.correct {
+        color: #28a745;
+    }
+    
+    .stat-value.score {
+        color: #43e97b;
+    }
+    
+    .stat-label {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-top: 5px;
+        font-weight: 500;
+    }
+    
+    .category-selector {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+        margin: 30px 0;
+    }
+    
+    .category-btn {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        color: white;
+        border: none;
+        border-radius: 25px;
+        padding: 10px 20px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-transform: capitalize;
+    }
+    
+    .category-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    }
+    
+    .category-btn.active {
+        background: linear-gradient(45deg, #43e97b, #38f9d7);
+        transform: scale(1.05);
+    }
+    
+    .question-container {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border: 3px solid #667eea;
+        border-radius: 20px;
+        padding: 30px;
+        margin: 30px 0;
+        min-height: 200px;
+        display: none;
+    }
+    
+    .question-container.active {
+        display: block;
+        animation: questionAppear 0.6s ease-out;
+    }
+    
+    @keyframes questionAppear {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+    }
+    
+    .question-number {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        color: white;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        margin-bottom: 20px;
+    }
+    
+    .question-text {
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 30px;
+        line-height: 1.5;
+    }
+    
+    .options-container {
+        display: grid;
+        gap: 15px;
+        margin: 30px 0;
+    }
+    
+    .option-btn {
+        background: white;
+        border: 2px solid #667eea;
+        border-radius: 15px;
+        padding: 20px;
+        font-size: 1.1rem;
+        font-weight: 500;
+        color: #2c3e50;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: left;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .option-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(45deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+        transition: left 0.5s ease;
+    }
+    
+    .option-btn:hover::before {
+        left: 100%;
+    }
+    
+    .option-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.2);
+        border-color: #43e97b;
+    }
+    
+    .option-btn.correct {
+        background: linear-gradient(135deg, #d4edda, #c3e6cb);
+        border-color: #28a745;
+        color: #155724;
+        animation: correctAnswer 0.6s ease;
+    }
+    
+    .option-btn.incorrect {
+        background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+        border-color: #dc3545;
+        color: #721c24;
+        animation: incorrectAnswer 0.6s ease;
+    }
+    
+    .option-btn.disabled {
+        pointer-events: none;
+        opacity: 0.7;
+    }
+    
+    @keyframes correctAnswer {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.02); }
+    }
+    
+    @keyframes incorrectAnswer {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
+    
+    .option-letter {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+        background: #667eea;
+        color: white;
+        border-radius: 50%;
+        font-weight: 700;
+        margin-right: 15px;
+        flex-shrink: 0;
+    }
+    
+    .explanation-panel {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        padding: 20px;
+        border-radius: 15px;
+        margin: 20px 0;
+        display: none;
+        animation: explanationSlide 0.5s ease-out;
+    }
+    
+    @keyframes explanationSlide {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .explanation-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .timer-display {
+        position: fixed;
+        top: 100px;
+        right: 30px;
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        color: white;
+        border-radius: 50px;
+        padding: 15px 25px;
+        font-size: 1.2rem;
+        font-weight: 700;
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        z-index: 1000;
+        transition: all 0.3s ease;
+    }
+    
+    .timer-display.warning {
+        background: linear-gradient(45deg, #ffc107, #fd7e14);
+        animation: timerWarning 1s infinite;
+    }
+    
+    .timer-display.danger {
+        background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+        animation: timerDanger 0.5s infinite;
+    }
+    
+    @keyframes timerWarning {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+    
+    @keyframes timerDanger {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+    }
+    
+    .progress-bar {
+        background: #e9ecef;
+        border-radius: 25px;
+        height: 15px;
+        margin: 20px 0;
+        overflow: hidden;
+    }
+    
+    .progress-fill {
+        background: linear-gradient(45deg, #43e97b, #38f9d7);
+        height: 100%;
+        border-radius: 25px;
+        transition: width 0.5s ease;
+        position: relative;
+    }
+    
+    .progress-fill::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+        animation: progressShimmer 2s infinite;
+    }
+    
+    @keyframes progressShimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+    
+    .game-complete {
+        background: linear-gradient(135deg, #43e97b, #38f9d7);
+        color: white;
+        border-radius: 20px;
+        padding: 40px;
+        text-align: center;
+        margin: 30px 0;
+        display: none;
+        animation: celebration 1s ease;
+    }
+    
+    @keyframes celebration {
+        0% { transform: scale(0.8); opacity: 0; }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    
+    .final-score {
+        font-size: 3rem;
+        font-weight: 700;
+        margin: 20px 0;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    .performance-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 20px;
+        margin: 30px 0;
+    }
+    
+    .performance-item {
+        background: rgba(255,255,255,0.2);
+        border-radius: 15px;
+        padding: 20px;
+        text-align: center;
+    }
+    
+    .performance-value {
+        font-size: 2rem;
+        font-weight: 700;
+        display: block;
+    }
+    
+    .performance-label {
+        font-size: 0.9rem;
+        margin-top: 5px;
+        opacity: 0.9;
+    }
+    
+    .action-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin-top: 30px;
+    }
+    
+    .btn-modern {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        color: white;
+        border: none;
+        border-radius: 50px;
+        padding: 15px 35px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+    }
+    
+    .btn-modern:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .btn-secondary {
+        background: linear-gradient(45deg, #6c757d, #495057);
+    }
+    
+    .btn-secondary:hover {
+        box-shadow: 0 10px 25px rgba(108, 117, 125, 0.4);
+    }
+    
+    .btn-success {
+        background: linear-gradient(45deg, #28a745, #20c997);
+    }
+    
+    .btn-success:hover {
+        box-shadow: 0 10px 25px rgba(40, 167, 69, 0.4);
+    }
+    
+    .btn-large {
+        padding: 20px 40px;
+        font-size: 1.3rem;
+    }
+    
+    .feedback-message {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        border-radius: 15px;
+        padding: 20px 30px;
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #2c3e50;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        z-index: 2000;
+        display: none;
+        animation: fadeInOut 2s ease;
+    }
+    
+    @keyframes fadeInOut {
+        0%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+        10%, 90% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    }
+    
+    .feedback-message.correct {
+        border-left: 5px solid #28a745;
+        color: #28a745;
+    }
+    
+    .feedback-message.incorrect {
+        border-left: 5px solid #dc3545;
+        color: #dc3545;
+    }
+    
+    @media (max-width: 768px) {
+        .trivia-container {
+            margin: 10px;
+            padding: 20px;
+        }
+        
+        .category-selector {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .category-btn {
+            font-size: 0.9rem;
+            padding: 8px 15px;
+        }
+        
+        .question-text {
+            font-size: 1.2rem;
+        }
+        
+        .option-btn {
+            padding: 15px;
+            font-size: 1rem;
+        }
+        
+        .timer-display {
+            position: relative;
+            top: auto;
+            right: auto;
+            margin: 20px auto;
+            display: table;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .btn-modern {
+            width: 100%;
+            max-width: 300px;
+            justify-content: center;
+        }
+        
+        .game-stats {
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .stat-item {
+            min-width: 120px;
+        }
+        
+        .performance-summary {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="trivia-workspace">
+    <div class="trivia-container">
+        <!-- Header del Juego -->
+        <div class="game-header">
+            <h1 class="game-title">
+                <i class="fas fa-question-circle"></i>
+                Trivia Educativa
+            </h1>
+            <p class="game-subtitle">Pon a prueba tus conocimientos del español</p>
+            <div class="game-badges">
+                <span class="badge-modern badge-level">
+                    <i class="fas fa-layer-group"></i>
+                    Nivel {{ user.nivel_lectura if user else 1 }}
+                </span>
+                <span class="badge-modern badge-points">
+                    <i class="fas fa-coins"></i>
+                    <span id="maxPoints">30</span> puntos por pregunta
+                </span>
+                <span class="badge-modern badge-category" id="currentCategory">
+                    <i class="fas fa-tag"></i>
+                    Selecciona una categoría
+                </span>
+            </div>
+        </div>
+
+        <!-- Timer -->
+        <div class="timer-display" id="timerDisplay">
+            <i class="fas fa-clock"></i>
+            <span id="timerMinutes">03</span>:<span id="timerSeconds">00</span>
+        </div>
+
+        <!-- Estadísticas del Juego -->
+        <div class="game-stats">
+            <div class="stat-item">
+                <span class="stat-value question" id="currentQuestion">0/10</span>
+                <div class="stat-label">Pregunta</div>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value correct" id="correctAnswers">0</span>
+                <div class="stat-label">Correctas</div>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value score" id="currentScore">0</span>
+                <div class="stat-label">Puntos</div>
+            </div>
+        </div>
+
+        <!-- Selector de Categorías -->
+        <div class="category-selector" id="categorySelector">
+            <button class="category-btn" onclick="selectCategory('gramática')">
+                <i class="fas fa-book-open"></i> Gramática
+            </button>
+            <button class="category-btn" onclick="selectCategory('vocabulario')">
+                <i class="fas fa-spell-check"></i> Vocabulario
+            </button>
+            <button class="category-btn" onclick="selectCategory('cultura')">
+                <i class="fas fa-globe"></i> Cultura
+            </button>
+            <button class="category-btn" onclick="selectCategory('literatura')">
+                <i class="fas fa-feather-alt"></i> Literatura
+            </button>
+            <button class="category-btn" onclick="selectCategory('mixta')">
+                <i class="fas fa-random"></i> Mixta
+            </button>
+        </div>
+
+        <!-- Barra de Progreso -->
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+
+        <!-- Contenedor de Preguntas -->
+        <div class="question-container" id="questionContainer">
+            <div class="question-number" id="questionNumber">1</div>
+            <div class="question-text" id="questionText">
+                Selecciona una categoría para comenzar el quiz
+            </div>
+            <div class="options-container" id="optionsContainer">
+                <!-- Las opciones se generan dinámicamente -->
+            </div>
+        </div>
+
+        <!-- Panel de Explicación -->
+        <div class="explanation-panel" id="explanationPanel">
+            <h4 class="explanation-title">
+                <i class="fas fa-lightbulb"></i>
+                Explicación
+            </h4>
+            <p class="explanation-text" id="explanationText"></p>
+        </div>
+
+        <!-- Panel de Juego Completado -->
+        <div class="game-complete" id="gameComplete">
+            <h2><i class="fas fa-trophy"></i> ¡Quiz Completado!</h2>
+            <div class="final-score" id="finalScore">0</div>
+            
+            <div class="performance-summary">
+                <div class="performance-item">
+                    <span class="performance-value" id="finalCorrect">0</span>
+                    <div class="performance-label">Correctas</div>
+                </div>
+                <div class="performance-item">
+                    <span class="performance-value" id="finalAccuracy">0%</span>
+                    <div class="performance-label">Precisión</div>
+                </div>
+                <div class="performance-item">
+                    <span class="performance-value" id="finalTime">0:00</span>
+                    <div class="performance-label">Tiempo</div>
+                </div>
+                <div class="performance-item">
+                    <span class="performance-value" id="finalLevel">⭐</span>
+                    <div class="performance-label">Nivel</div>
+                </div>
+            </div>
+            
+            <p class="end-message" id="endMessage">¡Excelente trabajo!</p>
+            
+            <div class="action-buttons">
+                <button class="btn-modern btn-success" onclick="playAgain()">
+                    <i class="fas fa-redo"></i>
+                    Jugar de Nuevo
+                </button>
+                <a href="{{ url_for('ejercicios') }}" class="btn-modern">
+                    <i class="fas fa-gamepad"></i>
+                    Más Ejercicios
+                </a>
+            </div>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="action-buttons" id="gameButtons">
+            <button class="btn-modern btn-large btn-success" onclick="startQuiz()" id="startBtn">
+                <i class="fas fa-play"></i>
+                Comenzar Quiz
+            </button>
+            <button class="btn-modern btn-secondary" onclick="skipQuestion()" id="skipBtn" style="display: none;">
+                <i class="fas fa-forward"></i>
+                Saltar Pregunta
+            </button>
+            <a href="{{ url_for('ejercicios') }}" class="btn-modern btn-secondary">
+                <i class="fas fa-arrow-left"></i>
+                Volver a Ejercicios
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Mensaje de Retroalimentación -->
+<div class="feedback-message" id="feedbackMessage"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Configuración del juego
+const gameConfig = {
+    level: {{ user.nivel_lectura if user else 1 }},
+    timeLimit: 180, // 3 minutos
+    questionsPerQuiz: 10,
+    pointsPerQuestion: 30,
+    skipPenalty: 10
+};
+
+// Base de preguntas por categoría (desde el módulo de juegos interactivos)
+const questionsByCategory = {
+    gramática: [
+        {
+            pregunta: "¿Cuál es el plural de 'lápiz'?",
+            opciones: ["lápizs", "lápices", "lápizes", "lapices"],
+            respuesta: 1,
+            explicacion: "El plural de 'lápiz' es 'lápices', siguiendo la regla de palabras agudas terminadas en 'z'"
+        },
+        {
+            pregunta: "¿Qué tipo de palabra es 'rápidamente'?",
+            opciones: ["sustantivo", "adjetivo", "adverbio", "verbo"],
+            respuesta: 2,
+            explicacion: "'Rápidamente' es un adverbio de modo, indica cómo se realiza la acción"
+        },
+        {
+            pregunta: "¿Cuál es el femenino de 'actor'?",
+            opciones: ["actora", "actriz", "actresa", "actriz femenina"],
+            respuesta: 1,
+            explicacion: "El femenino de 'actor' es 'actriz', que es una forma irregular"
+        },
+        {
+            pregunta: "¿Qué tiempo verbal es 'habíamos comido'?",
+            opciones: ["presente", "pretérito perfecto", "pluscuamperfecto", "futuro"],
+            respuesta: 2,
+            explicacion: "'Habíamos comido' es pretérito pluscuamperfecto, indica una acción anterior a otra en el pasado"
+        },
+        {
+            pregunta: "¿Cuál es el superlativo de 'bueno'?",
+            opciones: ["más bueno", "mejor", "buenísimo", "muy bueno"],
+            respuesta: 2,
+            explicacion: "'Buenísimo' es el superlativo absoluto de 'bueno'"
+        }
+    ],
+    vocabulario: [
+        {
+            pregunta: "¿Qué significa la palabra 'perspicaz'?",
+            opciones: ["Confuso", "Inteligente y astuto", "Transparente", "Perezoso"],
+            respuesta: 1,
+            explicacion: "Perspicaz significa tener agudeza mental, ser astuto e inteligente"
+        },
+        {
+            pregunta: "¿Cuál es el sinónimo de 'efímero'?",
+            opciones: ["Eterno", "Temporal", "Sólido", "Permanente"],
+            respuesta: 1,
+            explicacion: "Efímero significa que dura poco tiempo, por lo tanto temporal es su sinónimo"
+        },
+        {
+            pregunta: "¿Qué significa 'magnánimo'?",
+            opciones: ["Egoísta", "Generoso y noble", "Pequeño", "Enfadado"],
+            respuesta: 1,
+            explicacion: "Magnánimo describe a una persona generosa, noble y de gran corazón"
+        },
+        {
+            pregunta: "¿Cuál es el antónimo de 'frugal'?",
+            opciones: ["Moderado", "Austero", "Derrochador", "Simple"],
+            respuesta: 2,
+            explicacion: "Frugal significa moderado y simple, por lo que derrochador es su antónimo"
+        },
+        {
+            pregunta: "¿Qué significa 'diáfano'?",
+            opciones: ["Opaco", "Claro y transparente", "Confuso", "Oscuro"],
+            respuesta: 1,
+            explicacion: "Diáfano significa claro, transparente, que se puede ver a través"
+        }
+    ],
+    cultura: [
+        {
+            pregunta: "¿Cuál es la capital de Argentina?",
+            opciones: ["Córdoba", "Buenos Aires", "Rosario", "Mendoza"],
+            respuesta: 1,
+            explicacion: "Buenos Aires es la capital y ciudad más poblada de Argentina"
+        },
+        {
+            pregunta: "¿En qué año se independizó México?",
+            opciones: ["1810", "1821", "1824", "1815"],
+            respuesta: 1,
+            explicacion: "México obtuvo su independencia de España en 1821"
+        },
+        {
+            pregunta: "¿Cuál es el país más pequeño de América del Sur?",
+            opciones: ["Uruguay", "Paraguay", "Surinam", "Guyana"],
+            respuesta: 2,
+            explicacion: "Surinam es el país más pequeño de América del Sur"
+        },
+        {
+            pregunta: "¿Qué país tiene más hablantes nativos de español?",
+            opciones: ["España", "Argentina", "México", "Colombia"],
+            respuesta: 2,
+            explicacion: "México tiene la mayor población de hablantes nativos de español en el mundo"
+        },
+        {
+            pregunta: "¿Cuál es la moneda de Perú?",
+            opciones: ["Peso", "Bolívar", "Sol", "Quetzal"],
+            respuesta: 2,
+            explicacion: "El sol es la moneda oficial de Perú"
+        }
+    ],
+    literatura: [
+        {
+            pregunta: "¿Quién escribió 'Don Quijote de la Mancha'?",
+            opciones: ["Lope de Vega", "Miguel de Cervantes", "Calderón de la Barca", "Francisco de Quevedo"],
+            respuesta: 1,
+        {
+            pregunta: "¿Quién escribió 'Don Quijote de la Mancha'?",
+            opciones: ["Lope de Vega", "Miguel de Cervantes", "Calderón de la Barca", "Francisco de Quevedo"],
+            respuesta: 1,
+            explicacion: "Miguel de Cervantes escribió esta obra maestra de la literatura española en 1605"
+        },
+        {
+            pregunta: "¿Cuál es la obra más famosa de Federico García Lorca?",
+            opciones: ["Bodas de sangre", "La casa de Bernarda Alba", "Yerma", "Romancero gitano"],
+            respuesta: 3,
+            explicacion: "Romancero gitano es considerada la obra más popular y conocida de García Lorca"
+        },
+        {
+            pregunta: "¿Quién escribió 'Cien años de soledad'?",
+            opciones: ["Mario Vargas Llosa", "Gabriel García Márquez", "Jorge Luis Borges", "Octavio Paz"],
+            respuesta: 1,
+            explicacion: "Gabriel García Márquez escribió esta obra maestra del realismo mágico"
+        },
+        {
+            pregunta: "¿En qué siglo vivió Miguel de Cervantes?",
+            opciones: ["XV", "XVI", "XVII", "XVIII"],
+            respuesta: 2,
+            explicacion: "Miguel de Cervantes vivió entre los siglos XVI y XVII (1547-1616)"
+        },
+        {
+            pregunta: "¿Cuál es el movimiento literario de 'La Celestina'?",
+            opciones: ["Barroco", "Renacimiento", "Romanticismo", "Realismo"],
+            respuesta: 1,
+            explicacion: "'La Celestina' pertenece al Renacimiento español, escrita por Fernando de Rojas"
+        }
+    ]
+};
+
+// Variables del juego
+let gameState = {
+    selectedCategory: null,
+    currentQuestions: [],
+    currentQuestionIndex: 0,
+    correctAnswers: 0,
+    totalQuestions: gameConfig.questionsPerQuiz,
+    score: 0,
+    timeLeft: gameConfig.timeLimit,
+    gameActive: false,
+    answered: false
+};
+
+let timerInterval = null;
+let gameStartTime = null;
+
+// Inicializar juego
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🧠 Inicializando trivia educativa');
+    initializeGame();
+});
+
+function initializeGame() {
+    updateMaxPoints();
+    resetTimer();
+    updateStats();
+    
+    console.log(`✅ Trivia inicializada - Nivel ${gameConfig.level}`);
+}
+
+function updateMaxPoints() {
+    const level = gameConfig.level;
+    const pointsPerQuestion = gameConfig.pointsPerQuestion + (level * 5);
+    gameConfig.pointsPerQuestion = pointsPerQuestion;
+    document.getElementById('maxPoints').textContent = pointsPerQuestion;
+}
+
+function selectCategory(category) {
+    gameState.selectedCategory = category;
+    
+    // Actualizar UI
+    const categoryButtons = document.querySelectorAll('.category-btn');
+    categoryButtons.forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    // Actualizar badge de categoría
+    const categoryNames = {
+        'gramática': 'Gramática',
+        'vocabulario': 'Vocabulario', 
+        'cultura': 'Cultura',
+        'literatura': 'Literatura',
+        'mixta': 'Mixta'
+    };
+    
+    document.getElementById('currentCategory').innerHTML = 
+        `<i class="fas fa-tag"></i> ${categoryNames[category]}`;
+    
+    // Habilitar botón de inicio
+    document.getElementById('startBtn').disabled = false;
+    document.getElementById('startBtn').style.opacity = '1';
+    
+    console.log(`📚 Categoría seleccionada: ${category}`);
+}
+
+function startQuiz() {
+    if (!gameState.selectedCategory) {
+        showFeedback('incorrect', 'Selecciona una categoría primero');
+        return;
+    }
+    
+    // Preparar preguntas
+    prepareQuestions();
+    
+    // Reiniciar estado
+    gameState.currentQuestionIndex = 0;
+    gameState.correctAnswers = 0;
+    gameState.score = 0;
+    gameState.timeLeft = gameConfig.timeLimit;
+    gameState.gameActive = true;
+    gameState.answered = false;
+    
+    // Actualizar UI
+    document.getElementById('categorySelector').style.display = 'none';
+    document.getElementById('startBtn').style.display = 'none';
+    document.getElementById('skipBtn').style.display = 'inline-flex';
+    document.getElementById('questionContainer').classList.add('active');
+    
+    // Mostrar primera pregunta
+    showQuestion();
+    
+    // Iniciar timer
+    gameStartTime = Date.now();
+    startTimer();
+    
+    console.log('🎮 Quiz iniciado');
+}
+
+function prepareQuestions() {
+    let allQuestions = [];
+    
+    if (gameState.selectedCategory === 'mixta') {
+        // Mezclar preguntas de todas las categorías
+        Object.values(questionsByCategory).forEach(categoryQuestions => {
+            allQuestions = allQuestions.concat(categoryQuestions);
+        });
+    } else {
+        allQuestions = questionsByCategory[gameState.selectedCategory] || [];
+    }
+    
+    // Seleccionar preguntas aleatorias
+    gameState.currentQuestions = [];
+    const questionsNeeded = Math.min(gameConfig.questionsPerQuiz, allQuestions.length);
+    
+    for (let i = 0; i < questionsNeeded; i++) {
+        const randomIndex = Math.floor(Math.random() * allQuestions.length);
+        gameState.currentQuestions.push(allQuestions[randomIndex]);
+        allQuestions.splice(randomIndex, 1); // Evitar duplicados
+    }
+    
+    gameState.totalQuestions = gameState.currentQuestions.length;
+}
+
+function showQuestion() {
+    if (gameState.currentQuestionIndex >= gameState.totalQuestions) {
+        endQuiz();
+        return;
+    }
+    
+    const question = gameState.currentQuestions[gameState.currentQuestionIndex];
+    gameState.answered = false;
+    
+    // Actualizar número de pregunta
+    document.getElementById('questionNumber').textContent = gameState.currentQuestionIndex + 1;
+    document.getElementById('questionText').textContent = question.pregunta;
+    
+    // Crear opciones
+    const container = document.getElementById('optionsContainer');
+    container.innerHTML = '';
+    
+    const letters = ['A', 'B', 'C', 'D'];
+    question.opciones.forEach((option, index) => {
+        const button = document.createElement('button');
+        button.className = 'option-btn';
+        button.onclick = () => selectAnswer(index);
+        button.innerHTML = `
+            <span class="option-letter">${letters[index]}</span>
+            ${option}
+        `;
+        container.appendChild(button);
+    });
+    
+    // Ocultar explicación
+    document.getElementById('explanationPanel').style.display = 'none';
+    
+    // Actualizar estadísticas
+    updateStats();
+    
+    console.log(`❓ Pregunta ${gameState.currentQuestionIndex + 1}: ${question.pregunta}`);
+}
+
+function selectAnswer(selectedIndex) {
+    if (gameState.answered || !gameState.gameActive) return;
+    
+    gameState.answered = true;
+    const question = gameState.currentQuestions[gameState.currentQuestionIndex];
+    const isCorrect = selectedIndex === question.respuesta;
+    
+    // Actualizar UI de opciones
+    const options = document.querySelectorAll('.option-btn');
+    options.forEach((option, index) => {
+        option.classList.add('disabled');
+        if (index === question.respuesta) {
+            option.classList.add('correct');
+        } else if (index === selectedIndex && !isCorrect) {
+            option.classList.add('incorrect');
+        }
+    });
+    
+    // Calcular puntos
+    if (isCorrect) {
+        gameState.correctAnswers++;
+        const timeBonus = gameState.timeLeft > gameConfig.timeLimit * 0.7 ? 5 : 0;
+        const points = gameConfig.pointsPerQuestion + timeBonus;
+        gameState.score += points;
+        
+        showFeedback('correct', `¡Correcto! +${points} puntos`);
+    } else {
+        showFeedback('incorrect', 'Respuesta incorrecta');
+    }
+    
+    // Mostrar explicación
+    document.getElementById('explanationText').textContent = question.explicacion;
+    document.getElementById('explanationPanel').style.display = 'block';
+    
+    // Continuar automáticamente después de 3 segundos
+    setTimeout(() => {
+        nextQuestion();
+    }, 3000);
+    
+    updateStats();
+}
+
+function skipQuestion() {
+    if (!gameState.gameActive || gameState.answered) return;
+    
+    // Aplicar penalización
+    gameState.score = Math.max(0, gameState.score - gameConfig.skipPenalty);
+    
+    showFeedback('incorrect', `Pregunta saltada (-${gameConfig.skipPenalty} puntos)`);
+    
+    setTimeout(() => {
+        nextQuestion();
+    }, 1500);
+}
+
+function nextQuestion() {
+    gameState.currentQuestionIndex++;
+    
+    if (gameState.currentQuestionIndex >= gameState.totalQuestions) {
+        endQuiz();
+    } else {
+        showQuestion();
+    }
+}
+
+function endQuiz() {
+    gameState.gameActive = false;
+    clearInterval(timerInterval);
+    
+    // Calcular estadísticas finales
+    const accuracy = Math.round((gameState.correctAnswers / gameState.totalQuestions) * 100);
+    const timeTaken = gameConfig.timeLimit - gameState.timeLeft;
+    const timeBonus = Math.floor(gameState.timeLeft * 0.2);
+    const finalScore = gameState.score + timeBonus;
+    
+    // Determinar nivel de rendimiento
+    let performanceLevel = '⭐';
+    if (accuracy >= 90) performanceLevel = '🏆';
+    else if (accuracy >= 80) performanceLevel = '🥇';
+    else if (accuracy >= 70) performanceLevel = '🥈';
+    else if (accuracy >= 60) performanceLevel = '🥉';
+    
+    // Actualizar UI de resultados
+    document.getElementById('finalScore').textContent = finalScore;
+    document.getElementById('finalCorrect').textContent = gameState.correctAnswers;
+    document.getElementById('finalAccuracy').textContent = accuracy + '%';
+    document.getElementById('finalTime').textContent = formatTime(timeTaken);
+    document.getElementById('finalLevel').textContent = performanceLevel;
+    
+    // Mensaje personalizado
+    let message = '';
+    if (accuracy >= 90) message = '¡Excepcional! Dominas perfectamente el tema';
+    else if (accuracy >= 80) message = '¡Muy bien! Tienes un conocimiento sólido';
+    else if (accuracy >= 70) message = '¡Buen trabajo! Sigue practicando';
+    else if (accuracy >= 60) message = 'Bien, pero hay espacio para mejorar';
+    else message = 'Sigue estudiando, ¡puedes hacerlo mejor!';
+    
+    document.getElementById('endMessage').textContent = message;
+    
+    // Mostrar panel de resultados
+    document.getElementById('questionContainer').style.display = 'none';
+    document.getElementById('explanationPanel').style.display = 'none';
+    document.getElementById('gameButtons').style.display = 'none';
+    document.getElementById('gameComplete').style.display = 'block';
+    
+    // Enviar resultados
+    submitQuizResults(finalScore, accuracy, timeTaken);
+    
+    console.log('🎉 Quiz completado');
+}
+
+function startTimer() {
+    timerInterval = setInterval(() => {
+        gameState.timeLeft--;
+        updateTimerDisplay();
+        
+        if (gameState.timeLeft <= 0) {
+            endQuiz();
+        }
+    }, 1000);
+}
+
+function resetTimer() {
+    gameState.timeLeft = gameConfig.timeLimit;
+    updateTimerDisplay();
+}
+
+function updateTimerDisplay() {
+    const minutes = Math.floor(gameState.timeLeft / 60);
+    const seconds = gameState.timeLeft % 60;
+    
+    document.getElementById('timerMinutes').textContent = minutes.toString().padStart(2, '0');
+    document.getElementById('timerSeconds').textContent = seconds.toString().padStart(2, '0');
+    
+    const timerDisplay = document.getElementById('timerDisplay');
+    
+    // Cambiar color según tiempo restante
+    if (gameState.timeLeft <= 30) {
+        timerDisplay.classList.add('danger');
+        timerDisplay.classList.remove('warning');
+    } else if (gameState.timeLeft <= 60) {
+        timerDisplay.classList.add('warning');
+        timerDisplay.classList.remove('danger');
+    } else {
+        timerDisplay.classList.remove('warning', 'danger');
+    }
+}
+
+function updateStats() {
+    document.getElementById('currentQuestion').textContent = 
+        `${gameState.currentQuestionIndex + (gameState.gameActive ? 1 : 0)}/${gameState.totalQuestions}`;
+    document.getElementById('correctAnswers').textContent = gameState.correctAnswers;
+    document.getElementById('currentScore').textContent = gameState.score;
+    
+    // Actualizar barra de progreso
+    const progress = ((gameState.currentQuestionIndex) / gameState.totalQuestions) * 100;
+    document.getElementById('progressFill').style.width = progress + '%';
+}
+
+function showFeedback(type, message) {
+    const feedbackElement = document.getElementById('feedbackMessage');
+    feedbackElement.className = `feedback-message ${type}`;
+    feedbackElement.textContent = message;
+    feedbackElement.style.display = 'block';
+    
+    setTimeout(() => {
+        feedbackElement.style.display = 'none';
+    }, 2000);
+}
+
+function formatTime(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
+function playAgain() {
+    // Reiniciar juego
+    gameState = {
+        selectedCategory: null,
+        currentQuestions: [],
+        currentQuestionIndex: 0,
+        correctAnswers: 0,
+        totalQuestions: gameConfig.questionsPerQuiz,
+        score: 0,
+        timeLeft: gameConfig.timeLimit,
+        gameActive: false,
+        answered: false
+    };
+    
+    // Resetear UI
+    document.getElementById('categorySelector').style.display = 'flex';
+    document.getElementById('startBtn').style.display = 'inline-flex';
+    document.getElementById('startBtn').disabled = true;
+    document.getElementById('startBtn').style.opacity = '0.6';
+    document.getElementById('skipBtn').style.display = 'none';
+    document.getElementById('questionContainer').classList.remove('active');
+    document.getElementById('gameComplete').style.display = 'none';
+    document.getElementById('gameButtons').style.display = 'flex';
+    document.getElementById('currentCategory').innerHTML = 
+        '<i class="fas fa-tag"></i> Selecciona una categoría';
+    
+    // Limpiar selección de categoría
+    document.querySelectorAll('.category-btn').forEach(btn => 
+        btn.classList.remove('active'));
+    
+    // Reiniciar timer
+    resetTimer();
+    updateStats();
+    
+    console.log('🔄 Juego reiniciado');
+}
+
+function submitQuizResults(finalScore, accuracy, timeTaken) {
+    const quizData = {
+        exercise_type: 'trivia',
+        category: gameState.selectedCategory,
+        level: gameConfig.level,
+        score: finalScore,
+        correct_answers: gameState.correctAnswers,
+        total_questions: gameState.totalQuestions,
+        accuracy: accuracy,
+        time_taken: timeTaken,
+        completed: true
+    };
+    
+    fetch('/api/exercise/submit', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(quizData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('✅ Resultados enviados correctamente');
+        } else {
+            console.error('❌ Error enviando resultados:', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('❌ Error de conexión:', error);
+    });
+}
+
+// Atajos de teclado
+document.addEventListener('keydown', function(event) {
+    if (!gameState.gameActive || gameState.answered) return;
+    
+    const key = event.key.toLowerCase();
+    const keyMap = {'a': 0, 'b': 1, 'c': 2, 'd': 3};
+    
+    if (keyMap.hasOwnProperty(key)) {
+        event.preventDefault();
+        selectAnswer(keyMap[key]);
+    } else if (event.code === 'Space') {
+        event.preventDefault();
+        skipQuestion();
+    }
+});
+
+// Limpiar recursos al salir
+window.addEventListener('beforeunload', function() {
+    if (timerInterval) {
+        clearInterval(timerInterval);
+    }
+});
+</script>
+{% endblock %}</title>
+</head>
+<body>
+
+</body>
+</html>

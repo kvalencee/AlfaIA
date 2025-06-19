@@ -1,1180 +1,1137 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ejercicio de Lectura - AlfaIA</title>
+{% extends "base.html" %}
 
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+{% block title %}Ejercicios de Lectura - AlfaIA{% endblock %}
 
-    <style>
-        :root {
-            --primary: #667eea;
-            --primary-dark: #5a67d8;
-            --secondary: #764ba2;
-            --success: #48bb78;
-            --warning: #ed8936;
-            --danger: #f56565;
-            --info: #4299e1;
-            --light: #f7fafc;
-            --dark: #2d3748;
-            --border-radius: 12px;
-            --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+{% block extra_css %}
+<style>
+    .exercise-container {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 2rem 0;
+        margin: -2rem -1.5rem 2rem;
+    }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+    .exercise-header {
+        text-align: center;
+        color: white;
+        margin-bottom: 2rem;
+    }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: var(--dark);
-        }
+    .exercise-title {
+        font-family: 'Poppins', sans-serif;
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
 
-        /* Header */
-        .exercise-header {
-            background: white;
-            border-radius: var(--border-radius);
-            padding: 2rem;
-            margin: 2rem 0;
-            box-shadow: var(--box-shadow);
-            text-align: center;
+    .exercise-subtitle {
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+
+    .reading-workspace {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+    }
+
+    .content-selector {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .content-card {
+        background: #f8fafc;
+        border: 2px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 1.5rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .content-card:hover {
+        border-color: var(--primary-color);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(37, 99, 235, 0.15);
+    }
+
+    .content-card.selected {
+        border-color: var(--primary-color);
+        background: linear-gradient(135deg, rgba(37, 99, 235, 0.1) 0%, rgba(37, 99, 235, 0.05) 100%);
+    }
+
+    .content-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary-color), var(--primary-dark));
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+    }
+
+    .content-card.selected::before {
+        transform: scaleX(1);
+    }
+
+    .content-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .difficulty-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .difficulty-facil {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .difficulty-medio {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .difficulty-dificil {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .content-title {
+        font-weight: 600;
+        color: var(--dark-color);
+        margin-bottom: 0.5rem;
+    }
+
+    .content-preview {
+        color: var(--secondary-color);
+        font-size: 0.9rem;
+        line-height: 1.5;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+    }
+
+    .reading-area {
+        background: white;
+        border: 2px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        min-height: 400px;
+        position: relative;
+    }
+
+    .reading-controls {
+        display: flex;
+        justify-content: between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .font-controls {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .font-size-control {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .font-btn {
+        background: var(--light-color);
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 0.5rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .font-btn:hover {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .timer-display {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 25px;
+        font-weight: 600;
+        font-family: 'Courier New', monospace;
+    }
+
+    .reading-text {
+        font-size: 1.1rem;
+        line-height: 1.8;
+        color: var(--dark-color);
+        text-align: justify;
+        margin-bottom: 2rem;
+    }
+
+    .reading-questions {
+        background: #f8fafc;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    .question-item {
+        background: white;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--primary-color);
+    }
+
+    .question-text {
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: var(--dark-color);
+    }
+
+    .answer-options {
+        display: grid;
+        gap: 0.75rem;
+    }
+
+    .answer-option {
+        background: white;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .answer-option:hover {
+        border-color: var(--primary-color);
+        background: rgba(37, 99, 235, 0.05);
+    }
+
+    .answer-option.selected {
+        border-color: var(--primary-color);
+        background: linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(37, 99, 235, 0.05));
+    }
+
+    .answer-option.correct {
+        border-color: var(--success-color);
+        background: rgba(22, 163, 74, 0.1);
+    }
+
+    .answer-option.incorrect {
+        border-color: var(--danger-color);
+        background: rgba(220, 38, 38, 0.1);
+    }
+
+    .option-letter {
+        background: var(--secondary-color);
+        color: white;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 0.9rem;
+        flex-shrink: 0;
+    }
+
+    .answer-option.selected .option-letter {
+        background: var(--primary-color);
+    }
+
+    .answer-option.correct .option-letter {
+        background: var(--success-color);
+    }
+
+    .answer-option.incorrect .option-letter {
+        background: var(--danger-color);
+    }
+
+    .exercise-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 2rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .btn-exercise {
+        padding: 0.875rem 2rem;
+        border-radius: 12px;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+        color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
+    }
+
+    .btn-secondary {
+        background: var(--secondary-color);
+        color: white;
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+        background: #475569;
+    }
+
+    .btn-success {
+        background: var(--success-color);
+        color: white;
+    }
+
+    .progress-bar {
+        background: #e2e8f0;
+        border-radius: 10px;
+        height: 8px;
+        overflow: hidden;
+        margin-bottom: 1rem;
+    }
+
+    .progress-fill {
+        background: linear-gradient(90deg, var(--primary-color), var(--primary-dark));
+        height: 100%;
+        transition: width 0.3s ease;
+        border-radius: 10px;
+    }
+
+    .stats-mini {
+        display: flex;
+        justify-content: space-around;
+        background: #f8fafc;
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .stat-item {
+        text-align: center;
+    }
+
+    .stat-value {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--primary-color);
+    }
+
+    .stat-label {
+        font-size: 0.8rem;
+        color: var(--secondary-color);
+        margin-top: 0.25rem;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: var(--secondary-color);
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    @media (max-width: 768px) {
+        .exercise-container {
+            margin: -2rem -1rem 2rem;
+            padding: 1.5rem 0;
         }
 
         .exercise-title {
-            color: var(--primary);
-            font-weight: 700;
-            margin-bottom: 0.5rem;
+            font-size: 2rem;
         }
 
-        .exercise-subtitle {
-            color: #718096;
-            font-size: 1.1rem;
+        .reading-workspace {
+            padding: 1.5rem;
         }
 
-        /* Controles superiores */
+        .content-selector {
+            grid-template-columns: 1fr;
+        }
+
         .reading-controls {
-            background: white;
-            border-radius: var(--border-radius);
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            box-shadow: var(--box-shadow);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 1rem;
+            flex-direction: column;
+            align-items: stretch;
         }
 
-        .control-group {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
+        .exercise-actions {
+            flex-direction: column;
         }
 
-        .level-badge {
-            background: linear-gradient(135deg, var(--success), #38a169);
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-
-        .timer-display {
-            background: var(--light);
-            padding: 0.75rem 1.25rem;
-            border-radius: var(--border-radius);
-            font-weight: 600;
-            color: var(--dark);
-            border: 2px solid #e2e8f0;
-        }
-
-        .text-controls button {
-            background: var(--light);
-            border: 2px solid #e2e8f0;
-            color: var(--dark);
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            margin: 0 0.25rem;
-            transition: var(--transition);
-        }
-
-        .text-controls button:hover {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-
-        /* Contenedor del texto */
-        .reading-container {
-            background: white;
-            border-radius: var(--border-radius);
-            padding: 2.5rem;
-            margin-bottom: 2rem;
-            box-shadow: var(--box-shadow);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .reading-container::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
-        }
-
-        .text-metadata {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 2px solid #f7fafc;
-        }
-
-        .text-title {
-            color: var(--primary);
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin: 0;
-        }
-
-        .text-info {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-            font-size: 0.9rem;
-            color: #718096;
-        }
-
-        .text-content {
-            font-size: 1.1rem;
-            line-height: 1.8;
-            color: var(--dark);
-            text-align: justify;
-            margin-bottom: 1.5rem;
-        }
-
-        .reading-progress {
+        .btn-exercise {
             width: 100%;
-            height: 6px;
-            background: #e2e8f0;
-            border-radius: 3px;
-            overflow: hidden;
-            margin-top: 1rem;
-        }
-
-        .progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, var(--success), #38a169);
-            border-radius: 3px;
-            transition: width 0.3s ease;
-            width: 0%;
-        }
-
-        /* Sección de preguntas */
-        .questions-container {
-            background: white;
-            border-radius: var(--border-radius);
-            padding: 2rem;
-            box-shadow: var(--box-shadow);
-            margin-bottom: 2rem;
-        }
-
-        .questions-header {
-            text-align: center;
-            margin-bottom: 2rem;
-            padding-bottom: 1rem;
-            border-bottom: 2px solid #f7fafc;
-        }
-
-        .questions-title {
-            color: var(--primary);
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-
-        .question-card {
-            background: #f7fafc;
-            border: 2px solid #e2e8f0;
-            border-radius: var(--border-radius);
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            transition: var(--transition);
-        }
-
-        .question-card:hover {
-            border-color: var(--primary);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
-        }
-
-        .question-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-
-        .question-number {
-            background: var(--primary);
-            color: white;
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
             justify-content: center;
-            font-weight: 600;
         }
+    }
+</style>
+{% endblock %}
 
-        .question-type {
-            background: var(--info);
-            color: white;
-            padding: 0.25rem 0.75rem;
-            border-radius: 15px;
-            font-size: 0.8rem;
-            font-weight: 500;
-        }
-
-        .question-text {
-            font-size: 1.1rem;
-            font-weight: 500;
-            color: var(--dark);
-            margin-bottom: 1rem;
-        }
-
-        .options-container {
-            display: grid;
-            gap: 0.75rem;
-        }
-
-        .option-item {
-            background: white;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 1rem;
-            cursor: pointer;
-            transition: var(--transition);
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .option-item:hover {
-            border-color: var(--primary);
-            background: #f0f4ff;
-        }
-
-        .option-item.selected {
-            border-color: var(--primary);
-            background: var(--primary);
-            color: white;
-        }
-
-        .option-letter {
-            background: #e2e8f0;
-            color: var(--dark);
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            font-size: 0.9rem;
-            transition: var(--transition);
-        }
-
-        .option-item.selected .option-letter {
-            background: white;
-            color: var(--primary);
-        }
-
-        /* Botones de acción */
-        .action-buttons {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            margin-top: 2rem;
-        }
-
-        .btn-custom {
-            padding: 0.75rem 2rem;
-            border-radius: 8px;
-            font-weight: 600;
-            text-decoration: none;
-            border: none;
-            cursor: pointer;
-            transition: var(--transition);
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .btn-primary-custom {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-        }
-
-        .btn-primary-custom:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-        }
-
-        .btn-secondary-custom {
-            background: white;
-            color: var(--primary);
-            border: 2px solid var(--primary);
-        }
-
-        .btn-secondary-custom:hover {
-            background: var(--primary);
-            color: white;
-        }
-
-        /* Resultados */
-        .results-container {
-            background: white;
-            border-radius: var(--border-radius);
-            padding: 2rem;
-            margin-top: 2rem;
-            box-shadow: var(--box-shadow);
-            text-align: center;
-            display: none;
-        }
-
-        .results-header {
-            margin-bottom: 2rem;
-        }
-
-        .final-score {
-            font-size: 3rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, var(--warning), #dd6b20);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin: 1rem 0;
-        }
-
-        .score-details {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin: 2rem 0;
-        }
-
-        .score-card {
-            background: #f7fafc;
-            padding: 1.5rem;
-            border-radius: var(--border-radius);
-            border: 2px solid #e2e8f0;
-        }
-
-        .score-value {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary);
-        }
-
-        .score-label {
-            color: #718096;
-            font-size: 0.9rem;
-            margin-top: 0.5rem;
-        }
-
-        /* Feedback */
-        .feedback-section {
-            background: #f0fff4;
-            border: 2px solid var(--success);
-            border-radius: var(--border-radius);
-            padding: 1.5rem;
-            margin: 1.5rem 0;
-        }
-
-        .feedback-title {
-            color: var(--success);
-            font-weight: 600;
-            margin-bottom: 1rem;
-        }
-
-        .recommendations {
-            background: #fef5e7;
-            border: 2px solid var(--warning);
-            border-radius: var(--border-radius);
-            padding: 1.5rem;
-            margin: 1.5rem 0;
-        }
-
-        .recommendations-title {
-            color: var(--warning);
-            font-weight: 600;
-            margin-bottom: 1rem;
-        }
-
-        .recommendation-list {
-            list-style: none;
-            padding: 0;
-        }
-
-        .recommendation-list li {
-            padding: 0.5rem 0;
-            border-bottom: 1px solid #f6e05e;
-            color: #744210;
-        }
-
-        .recommendation-list li:last-child {
-            border-bottom: none;
-        }
-
-        .recommendation-list li::before {
-            content: "💡";
-            margin-right: 0.5rem;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .reading-controls {
-                flex-direction: column;
-                align-items: stretch;
-                text-align: center;
-            }
-
-            .control-group {
-                justify-content: center;
-            }
-
-            .reading-container {
-                padding: 1.5rem;
-            }
-
-            .text-metadata {
-                flex-direction: column;
-                gap: 1rem;
-                text-align: center;
-            }
-
-            .score-details {
-                grid-template-columns: 1fr;
-            }
-
-            .action-buttons {
-                flex-direction: column;
-                align-items: center;
-            }
-        }
-
-        /* Estados de carga */
-        .loading-spinner {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid var(--primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .disabled {
-            opacity: 0.6;
-            pointer-events: none;
-        }
-    </style>
-</head>
-<body>
-    <div class="container my-4">
-        <!-- Header del ejercicio -->
+{% block content %}
+<!-- Header del Ejercicio -->
+<div class="exercise-container">
+    <div class="container">
         <div class="exercise-header">
             <h1 class="exercise-title">
-                <i class="fas fa-book-open me-2"></i>
-                {{ ejercicio.texto.titulo if ejercicio else 'Ejercicio de Lectura' }}
+                <i class="fas fa-book me-3"></i>Ejercicios de Lectura
             </h1>
             <p class="exercise-subtitle">
-                {{ ejercicio.instrucciones if ejercicio else 'Mejora tu comprensión lectora con este ejercicio personalizado' }}
+                Mejora tu comprensión lectora y velocidad de lectura
             </p>
         </div>
+    </div>
+</div>
 
-        <!-- Controles de lectura -->
+<!-- Workspace Principal -->
+<div class="reading-workspace">
+    <!-- Estadísticas Mini -->
+    <div class="stats-mini">
+        <div class="stat-item">
+            <div class="stat-value" id="sessionScore">0</div>
+            <div class="stat-label">Puntos</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value" id="sessionProgress">0%</div>
+            <div class="stat-label">Progreso</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value" id="sessionLevel">{{ user.nivel_lectura if user else 1 }}</div>
+            <div class="stat-label">Nivel</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value" id="totalCompleted">{{ user.ejercicios_completados if user else 0 }}</div>
+            <div class="stat-label">Completados</div>
+        </div>
+    </div>
+
+    <!-- Barra de Progreso -->
+    <div class="progress-bar">
+        <div class="progress-fill" id="progressBar" style="width: 0%"></div>
+    </div>
+
+    <!-- Selector de Contenido -->
+    <div id="contentSelector" class="content-selector">
+        {% if contenidos %}
+            {% for contenido in contenidos %}
+            <div class="content-card" data-content-id="{{ contenido.id }}" onclick="selectContent({{ contenido.id }})">
+                <div class="content-meta">
+                    <span class="difficulty-badge difficulty-{{ contenido.nivel_dificultad_texto or 'facil' }}">
+                        {% if contenido.nivel_dificultad_texto == 'facil' %}Fácil
+                        {% elif contenido.nivel_dificultad_texto == 'medio' %}Medio
+                        {% elif contenido.nivel_dificultad_texto == 'dificil' %}Difícil
+                        {% else %}Nivel {{ contenido.nivel_dificultad or 1 }}{% endif %}
+                    </span>
+                    <small class="text-muted">
+                        <i class="fas fa-clock me-1"></i>{{ contenido.tiempo_estimado_minutos or 5 }} min
+                    </small>
+                </div>
+                <h5 class="content-title">{{ contenido.titulo or 'Texto de Lectura' }}</h5>
+                <p class="content-preview">{{ contenido.contenido[:150] or 'Ejercicio de comprensión lectora...' }}{% if contenido.contenido|length > 150 %}...{% endif %}</p>
+            </div>
+            {% endfor %}
+        {% else %}
+            <!-- Contenidos de fallback si no hay BD -->
+            <div class="content-card" data-content-id="demo1" onclick="selectContent('demo1')">
+                <div class="content-meta">
+                    <span class="difficulty-badge difficulty-facil">Fácil</span>
+                    <small class="text-muted"><i class="fas fa-clock me-1"></i>3 min</small>
+                </div>
+                <h5 class="content-title">El Gato y el Ratón</h5>
+                <p class="content-preview">Una historia corta sobre la amistad entre animales que viven en el mismo jardín...</p>
+            </div>
+
+            <div class="content-card" data-content-id="demo2" onclick="selectContent('demo2')">
+                <div class="content-meta">
+                    <span class="difficulty-badge difficulty-medio">Medio</span>
+                    <small class="text-muted"><i class="fas fa-clock me-1"></i>5 min</small>
+                </div>
+                <h5 class="content-title">La Importancia del Agua</h5>
+                <p class="content-preview">Un texto informativo sobre el ciclo del agua y su importancia para la vida...</p>
+            </div>
+
+            <div class="content-card" data-content-id="demo3" onclick="selectContent('demo3')">
+                <div class="content-meta">
+                    <span class="difficulty-badge difficulty-dificil">Difícil</span>
+                    <small class="text-muted"><i class="fas fa-clock me-1"></i>8 min</small>
+                </div>
+                <h5 class="content-title">El Sistema Solar</h5>
+                <p class="content-preview">Exploración detallada de los planetas que conforman nuestro sistema solar...</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Área de Lectura -->
+    <div id="readingArea" class="reading-area" style="display: none;">
+        <!-- Controles de Lectura -->
         <div class="reading-controls">
-            <div class="control-group">
-                <div class="level-badge">
-                    <i class="fas fa-star me-1"></i>
-                    Nivel {{ ejercicio.nivel if ejercicio else 1 }}
-                </div>
-                <div class="level-badge" style="background: linear-gradient(135deg, var(--info), #3182ce);">
-                    <i class="fas fa-tag me-1"></i>
-                    {{ ejercicio.texto.categoria.title() if ejercicio else 'General' }}
-                </div>
-            </div>
-
-            <div class="control-group">
-                <div class="timer-display">
-                    <i class="fas fa-stopwatch me-2"></i>
-                    <span id="timer">00:00</span>
-                </div>
-                <div class="timer-display">
-                    <i class="fas fa-clock me-2"></i>
-                    Estimado: {{ ejercicio.tiempo_limite // 60 if ejercicio else 3 }}min
+            <div class="font-controls">
+                <div class="font-size-control">
+                    <span class="me-2">Tamaño:</span>
+                    <button class="font-btn" onclick="changeFontSize(-1)" title="Disminuir tamaño">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <span class="mx-2" id="fontSizeDisplay">1.1rem</span>
+                    <button class="font-btn" onclick="changeFontSize(1)" title="Aumentar tamaño">
+                        <i class="fas fa-plus"></i>
+                    </button>
                 </div>
             </div>
-
-            <div class="text-controls">
-                <button type="button" onclick="adjustTextSize(-1)" title="Reducir tamaño del texto">
-                    <i class="fas fa-minus"></i>
-                </button>
-                <button type="button" onclick="adjustTextSize(1)" title="Aumentar tamaño del texto">
-                    <i class="fas fa-plus"></i>
-                </button>
-                <button type="button" onclick="toggleHighlighting()" title="Resaltar párrafos" id="highlightBtn">
-                    <i class="fas fa-highlighter"></i>
-                </button>
+            
+            <div class="timer-display">
+                <i class="fas fa-stopwatch me-2"></i>
+                <span id="timerDisplay">00:00</span>
             </div>
         </div>
 
-        <!-- Contenedor del texto -->
-        <div class="reading-container">
-            <div class="text-metadata">
-                <h2 class="text-title">{{ ejercicio.texto.titulo if ejercicio else 'Título del texto' }}</h2>
-                <div class="text-info">
-                    <span><i class="fas fa-book me-1"></i>{{ ejercicio.texto.categoria.title() if ejercicio else 'Categoría' }}</span>
-                    <span><i class="fas fa-clock me-1"></i>{{ ejercicio.texto.tiempo_estimado // 60 if ejercicio else 2 }} min</span>
-                    <span><i class="fas fa-award me-1"></i>{{ ejercicio.puntos_totales if ejercicio else 50 }} puntos</span>
-                </div>
-            </div>
-
-            <div class="text-content" id="textContent">
-                {% if ejercicio and ejercicio.texto.contenido %}
-                    {{ ejercicio.texto.contenido|safe }}
-                {% else %}
-                    <p>María salió temprano hacia el parque. El sol brillaba intensamente y los pájaros cantaban en los árboles. Decidió sentarse en un banco cerca del lago para leer su libro favorito.</p>
-
-                    <p>Mientras leía, observó a los niños jugando alegremente cerca de la fuente. El aire fresco de la mañana y el sonido del agua la tranquilizaron profundamente. Era el lugar perfecto para disfrutar de una buena lectura.</p>
-
-                    <p>De repente, escuchó el sonido de una pelota que rodaba hacia ella. Un niño pequeño corrió detrás de ella, sonriendo tímidamente. María le devolvió la pelota y el niño le agradeció antes de volver a jugar con sus amigos.</p>
-                {% endif %}
-            </div>
-
-            <div class="reading-progress">
-                <div class="progress-bar" id="readingProgress"></div>
-            </div>
+        <!-- Texto de Lectura -->
+        <div class="reading-text" id="readingText">
+            <!-- El texto se cargará dinámicamente -->
         </div>
 
-        <!-- Contenedor de preguntas -->
-        <div class="questions-container" id="questionsContainer" style="display: none;">
-            <div class="questions-header">
-                <h3 class="questions-title">
-                    <i class="fas fa-question-circle me-2"></i>
-                    Preguntas de Comprensión
-                </h3>
-                <p class="text-muted">Responde las siguientes preguntas basándote en el texto que acabas de leer.</p>
-            </div>
-
-            <form id="questionsForm">
-                {% if ejercicio and ejercicio.preguntas %}
-                    {% for pregunta in ejercicio.preguntas %}
-                    <div class="question-card" data-question="{{ loop.index0 }}">
-                        <div class="question-header">
-                            <div class="question-number">{{ loop.index }}</div>
-                            <div class="question-type">{{ pregunta.tipo.title() }}</div>
-                        </div>
-
-                        <div class="question-text">{{ pregunta.pregunta }}</div>
-
-                        <div class="options-container">
-                            {% for opcion in pregunta.opciones %}
-                            <div class="option-item" onclick="selectOption({{ loop.index0 }}, {{ pregunta.id }})">
-                                <div class="option-letter">{{ ['A', 'B', 'C', 'D'][loop.index0] }}</div>
-                                <div class="option-text">{{ opcion }}</div>
-                            </div>
-                            {% endfor %}
-                        </div>
-
-                        <input type="hidden" name="respuesta_{{ pregunta.id }}" id="respuesta_{{ pregunta.id }}">
-                    </div>
-                    {% endfor %}
-                {% else %}
-                    <!-- Preguntas de ejemplo si no hay datos -->
-                    <div class="question-card" data-question="0">
-                        <div class="question-header">
-                            <div class="question-number">1</div>
-                            <div class="question-type">Literal</div>
-                        </div>
-
-                        <div class="question-text">¿Dónde decidió sentarse María?</div>
-
-                        <div class="options-container">
-                            <div class="option-item" onclick="selectOption(0, 0)">
-                                <div class="option-letter">A</div>
-                                <div class="option-text">En el césped</div>
-                            </div>
-                            <div class="option-item" onclick="selectOption(1, 0)">
-                                <div class="option-letter">B</div>
-                                <div class="option-text">En un banco cerca del lago</div>
-                            </div>
-                            <div class="option-item" onclick="selectOption(2, 0)">
-                                <div class="option-letter">C</div>
-                                <div class="option-text">Junto a la fuente</div>
-                            </div>
-                            <div class="option-item" onclick="selectOption(3, 0)">
-                                <div class="option-letter">D</div>
-                                <div class="option-text">Debajo de un árbol</div>
-                            </div>
-                        </div>
-
-                        <input type="hidden" name="respuesta_0" id="respuesta_0">
-                    </div>
-
-                    <div class="question-card" data-question="1">
-                        <div class="question-header">
-                            <div class="question-number">2</div>
-                            <div class="question-type">Inferencial</div>
-                        </div>
-
-                        <div class="question-text">¿Cómo se sentía María en el parque?</div>
-
-                        <div class="options-container">
-                            <div class="option-item" onclick="selectOption(0, 1)">
-                                <div class="option-letter">A</div>
-                                <div class="option-text">Nerviosa</div>
-                            </div>
-                            <div class="option-item" onclick="selectOption(1, 1)">
-                                <div class="option-letter">B</div>
-                                <div class="option-text">Tranquila y relajada</div>
-                            </div>
-                            <div class="option-item" onclick="selectOption(2, 1)">
-                                <div class="option-letter">C</div>
-                                <div class="option-text">Preocupada</div>
-                            </div>
-                            <div class="option-item" onclick="selectOption(3, 1)">
-                                <div class="option-letter">D</div>
-                                <div class="option-text">Aburrida</div>
-                            </div>
-                        </div>
-
-                        <input type="hidden" name="respuesta_1" id="respuesta_1">
-                    </div>
-                {% endif %}
-            </form>
-
-            <div class="action-buttons">
-                <button type="button" class="btn-custom btn-secondary-custom" onclick="showText()">
-                    <i class="fas fa-eye me-2"></i>Ver Texto Nuevamente
-                </button>
-                <button type="button" class="btn-custom btn-primary-custom" onclick="submitAnswers()" id="submitBtn">
-                    <i class="fas fa-check me-2"></i>Enviar Respuestas
-                </button>
-            </div>
-        </div>
-
-        <!-- Contenedor de resultados -->
-        <div class="results-container" id="resultsContainer">
-            <div class="results-header">
-                <h3><i class="fas fa-trophy me-2"></i>¡Ejercicio Completado!</h3>
-                <div class="final-score" id="finalScore">85%</div>
-            </div>
-
-            <div class="score-details" id="scoreDetails">
-                <!-- Se llenará dinámicamente -->
-            </div>
-
-            <div class="feedback-section" id="feedbackSection">
-                <!-- Se llenará dinámicamente -->
-            </div>
-
-            <div class="recommendations" id="recommendationsSection">
-                <!-- Se llenará dinámicamente -->
-            </div>
-
-            <div class="action-buttons">
-                <a href="/ejercicios" class="btn-custom btn-secondary-custom">
-                    <i class="fas fa-arrow-left me-2"></i>Volver a Ejercicios
-                </a>
-                <button type="button" class="btn-custom btn-primary-custom" onclick="tryAgain()">
-                    <i class="fas fa-redo me-2"></i>Intentar de Nuevo
-                </button>
-                <a href="/ejercicios/lectura?nivel={{ (ejercicio.nivel + 1) if ejercicio and ejercicio.nivel < 5 else 2 }}" class="btn-custom btn-primary-custom">
-                    <i class="fas fa-arrow-right me-2"></i>Siguiente Nivel
-                </a>
+        <!-- Preguntas de Comprensión -->
+        <div class="reading-questions" id="readingQuestions" style="display: none;">
+            <h4 class="mb-3">
+                <i class="fas fa-question-circle me-2"></i>Preguntas de Comprensión
+            </h4>
+            <div id="questionsContainer">
+                <!-- Las preguntas se cargarán dinámicamente -->
             </div>
         </div>
     </div>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Acciones del Ejercicio -->
+    <div class="exercise-actions">
+        <button id="backBtn" class="btn-exercise btn-secondary" onclick="goBack()" style="display: none;">
+            <i class="fas fa-arrow-left"></i>Volver
+        </button>
+        
+        <div class="d-flex gap-2">
+            <button id="startReadingBtn" class="btn-exercise btn-primary" onclick="startReading()" disabled>
+                <i class="fas fa-play"></i>Comenzar Lectura
+            </button>
+            
+            <button id="finishReadingBtn" class="btn-exercise btn-success" onclick="finishReading()" style="display: none;">
+                <i class="fas fa-check"></i>Terminar Lectura
+            </button>
+            
+            <button id="submitAnswersBtn" class="btn-exercise btn-primary" onclick="submitAnswers()" style="display: none;">
+                <i class="fas fa-paper-plane"></i>Enviar Respuestas
+            </button>
+        </div>
+    </div>
+</div>
 
-    <script>
-        // Variables globales
-        let startTime = Date.now();
-        let timer;
-        let selectedAnswers = {};
-        let currentTextSize = 1.1;
-        let isHighlighting = false;
+<!-- Estado Vacío -->
+<div id="emptyState" class="empty-state" style="display: none;">
+    <i class="fas fa-book-open"></i>
+    <h3>Sin contenido disponible</h3>
+    <p>No hay textos de lectura disponibles para tu nivel actual.</p>
+    <button class="btn-exercise btn-primary" onclick="location.reload()">
+        <i class="fas fa-refresh"></i>Actualizar
+    </button>
+</div>
+{% endblock %}
 
-        // Datos del ejercicio (se pasarían desde el backend)
-        const ejercicioData = {{ ejercicio|tojson if ejercicio else '{}' }};
+{% block extra_js %}
+<script>
+    // Variables globales
+    let currentSessionId = null;
+    let currentContentId = null;
+    let selectedContent = null;
+    let startTime = null;
+    let timer = null;
+    let currentFontSize = 1.1;
+    let currentAnswers = {};
+    let currentQuestions = [];
 
-        // Inicialización
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeExercise();
-            startTimer();
-            simulateReadingProgress();
+    // Datos de contenido demo
+    const demoContent = {
+        'demo1': {
+            id: 'demo1',
+            titulo: 'El Gato y el Ratón',
+            contenido: `Había una vez un gato llamado Félix que vivía en una casa grande con jardín. Félix era muy diferente a otros gatos porque no le gustaba cazar ratones. En lugar de eso, le encantaba jugar y hacer nuevos amigos.
+
+Un día, mientras exploraba el jardín, Félix encontró a un pequeño ratón llamado Pip que estaba perdido y muy asustado. En lugar de asustarlo más, Félix decidió ayudarlo.
+
+"No tengas miedo", le dijo Félix con una voz suave. "Soy diferente a otros gatos. ¿Necesitas ayuda?"
+
+Pip, sorprendido por la amabilidad del gato, le contó que había salido de su madriguera para buscar comida y ya no podía encontrar el camino de regreso.
+
+Félix y Pip se hicieron grandes amigos. Desde ese día, jugaban juntos en el jardín todos los días y demostraron que la amistad puede existir entre los seres más diferentes.`,
+            questions: [
+                {
+                    id: 1,
+                    text: "¿Cómo se llamaba el gato protagonista?",
+                    options: ["Félix", "Pip", "Max", "Luna"],
+                    correct: 0
+                },
+                {
+                    id: 2,
+                    text: "¿Qué tenía de especial Félix?",
+                    options: ["Era muy grande", "No le gustaba cazar ratones", "Vivía en el jardín", "Era de color negro"],
+                    correct: 1
+                },
+                {
+                    id: 3,
+                    text: "¿Por qué estaba perdido Pip?",
+                    options: ["Se escapó de casa", "Salió a buscar comida", "Estaba jugando", "Lo perseguía un gato"],
+                    correct: 1
+                }
+            ]
+        },
+        'demo2': {
+            id: 'demo2',
+            titulo: 'La Importancia del Agua',
+            contenido: `El agua es uno de los elementos más importantes para la vida en nuestro planeta. Sin ella, ningún ser vivo podría existir. El agua cubre aproximadamente el 70% de la superficie terrestre y también constituye gran parte de nuestro cuerpo.
+
+El ciclo del agua es un proceso natural fascinante. Comienza cuando el sol calienta el agua de los océanos, ríos y lagos, haciendo que se evapore y suba hacia la atmósfera. Allí, el vapor de agua se condensa formando nubes.
+
+Cuando las nubes se vuelven muy pesadas, la lluvia cae de vuelta a la Tierra. Esta agua puede seguir diferentes caminos: algunos van directo a los océanos, otros se filtran en el suelo formando aguas subterráneas, y algunos llegan a ríos y lagos.
+
+Es importante cuidar este recurso tan valioso. Podemos hacerlo evitando contaminar los ríos y océanos, no desperdiciando agua en casa, y aprendiendo sobre la importancia de mantener limpios nuestros recursos hídricos.`,
+            questions: [
+                {
+                    id: 1,
+                    text: "¿Qué porcentaje de la superficie terrestre cubre el agua?",
+                    options: ["50%", "60%", "70%", "80%"],
+                    correct: 2
+                },
+                {
+                    id: 2,
+                    text: "¿Qué inicia el ciclo del agua?",
+                    options: ["La lluvia", "El viento", "El sol calentando el agua", "Las nubes"],
+                    correct: 2
+                },
+                {
+                    id: 3,
+                    text: "Según el texto, ¿cómo podemos cuidar el agua?",
+                    options: ["Solo bebiéndola", "Evitando contaminar y no desperdiciando", "Usando más agua", "Ignorando el problema"],
+                    correct: 1
+                }
+            ]
+        },
+        'demo3': {
+            id: 'demo3',
+            titulo: 'El Sistema Solar',
+            contenido: `Nuestro sistema solar es un lugar extraordinario compuesto por el Sol y todos los cuerpos celestes que orbitan a su alrededor. El Sol, una estrella de tamaño medio, se encuentra en el centro y proporciona la energía necesaria para mantener la vida en la Tierra.
+
+Los ocho planetas del sistema solar se dividen en dos grupos principales: los planetas terrestres o rocosos (Mercurio, Venus, Tierra y Marte) y los gigantes gaseosos (Júpiter, Saturno, Urano y Neptuno).
+
+Mercurio es el planeta más cercano al Sol y también el más pequeño. Venus, conocido como el "planeta gemelo" de la Tierra, tiene una atmósfera muy densa y es el planeta más caliente. La Tierra es el único planeta conocido que alberga vida, gracias a su atmósfera protectora y la presencia de agua líquida.
+
+Marte, el "planeta rojo", ha sido objeto de numerosas misiones espaciales debido a la posibilidad de que alguna vez haya tenido agua. Los gigantes gaseosos, especialmente Júpiter y Saturno, tienen sistemas de lunas muy complejos y anillos espectaculares.
+
+El estudio del sistema solar nos ayuda a comprender mejor nuestro lugar en el universo y las condiciones que hacen posible la vida.`,
+            questions: [
+                {
+                    id: 1,
+                    text: "¿Cuántos planetas hay en nuestro sistema solar?",
+                    options: ["Siete", "Ocho", "Nueve", "Diez"],
+                    correct: 1
+                },
+                {
+                    id: 2,
+                    text: "¿Cuál es el planeta más caliente del sistema solar?",
+                    options: ["Mercurio", "Venus", "Tierra", "Marte"],
+                    correct: 1
+                },
+                {
+                    id: 3,
+                    text: "¿Por qué se llama a Marte el 'planeta rojo'?",
+                    options: ["Por su temperatura", "Por su color característico", "Por sus lunas", "Por su tamaño"],
+                    correct: 1
+                }
+            ]
+        }
+    };
+
+    // Inicialización
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeExercise();
+        
+        // Verificar si hay contenido disponible
+        const contentCards = document.querySelectorAll('.content-card');
+        if (contentCards.length === 0) {
+            showEmptyState();
+        }
+    });
+
+    function initializeExercise() {
+        // Inicializar session ID si viene por parámetro
+        const urlParams = new URLSearchParams(window.location.search);
+        currentSessionId = urlParams.get('session_id');
+        
+        if (!currentSessionId) {
+            // Crear nueva sesión de ejercicio
+            startExerciseSession();
+        }
+        
+        updateUI();
+    }
+
+    function startExerciseSession() {
+        fetch('/api/exercise/start', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                exercise_type: 'lectura',
+                config: {
+                    nivel: {{ user.nivel_lectura if user else 1 }}
+                }
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                currentSessionId = data.session_id;
+                console.log('Sesión de ejercicio iniciada:', currentSessionId);
+            }
+        })
+        .catch(error => {
+            console.error('Error iniciando sesión:', error);
         });
+    }
 
-        function initializeExercise() {
-            // Mostrar botón para comenzar las preguntas después de un tiempo
+    function selectContent(contentId) {
+        // Remover selección anterior
+        document.querySelectorAll('.content-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        
+        // Seleccionar nuevo contenido
+        const card = document.querySelector(`[data-content-id="${contentId}"]`);
+        if (card) {
+            card.classList.add('selected');
+            currentContentId = contentId;
+            
+            // Habilitar botón de inicio
+            document.getElementById('startReadingBtn').disabled = false;
+            
+            // Cargar contenido
+            loadContent(contentId);
+        }
+    }
+
+    function loadContent(contentId) {
+        // En modo demo, usar contenido local
+        if (demoContent[contentId]) {
+            selectedContent = demoContent[contentId];
+            document.getElementById('readingText').innerHTML = formatText(selectedContent.contenido);
+            currentQuestions = selectedContent.questions;
+            return;
+        }
+        
+        // Si hay base de datos, cargar contenido real
+        {% if db_available %}
+        // TODO: Implementar carga desde BD cuando esté disponible
+        fetch(`/api/content/${contentId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                selectedContent = data.content;
+                document.getElementById('readingText').innerHTML = formatText(selectedContent.contenido);
+                currentQuestions = data.questions || [];
+            }
+        })
+        .catch(error => {
+            console.error('Error cargando contenido:', error);
+        });
+        {% endif %}
+    }
+
+    function formatText(text) {
+        return text.split('\n').map(paragraph => {
+            if (paragraph.trim()) {
+                return `<p>${paragraph.trim()}</p>`;
+            }
+            return '';
+        }).join('');
+    }
+
+    function startReading() {
+        if (!selectedContent) return;
+        
+        // Ocultar selector de contenido
+        document.getElementById('contentSelector').style.display = 'none';
+        
+        // Mostrar área de lectura
+        document.getElementById('readingArea').style.display = 'block';
+        
+        // Mostrar botones apropiados
+        document.getElementById('startReadingBtn').style.display = 'none';
+        document.getElementById('finishReadingBtn').style.display = 'inline-flex';
+        document.getElementById('backBtn').style.display = 'inline-flex';
+        
+        // Iniciar timer
+        startTimer();
+        
+        // Actualizar progreso
+        updateProgress(25);
+    }
+
+    function finishReading() {
+        // Parar timer
+        stopTimer();
+        
+        // Mostrar preguntas
+        showQuestions();
+        
+        // Actualizar UI
+        document.getElementById('finishReadingBtn').style.display = 'none';
+        document.getElementById('submitAnswersBtn').style.display = 'inline-flex';
+        
+        // Actualizar progreso
+        updateProgress(50);
+    }
+
+    function showQuestions() {
+        const questionsContainer = document.getElementById('questionsContainer');
+        const questionsDiv = document.getElementById('readingQuestions');
+        
+        questionsContainer.innerHTML = '';
+        
+        currentQuestions.forEach((question, index) => {
+            const questionDiv = document.createElement('div');
+            questionDiv.className = 'question-item';
+            questionDiv.innerHTML = `
+                <div class="question-text">
+                    ${index + 1}. ${question.text}
+                </div>
+                <div class="answer-options">
+                    ${question.options.map((option, optIndex) => `
+                        <div class="answer-option" data-question="${question.id}" data-answer="${optIndex}" onclick="selectAnswer(${question.id}, ${optIndex})">
+                            <div class="option-letter">${String.fromCharCode(65 + optIndex)}</div>
+                            <span>${option}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            questionsContainer.appendChild(questionDiv);
+        });
+        
+        questionsDiv.style.display = 'block';
+        questionsDiv.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function selectAnswer(questionId, answerIndex) {
+        // Limpiar selecciones anteriores para esta pregunta
+        document.querySelectorAll(`[data-question="${questionId}"]`).forEach(option => {
+            option.classList.remove('selected');
+        });
+        
+        // Seleccionar nueva respuesta
+        const selectedOption = document.querySelector(`[data-question="${questionId}"][data-answer="${answerIndex}"]`);
+        selectedOption.classList.add('selected');
+        
+        // Guardar respuesta
+        currentAnswers[questionId] = answerIndex;
+        
+        // Verificar si todas las preguntas están respondidas
+        const allAnswered = currentQuestions.every(q => currentAnswers[q.id] !== undefined);
+        document.getElementById('submitAnswersBtn').disabled = !allAnswered;
+    }
+
+    function submitAnswers() {
+        if (!currentSessionId) return;
+        
+        // Calcular puntuación
+        let correctAnswers = 0;
+        currentQuestions.forEach(question => {
+            if (currentAnswers[question.id] === question.correct) {
+                correctAnswers++;
+            }
+        });
+        
+        const score = Math.round((correctAnswers / currentQuestions.length) * 100);
+        const timeSpent = Math.floor((Date.now() - startTime) / 1000);
+        
+        // Mostrar resultados visualmente
+        showResults(correctAnswers, currentQuestions.length, score);
+        
+        // Enviar a la API
+        const resultData = {
+            session_id: currentSessionId,
+            exercise_type: 'lectura',
+            answers: currentAnswers,
+            time_spent: timeSpent,
+            completed: true,
+            score: score,
+            content_id: currentContentId
+        };
+        
+        fetch('/api/exercise/submit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(resultData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log('Resultado guardado exitosamente');
+                if (data.achievements && data.achievements.length > 0) {
+                    showAchievements(data.achievements);
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error enviando resultado:', error);
+        });
+        
+        // Actualizar progreso final
+        updateProgress(100);
+        
+        // Actualizar estadísticas en pantalla
+        document.getElementById('sessionScore').textContent = score;
+        document.getElementById('totalCompleted').textContent = parseInt(document.getElementById('totalCompleted').textContent) + 1;
+    }
+
+    function showResults(correct, total, score) {
+        // Marcar respuestas correctas e incorrectas
+        currentQuestions.forEach(question => {
+            const userAnswer = currentAnswers[question.id];
+            const correctAnswer = question.correct;
+            
+            // Marcar la respuesta correcta
+            const correctOption = document.querySelector(`[data-question="${question.id}"][data-answer="${correctAnswer}"]`);
+            correctOption.classList.add('correct');
+            
+            // Si la respuesta del usuario es incorrecta, marcarla
+            if (userAnswer !== correctAnswer) {
+                const userOption = document.querySelector(`[data-question="${question.id}"][data-answer="${userAnswer}"]`);
+                if (userOption) {
+                    userOption.classList.add('incorrect');
+                }
+            }
+        });
+        
+        // Mostrar resumen de resultados
+        const resultSummary = document.createElement('div');
+        resultSummary.className = 'alert alert-info mt-3';
+        resultSummary.innerHTML = `
+            <h5><i class="fas fa-chart-bar me-2"></i>Resultados del Ejercicio</h5>
+            <p><strong>Respuestas correctas:</strong> ${correct} de ${total}</p>
+            <p><strong>Puntuación:</strong> ${score}%</p>
+            <p><strong>Tiempo empleado:</strong> ${formatTime(Math.floor((Date.now() - startTime) / 1000))}</p>
+            <div class="mt-3">
+                <button class="btn btn-primary me-2" onclick="resetExercise()">
+                    <i class="fas fa-redo me-2"></i>Nuevo Ejercicio
+                </button>
+                <button class="btn btn-secondary" onclick="goBack()">
+                    <i class="fas fa-arrow-left me-2"></i>Volver al Menú
+                </button>
+            </div>
+        `;
+        
+        document.getElementById('readingQuestions').appendChild(resultSummary);
+        document.getElementById('submitAnswersBtn').style.display = 'none';
+    }
+
+    function showAchievements(achievements) {
+        achievements.forEach(achievement => {
+            const achievementAlert = document.createElement('div');
+            achievementAlert.className = 'alert alert-success';
+            achievementAlert.innerHTML = `
+                <h6><i class="fas fa-trophy me-2"></i>¡Logro Desbloqueado!</h6>
+                <p><strong>${achievement.nombre}</strong>: ${achievement.descripcion}</p>
+            `;
+            document.body.appendChild(achievementAlert);
+            
+            // Auto-remover después de 5 segundos
             setTimeout(() => {
-                showQuestionsButton();
-            }, 30000); // 30 segundos mínimo de lectura
-        }
+                achievementAlert.remove();
+            }, 5000);
+        });
+    }
 
-        function startTimer() {
-            timer = setInterval(() => {
-                const elapsed = Math.floor((Date.now() - startTime) / 1000);
-                const minutes = Math.floor(elapsed / 60);
-                const seconds = elapsed % 60;
-                document.getElementById('timer').textContent =
-                    `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            }, 1000);
-        }
+    function goBack() {
+        // Resetear ejercicio
+        resetExercise();
+    }
 
-        function simulateReadingProgress() {
-            let progress = 0;
-            const progressBar = document.getElementById('readingProgress');
+    function resetExercise() {
+        // Parar timer si está corriendo
+        stopTimer();
+        
+        // Resetear variables
+        currentContentId = null;
+        selectedContent = null;
+        currentAnswers = {};
+        startTime = null;
+        
+        // Resetear UI
+        document.getElementById('contentSelector').style.display = 'grid';
+        document.getElementById('readingArea').style.display = 'none';
+        document.getElementById('readingQuestions').style.display = 'none';
+        
+        // Resetear botones
+        document.getElementById('startReadingBtn').style.display = 'inline-flex';
+        document.getElementById('startReadingBtn').disabled = true;
+        document.getElementById('finishReadingBtn').style.display = 'none';
+        document.getElementById('submitAnswersBtn').style.display = 'none';
+        document.getElementById('backBtn').style.display = 'none';
+        
+        // Limpiar selecciones
+        document.querySelectorAll('.content-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        
+        // Resetear progreso
+        updateProgress(0);
+        
+        // Limpiar contenido de preguntas
+        document.getElementById('questionsContainer').innerHTML = '';
+        
+        // Scroll al inicio
+        window.scrollTo(0, 0);
+    }
 
-            const interval = setInterval(() => {
-                progress += 0.5;
-                progressBar.style.width = `${Math.min(progress, 100)}%`;
+    function startTimer() {
+        startTime = Date.now();
+        timer = setInterval(updateTimer, 1000);
+    }
 
-                if (progress >= 100) {
-                    clearInterval(interval);
-                    setTimeout(showQuestionsButton, 2000);
-                }
-            }, 500);
-        }
-
-        function showQuestionsButton() {
-            // Agregar botón para mostrar preguntas
-            const readingContainer = document.querySelector('.reading-container');
-            const existingBtn = document.getElementById('showQuestionsBtn');
-
-            if (!existingBtn) {
-                const button = document.createElement('div');
-                button.innerHTML = `
-                    <div class="text-center mt-3">
-                        <button type="button" class="btn-custom btn-primary-custom" onclick="showQuestions()" id="showQuestionsBtn">
-                            <i class="fas fa-arrow-down me-2"></i>Continuar con las Preguntas
-                        </button>
-                    </div>
-                `;
-                readingContainer.appendChild(button);
-            }
-        }
-
-        function showQuestions() {
-            document.getElementById('questionsContainer').style.display = 'block';
-            document.getElementById('questionsContainer').scrollIntoView({
-                behavior: 'smooth'
-            });
-        }
-
-        function showText() {
-            document.querySelector('.reading-container').scrollIntoView({
-                behavior: 'smooth'
-            });
-        }
-
-        function selectOption(optionIndex, questionId) {
-            // Limpiar selecciones anteriores para esta pregunta
-            const questionCard = document.querySelector(`[data-question="${questionId}"]`);
-            const options = questionCard.querySelectorAll('.option-item');
-
-            options.forEach(option => option.classList.remove('selected'));
-
-            // Seleccionar la nueva opción
-            options[optionIndex].classList.add('selected');
-
-            // Guardar la respuesta
-            selectedAnswers[questionId] = optionIndex;
-            document.getElementById(`respuesta_${questionId}`).value = optionIndex;
-
-            // Verificar si todas las preguntas están respondidas
-            updateSubmitButton();
-        }
-
-        function updateSubmitButton() {
-            const totalQuestions = document.querySelectorAll('.question-card').length;
-            const answeredQuestions = Object.keys(selectedAnswers).length;
-            const submitBtn = document.getElementById('submitBtn');
-
-            if (answeredQuestions === totalQuestions) {
-                submitBtn.classList.remove('disabled');
-                submitBtn.innerHTML = '<i class="fas fa-check me-2"></i>Enviar Respuestas';
-            } else {
-                submitBtn.classList.add('disabled');
-                submitBtn.innerHTML = `<i class="fas fa-check me-2"></i>Responder todas (${answeredQuestions}/${totalQuestions})`;
-            }
-        }
-
-        function adjustTextSize(change) {
-            currentTextSize += change * 0.1;
-            currentTextSize = Math.max(0.8, Math.min(2.0, currentTextSize));
-
-            const textContent = document.getElementById('textContent');
-            textContent.style.fontSize = `${currentTextSize}rem`;
-        }
-
-        function toggleHighlighting() {
-            const textContent = document.getElementById('textContent');
-            const highlightBtn = document.getElementById('highlightBtn');
-
-            isHighlighting = !isHighlighting;
-
-            if (isHighlighting) {
-                textContent.classList.add('highlighting-mode');
-                highlightBtn.style.background = 'var(--warning)';
-                highlightBtn.style.color = 'white';
-
-                // Agregar efecto de resaltado a párrafos
-                const paragraphs = textContent.querySelectorAll('p');
-                paragraphs.forEach((p, index) => {
-                    p.style.transition = 'all 0.3s ease';
-                    p.addEventListener('mouseenter', () => {
-                        p.style.background = '#fff3cd';
-                        p.style.padding = '0.5rem';
-                        p.style.borderRadius = '8px';
-                    });
-                    p.addEventListener('mouseleave', () => {
-                        p.style.background = 'transparent';
-                        p.style.padding = '0';
-                    });
-                });
-            } else {
-                textContent.classList.remove('highlighting-mode');
-                highlightBtn.style.background = '';
-                highlightBtn.style.color = '';
-
-                const paragraphs = textContent.querySelectorAll('p');
-                paragraphs.forEach(p => {
-                    p.style.background = 'transparent';
-                    p.style.padding = '0';
-                });
-            }
-        }
-
-        async function submitAnswers() {
-            const submitBtn = document.getElementById('submitBtn');
-            const totalQuestions = document.querySelectorAll('.question-card').length;
-
-            if (Object.keys(selectedAnswers).length !== totalQuestions) {
-                alert('Por favor responde todas las preguntas antes de enviar.');
-                return;
-            }
-
-            // Mostrar loading
-            submitBtn.innerHTML = '<span class="loading-spinner"></span> Evaluando...';
-            submitBtn.classList.add('disabled');
-
-            // Detener el timer
+    function stopTimer() {
+        if (timer) {
             clearInterval(timer);
-            const totalTime = Math.floor((Date.now() - startTime) / 1000);
-
-            try {
-                // Simular envío al servidor
-                await new Promise(resolve => setTimeout(resolve, 2000));
-
-                // Simular respuesta del servidor
-                const results = await evaluateAnswers(selectedAnswers, totalTime);
-                showResults(results);
-
-            } catch (error) {
-                console.error('Error al enviar respuestas:', error);
-                alert('Error al evaluar las respuestas. Por favor intenta de nuevo.');
-                submitBtn.innerHTML = '<i class="fas fa-check me-2"></i>Enviar Respuestas';
-                submitBtn.classList.remove('disabled');
-            }
+            timer = null;
         }
+    }
 
-        async function evaluateAnswers(answers, timeSpent) {
-            // En un caso real, esto se haría en el servidor
-            // Aquí simulamos la evaluación
+    function updateTimer() {
+        if (!startTime) return;
+        
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        document.getElementById('timerDisplay').textContent = formatTime(elapsed);
+    }
 
-            const correctAnswers = {
-                0: 1, // Respuestas correctas de ejemplo
-                1: 1
-            };
+    function formatTime(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+    }
 
-            let correctCount = 0;
-            const totalQuestions = Object.keys(correctAnswers).length;
-            const questionResults = [];
+    function changeFontSize(delta) {
+        currentFontSize += delta * 0.1;
+        currentFontSize = Math.max(0.8, Math.min(1.8, currentFontSize));
+        
+        const readingText = document.getElementById('readingText');
+        readingText.style.fontSize = currentFontSize + 'rem';
+        
+        document.getElementById('fontSizeDisplay').textContent = currentFontSize.toFixed(1) + 'rem';
+    }
 
-            for (const [questionId, userAnswer] of Object.entries(answers)) {
-                const isCorrect = correctAnswers[questionId] === userAnswer;
-                if (isCorrect) correctCount++;
+    function updateProgress(percentage) {
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('sessionProgress');
+        
+        progressBar.style.width = percentage + '%';
+        progressText.textContent = percentage + '%';
+    }
 
-                questionResults.push({
-                    questionId: parseInt(questionId),
-                    userAnswer,
-                    correctAnswer: correctAnswers[questionId],
-                    isCorrect,
-                    explanation: isCorrect ?
-                        '¡Correcto! Has entendido bien el texto.' :
-                        'Revisa el texto nuevamente para encontrar la respuesta correcta.'
-                });
-            }
+    function updateUI() {
+        // Actualizar estadísticas si están disponibles
+        {% if user %}
+        document.getElementById('sessionLevel').textContent = {{ user.nivel_lectura or 1 }};
+        document.getElementById('totalCompleted').textContent = {{ user.ejercicios_completados or 0 }};
+        {% endif %}
+    }
 
-            const precision = (correctCount / totalQuestions) * 100;
-            const puntos = Math.round((correctCount / totalQuestions) * (ejercicioData.puntos_totales || 50));
+    function showEmptyState() {
+        document.getElementById('contentSelector').style.display = 'none';
+        document.getElementById('emptyState').style.display = 'block';
+    }
 
-            return {
-                precision: precision,
-                correctCount: correctCount,
-                totalQuestions: totalQuestions,
-                puntos: puntos,
-                timeSpent: timeSpent,
-                questionResults: questionResults,
-                feedback: getFeedback(precision),
-                recommendations: getRecommendations(precision, questionResults)
-            };
+    // Función para manejar errores de red
+    function handleNetworkError(error) {
+        console.error('Error de red:', error);
+        const errorAlert = document.createElement('div');
+        errorAlert.className = 'alert alert-warning';
+        errorAlert.innerHTML = `
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>Error de conexión:</strong> No se pudo guardar el progreso. 
+            Verifica tu conexión a internet.
+        `;
+        document.querySelector('.reading-workspace').insertBefore(errorAlert, document.querySelector('.stats-mini'));
+        
+        // Auto-remover después de 5 segundos
+        setTimeout(() => {
+            errorAlert.remove();
+        }, 5000);
+    }
+
+    // Guardar progreso automáticamente cada 30 segundos
+    setInterval(() => {
+        if (currentSessionId && startTime) {
+            const timeSpent = Math.floor((Date.now() - startTime) / 1000);
+            fetch('/api/exercise/update_progress', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    session_id: currentSessionId,
+                    time_spent: timeSpent,
+                    status: 'in_progress'
+                })
+            })
+            .catch(error => {
+                console.log('Error guardando progreso automático:', error);
+            });
         }
+    }, 30000);
 
-        function getFeedback(precision) {
-            if (precision >= 90) {
-                return {
-                    type: 'excellent',
-                    message: '¡Excelente comprensión lectora! Dominas muy bien este nivel.',
-                    icon: 'fas fa-star'
-                };
-            } else if (precision >= 75) {
-                return {
-                    type: 'good',
-                    message: '¡Muy bien! Tu comprensión es buena, sigue practicando.',
-                    icon: 'fas fa-thumbs-up'
-                };
-            } else if (precision >= 60) {
-                return {
-                    type: 'okay',
-                    message: 'Comprensión aceptable. Te recomiendo leer más despacio.',
-                    icon: 'fas fa-info-circle'
-                };
-            } else {
-                return {
-                    type: 'needs-improvement',
-                    message: 'Es importante que practiques más la lectura comprensiva.',
-                    icon: 'fas fa-exclamation-triangle'
-                };
-            }
+    // Manejar salida de la página
+    window.addEventListener('beforeunload', function(e) {
+        if (currentSessionId && startTime) {
+            // Guardar progreso antes de salir
+            const timeSpent = Math.floor((Date.now() - startTime) / 1000);
+            navigator.sendBeacon('/api/exercise/update_progress', JSON.stringify({
+                session_id: currentSessionId,
+                time_spent: timeSpent,
+                status: 'paused'
+            }));
         }
-
-        function getRecommendations(precision, questionResults) {
-            const recommendations = [];
-
-            const incorrectTypes = questionResults
-                .filter(q => !q.isCorrect)
-                .map(q => 'literal'); // En un caso real, esto vendría del servidor
-
-            if (incorrectTypes.includes('literal')) {
-                recommendations.push('Practica identificar información explícita en el texto');
-            }
-
-            if (incorrectTypes.includes('inferencial')) {
-                recommendations.push('Trabaja en hacer conexiones e inferencias a partir del texto');
-            }
-
-            if (precision < 60) {
-                recommendations.push('Lee el texto completo antes de responder las preguntas');
-                recommendations.push('Tómate más tiempo para comprender cada párrafo');
-            }
-
-            if (recommendations.length === 0) {
-                recommendations.push('¡Continúa con tu excelente trabajo de comprensión!');
-            }
-
-            return recommendations;
-        }
-
-        function showResults(results) {
-            // Ocultar preguntas
-            document.getElementById('questionsContainer').style.display = 'none';
-
-            // Mostrar resultados
-            const resultsContainer = document.getElementById('resultsContainer');
-            resultsContainer.style.display = 'block';
-
-            // Actualizar puntuación principal
-            document.getElementById('finalScore').textContent = `${results.precision.toFixed(1)}%`;
-
-            // Crear detalles de puntuación
-            const scoreDetails = document.getElementById('scoreDetails');
-            scoreDetails.innerHTML = `
-                <div class="score-card">
-                    <div class="score-value">${results.correctCount}/${results.totalQuestions}</div>
-                    <div class="score-label">Respuestas Correctas</div>
-                </div>
-                <div class="score-card">
-                    <div class="score-value">${results.puntos}</div>
-                    <div class="score-label">Puntos Obtenidos</div>
-                </div>
-                <div class="score-card">
-                    <div class="score-value">${Math.floor(results.timeSpent / 60)}:${(results.timeSpent % 60).toString().padStart(2, '0')}</div>
-                    <div class="score-label">Tiempo Empleado</div>
-                </div>
-                <div class="score-card">
-                    <div class="score-value">${results.precision >= 75 ? 'Aprobado' : 'Mejorar'}</div>
-                    <div class="score-label">Estado</div>
-                </div>
-            `;
-
-            // Crear feedback
-            const feedbackSection = document.getElementById('feedbackSection');
-            feedbackSection.innerHTML = `
-                <div class="feedback-title">
-                    <i class="${results.feedback.icon} me-2"></i>Retroalimentación
-                </div>
-                <p>${results.feedback.message}</p>
-            `;
-
-            // Crear recomendaciones
-            const recommendationsSection = document.getElementById('recommendationsSection');
-            const recommendationsList = results.recommendations
-                .map(rec => `<li>${rec}</li>`)
-                .join('');
-
-            recommendationsSection.innerHTML = `
-                <div class="recommendations-title">
-                    <i class="fas fa-lightbulb me-2"></i>Recomendaciones para Mejorar
-                </div>
-                <ul class="recommendation-list">
-                    ${recommendationsList}
-                </ul>
-            `;
-
-            // Scroll a resultados
-            resultsContainer.scrollIntoView({ behavior: 'smooth' });
-
-            // Guardar resultados (en un caso real, se enviarían al servidor)
-            saveResults(results);
-        }
-
-        function saveResults(results) {
-            // En un caso real, esto se enviaría al servidor
-            const resultData = {
-                ejercicioId: ejercicioData.id || 'demo',
-                fecha: new Date().toISOString(),
-                precision: results.precision,
-                puntos: results.puntos,
-                tiempoEmpleado: results.timeSpent,
-                respuestasDetalladas: results.questionResults
-            };
-
-            // Guardar en localStorage como demostración
-            const historial = JSON.parse(localStorage.getItem('historial_lectura') || '[]');
-            historial.push(resultData);
-            localStorage.setItem('historial_lectura', JSON.stringify(historial));
-
-            console.log('Resultados guardados:', resultData);
-        }
-
-        function tryAgain() {
-            if (confirm('¿Estás seguro de que quieres reiniciar el ejercicio?')) {
-                location.reload();
-            }
-        }
-
-        // Funciones de utilidad
-        function formatTime(seconds) {
-            const minutes = Math.floor(seconds / 60);
-            const remainingSeconds = seconds % 60;
-            return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-        }
-
-        // Eventos del teclado
-        document.addEventListener('keydown', function(event) {
-            // Atajos de teclado
-            if (event.ctrlKey || event.metaKey) {
-                switch(event.key) {
-                    case '=':
-                    case '+':
-                        event.preventDefault();
-                        adjustTextSize(1);
-                        break;
-                    case '-':
-                        event.preventDefault();
-                        adjustTextSize(-1);
-                        break;
-                    case 'h':
-                        event.preventDefault();
-                        toggleHighlighting();
-                        break;
-                }
-            }
-
-            // Enter para enviar respuestas
-            if (event.key === 'Enter' && event.ctrlKey) {
-                const submitBtn = document.getElementById('submitBtn');
-                if (!submitBtn.classList.contains('disabled')) {
-                    submitAnswers();
-                }
-            }
-        });
-
-        // Prevenir salida accidental
-        window.addEventListener('beforeunload', function(event) {
-            if (Object.keys(selectedAnswers).length > 0 && !document.getElementById('resultsContainer').style.display) {
-                event.preventDefault();
-                event.returnValue = '¿Estás seguro de que quieres salir? Perderás tu progreso.';
-            }
-        });
-
-        // Auto-guardar progreso cada 30 segundos
-        setInterval(() => {
-            if (Object.keys(selectedAnswers).length > 0) {
-                const progreso = {
-                    ejercicioId: ejercicioData.id || 'demo',
-                    fecha: new Date().toISOString(),
-                    tiempoTranscurrido: Math.floor((Date.now() - startTime) / 1000),
-                    respuestasTemporales: selectedAnswers
-                };
-
-                localStorage.setItem('progreso_lectura_temporal', JSON.stringify(progreso));
-            }
-        }, 30000);
-
-        // Recuperar progreso si existe
-        window.addEventListener('load', function() {
-            const progresoGuardado = localStorage.getItem('progreso_lectura_temporal');
-            if (progresoGuardado) {
-                const progreso = JSON.parse(progresoGuardado);
-                if (progreso.ejercicioId === (ejercicioData.id || 'demo')) {
-                    // Restaurar respuestas
-                    for (const [questionId, answer] of Object.entries(progreso.respuestasTemporales)) {
-                        selectOption(answer, parseInt(questionId));
-                    }
-
-                    // Limpiar progreso temporal
-                    localStorage.removeItem('progreso_lectura_temporal');
-                }
-            }
-        });
-    </script>
-</body>
-</html>
+    });
+</script>
+{% endblock %}

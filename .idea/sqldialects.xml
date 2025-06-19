@@ -3,7 +3,6 @@
   <component name="SqlDialectMappings">
     <file url="file://$PROJECT_DIR$/AlfaIA/AlfaIA/database_structure.sql" dialect="MySQL" />
     <file url="file://$PROJECT_DIR$/AlfaIA/AlfaIA/fix_logros_complete.sql" dialect="MySQL" />
-    <file url="file://$PROJECT_DIR$/AlfaIA/AlfaIA/fix_logros_table.sql" dialect="MySQL" />
     <file url="file://$PROJECT_DIR$/AlfaIA/AlfaIA/temp_patch.sql" dialect="MySQL" />
   </component>
 </project>

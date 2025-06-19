@@ -1,477 +1,947 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ordenar Frase - AlfaIA</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #4facfe;
-            --secondary: #00f2fe;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-        }
+{% extends "base.html" %}
 
-        body {
-            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-            min-height: 100vh;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-        }
+{% block title %}Ordenar Frase - AlfaIA{% endblock %}
 
-        .navbar-custom {
-            background: rgba(31, 41, 55, 0.95);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
-        }
+{% block extra_css %}
+<style>
+    .exercise-container {
+        max-width: 900px;
+        margin: 2rem auto;
+        padding: 2rem;
+    }
 
-        .exercise-container {
-            max-width: 900px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-        }
+    .sentence-container {
+        text-align: center;
+        background: white;
+        border-radius: 20px;
+        padding: 3rem 2rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+    }
 
-        .exercise-card {
-            background: white;
-            border-radius: 20px;
-            padding: 3rem;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-        }
+    .instruction-text {
+        font-size: 1.3rem;
+        color: #6b7280;
+        margin-bottom: 2rem;
+        line-height: 1.6;
+    }
 
-        .exercise-header {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
+    .words-area {
+        min-height: 120px;
+        padding: 2rem;
+        border: 3px dashed var(--primary-color);
+        border-radius: 15px;
+        background: rgba(37, 99, 235, 0.05);
+        margin-bottom: 2rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
 
-        .exercise-title {
-            font-size: 2.5rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 1rem;
-        }
+    .words-area.drag-over {
+        background: rgba(16, 185, 129, 0.1);
+        border-color: var(--success-color);
+        transform: scale(1.02);
+    }
 
-        .level-badge {
-            display: inline-block;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            color: white;
-            padding: 0.5rem 1.5rem;
-            border-radius: 25px;
-            font-weight: 600;
-            margin-bottom: 1rem;
-        }
+    .word-chip {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 12px 20px;
+        border-radius: 25px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: grab;
+        user-select: none;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
 
-        .instructions {
-            background: #f3f4f6;
-            padding: 1.5rem;
-            border-radius: 12px;
-            margin-bottom: 2rem;
-            text-align: center;
-            font-size: 1.1rem;
-        }
+    .word-chip:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
 
-        .words-container {
-            background: #f9fafb;
-            padding: 2rem;
-            border-radius: 15px;
-            margin-bottom: 2rem;
-            min-height: 120px;
-            position: relative;
-        }
+    .word-chip:active {
+        cursor: grabbing;
+        transform: scale(0.95);
+    }
 
-        .words-area {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.75rem;
-            justify-content: center;
-            align-items: center;
-            min-height: 80px;
-        }
+    .word-chip.dragging {
+        opacity: 0.7;
+        transform: rotate(5deg);
+    }
 
+    .word-chip.correct-position {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        animation: correctBounce 0.6s ease;
+    }
+
+    .word-chip.incorrect-position {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        animation: shake 0.6s ease;
+    }
+
+    .scrambled-words {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        justify-content: center;
+        min-height: 80px;
+        padding: 1.5rem;
+        background: #f8fafc;
+        border-radius: 15px;
+        border: 2px solid #e5e7eb;
+    }
+
+    .drop-slots {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        justify-content: center;
+        margin-bottom: 2rem;
+    }
+
+    .drop-slot {
+        min-width: 120px;
+        height: 50px;
+        border: 2px dashed #d1d5db;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f9fafb;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .drop-slot.active {
+        border-color: var(--primary-color);
+        background: rgba(37, 99, 235, 0.1);
+        transform: scale(1.05);
+    }
+
+    .drop-slot.filled {
+        border-color: var(--success-color);
+        background: rgba(16, 185, 129, 0.1);
+    }
+
+    .exercise-stats {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 1rem;
+    }
+
+    .stat-item {
+        text-align: center;
+        padding: 1rem;
+        background: rgba(37, 99, 235, 0.05);
+        border-radius: 10px;
+        border: 1px solid rgba(37, 99, 235, 0.1);
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: var(--primary-color);
+        margin-bottom: 0.3rem;
+    }
+
+    .stat-label {
+        font-size: 0.8rem;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .control-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin: 2rem 0;
+        flex-wrap: wrap;
+    }
+
+    .control-btn {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .check-btn {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+    }
+
+    .check-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+    }
+
+    .reset-btn {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color: white;
+    }
+
+    .reset-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+    }
+
+    .hint-btn {
+        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        color: white;
+    }
+
+    .hint-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+    }
+
+    .feedback-container {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        margin-top: 2rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        text-align: center;
+    }
+
+    .sentence-display {
+        font-size: 2rem;
+        font-weight: 600;
+        color: var(--primary-color);
+        margin: 1rem 0;
+        line-height: 1.4;
+        padding: 1rem;
+        background: rgba(37, 99, 235, 0.05);
+        border-radius: 10px;
+    }
+
+    .progress-bar-custom {
+        height: 8px;
+        border-radius: 10px;
+        background: #e5e7eb;
+        overflow: hidden;
+        margin-bottom: 1rem;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--primary-color), var(--success-color));
+        border-radius: 10px;
+        transition: width 0.5s ease;
+    }
+
+    @keyframes correctBounce {
+        0%, 20%, 53%, 80%, 100% { transform: translate3d(0,0,0); }
+        40%, 43% { transform: translate3d(0,-8px,0); }
+        70% { transform: translate3d(0,-4px,0); }
+        90% { transform: translate3d(0,-2px,0); }
+    }
+
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+        20%, 40%, 60%, 80% { transform: translateX(5px); }
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+
+    .hint-highlight {
+        animation: pulse 1s infinite;
+        border: 3px solid #f59e0b !important;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
         .word-chip {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 25px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: move;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 10px rgba(79, 172, 254, 0.3);
-            user-select: none;
+            font-size: 1rem;
+            padding: 10px 16px;
         }
 
-        .word-chip:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(79, 172, 254, 0.4);
+        .drop-slot {
+            min-width: 100px;
+            height: 45px;
         }
 
-        .word-chip.dragging {
-            opacity: 0.5;
-            transform: scale(1.1);
+        .sentence-display {
+            font-size: 1.5rem;
         }
 
-        .drop-zone {
-            background: white;
-            border: 3px dashed #cbd5e1;
-            padding: 2rem;
-            border-radius: 15px;
-            min-height: 120px;
-            margin-bottom: 2rem;
-            transition: all 0.3s ease;
-        }
-
-        .drop-zone.drag-over {
-            border-color: var(--primary);
-            background: #f0f9ff;
-            transform: scale(1.02);
-        }
-
-        .drop-zone-label {
-            text-align: center;
-            color: #6b7280;
-            font-weight: 500;
-            margin-bottom: 1rem;
-        }
-
-        .sentence-area {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.75rem;
-            justify-content: center;
+        .control-buttons {
+            flex-direction: column;
             align-items: center;
-            min-height: 60px;
         }
 
-        .check-button {
-            background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
-            color: white;
-            border: none;
-            padding: 1rem 3rem;
-            border-radius: 50px;
-            font-size: 1.2rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+        .control-btn {
+            width: 100%;
+            max-width: 200px;
         }
+    }
+</style>
+{% endblock %}
 
-        .check-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
-        }
-
-        .check-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .reset-button {
-            background: var(--warning);
-            color: white;
-            border: none;
-            padding: 0.75rem 2rem;
-            border-radius: 50px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-left: 1rem;
-        }
-
-        .reset-button:hover {
-            transform: translateY(-2px);
-            background: #dc2626;
-        }
-
-        .result-message {
-            padding: 1.5rem;
-            border-radius: 12px;
-            margin-top: 2rem;
-            text-align: center;
-            font-size: 1.2rem;
-            font-weight: 600;
-            display: none;
-        }
-
-        .result-message.success {
-            background: #d1fae5;
-            color: #065f46;
-            border: 2px solid #a7f3d0;
-        }
-
-        .result-message.error {
-            background: #fee2e2;
-            color: #991b1b;
-            border: 2px solid #fecaca;
-        }
-
-        .action-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 1rem;
-            margin-top: 2rem;
-        }
-
-        @media (max-width: 768px) {
-            .exercise-card {
-                padding: 2rem 1.5rem;
-            }
-
-            .exercise-title {
-                font-size: 2rem;
-            }
-
-            .word-chip {
-                font-size: 1rem;
-                padding: 0.5rem 1rem;
-            }
-        }
-    </style>
-</head>
-<body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-custom">
-        <div class="container">
-            <a class="navbar-brand" href="{{ url_for('index') }}">
-                <i class="fas fa-graduation-cap me-2"></i>AlfaIA
-            </a>
-            <div class="navbar-nav ms-auto">
-                <a href="{{ url_for('ejercicios') }}" class="nav-link">
-                    <i class="fas fa-arrow-left me-2"></i>Volver
-                </a>
+{% block content %}
+<div class="exercise-container">
+    <!-- Estadísticas del ejercicio -->
+    <div class="exercise-stats">
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-value" id="currentQuestion">1</div>
+                <div class="stat-label">Frase</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="correctAnswers">0</div>
+                <div class="stat-label">Correctas</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="currentScore">0</div>
+                <div class="stat-label">Puntos</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="timeRemaining">90</div>
+                <div class="stat-label">Tiempo</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="hintsUsed">0</div>
+                <div class="stat-label">Pistas</div>
             </div>
         </div>
-    </nav>
-
-    <div class="exercise-container">
-        <div class="exercise-card">
-            <!-- Header -->
-            <div class="exercise-header">
-                <h1 class="exercise-title">
-                    <i class="fas fa-sort-alpha-down me-2"></i>Ordenar Frase
-                </h1>
-                <span class="level-badge">Nivel {{ ejercicio.nivel }}</span>
-            </div>
-
-            <!-- Instructions -->
-            <div class="instructions">
-                <i class="fas fa-info-circle me-2"></i>
-                Arrastra las palabras al área inferior para formar una frase correcta
-            </div>
-
-            <!-- Palabras desordenadas -->
-            <div class="words-container">
-                <div class="words-area" id="wordsArea">
-                    {% for palabra in ejercicio.palabras_desordenadas %}
-                    <div class="word-chip" draggable="true" data-word="{{ palabra }}">
-                        {{ palabra }}
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-
-            <!-- Drop Zone -->
-            <div class="drop-zone" id="dropZone">
-                <div class="drop-zone-label">
-                    <i class="fas fa-arrow-down me-2"></i>
-                    Arrastra las palabras aquí
-                </div>
-                <div class="sentence-area" id="sentenceArea"></div>
-            </div>
-
-            <!-- Botones de acción -->
-            <div class="action-buttons">
-                <button class="check-button" onclick="verificarOrden()" id="checkButton">
-                    <i class="fas fa-check me-2"></i>Verificar Orden
-                </button>
-                <button class="reset-button" onclick="reiniciar()">
-                    <i class="fas fa-redo me-2"></i>Reiniciar
-                </button>
-            </div>
-
-            <!-- Mensaje de resultado -->
-            <div class="result-message" id="resultMessage"></div>
+        
+        <!-- Barra de progreso -->
+        <div class="progress-bar-custom">
+            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
         </div>
     </div>
 
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Datos del ejercicio
-        const fraseCorrecta = "{{ ejercicio.frase_correcta }}";
-        const puntos = {{ ejercicio.puntos }};
-        let palabrasEnOrden = [];
+    <!-- Contenedor principal del ejercicio -->
+    <div class="sentence-container">
+        <!-- Instrucciones -->
+        <div class="instruction-text">
+            <i class="fas fa-sort-alpha-down me-2"></i>
+            Arrastra las palabras para formar la frase correcta
+        </div>
 
-        // Elementos del DOM
-        const wordsArea = document.getElementById('wordsArea');
-        const dropZone = document.getElementById('dropZone');
-        const sentenceArea = document.getElementById('sentenceArea');
-        const checkButton = document.getElementById('checkButton');
-        const resultMessage = document.getElementById('resultMessage');
+        <!-- Área donde se construye la frase -->
+        <div class="words-area" id="wordsArea" ondrop="drop(event)" ondragover="allowDrop(event)">
+            <div class="text-muted">
+                <i class="fas fa-hand-pointer me-2"></i>
+                Arrastra las palabras aquí para formar la frase
+            </div>
+        </div>
 
-        // Variables para drag and drop
-        let draggedElement = null;
+        <!-- Palabras desordenadas -->
+        <div class="scrambled-words" id="scrambledWords">
+            <!-- Se llenarán dinámicamente -->
+        </div>
 
-        // Configurar drag and drop
-        document.querySelectorAll('.word-chip').forEach(chip => {
-            chip.addEventListener('dragstart', handleDragStart);
-            chip.addEventListener('dragend', handleDragEnd);
-            chip.addEventListener('click', handleClick);
-        });
+        <!-- Botones de control -->
+        <div class="control-buttons">
+            <button class="control-btn check-btn" onclick="checkSentence()">
+                <i class="fas fa-check"></i> Verificar
+            </button>
+            <button class="control-btn hint-btn" onclick="getHint()">
+                <i class="fas fa-lightbulb"></i> Pista
+            </button>
+            <button class="control-btn reset-btn" onclick="resetExercise()">
+                <i class="fas fa-redo"></i> Reiniciar
+            </button>
+        </div>
+    </div>
 
-        dropZone.addEventListener('dragover', handleDragOver);
-        dropZone.addEventListener('drop', handleDrop);
-        dropZone.addEventListener('dragleave', handleDragLeave);
+    <!-- Contenedor de retroalimentación -->
+    <div class="feedback-container" id="feedbackContainer" style="display: none;">
+        <div id="feedbackMessage"></div>
+        <div class="sentence-display" id="correctSentence"></div>
+        <button class="btn btn-primary mt-3" onclick="nextSentence()">
+            <i class="fas fa-arrow-right me-2"></i>Siguiente Frase
+        </button>
+    </div>
+</div>
 
-        function handleDragStart(e) {
-            draggedElement = this;
-            this.classList.add('dragging');
-            e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('text/html', this.innerHTML);
-        }
+<!-- Modal de resultados finales -->
+<div class="modal fade" id="resultsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">¡Ejercicio Completado!</h5>
+            </div>
+            <div class="modal-body text-center">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="stat-item">
+                            <div class="stat-value" id="finalCorrect">0</div>
+                            <div class="stat-label">Frases Correctas</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-item">
+                            <div class="stat-value" id="finalScore">0</div>
+                            <div class="stat-label">Puntos Totales</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-item">
+                            <div class="stat-value" id="finalAccuracy">0%</div>
+                            <div class="stat-label">Precisión</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-item">
+                            <div class="stat-value" id="finalHints">0</div>
+                            <div class="stat-label">Pistas Usadas</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <h4 id="finalMessage">¡Buen trabajo!</h4>
+                    <p id="finalRecommendation"></p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="restartExercise()">
+                    <i class="fas fa-redo me-2"></i>Reintentar
+                </button>
+                <button type="button" class="btn btn-primary" onclick="goToExercises()">
+                    <i class="fas fa-list me-2"></i>Otros Ejercicios
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
 
-        function handleDragEnd(e) {
-            this.classList.remove('dragging');
-        }
+{% block extra_js %}
+<script>
+class OrdenarFraseGame {
+    constructor() {
+        this.currentExercise = null;
+        this.exerciseList = [];
+        this.currentIndex = 0;
+        this.score = 0;
+        this.correctAnswers = 0;
+        this.hintsUsed = 0;
+        this.totalQuestions = 8;
+        this.timeLimit = 90;
+        this.timeRemaining = this.timeLimit;
+        this.timer = null;
+        this.gameActive = false;
+        this.sessionId = null;
+        this.draggedElement = null;
+        this.currentOrder = [];
 
-        function handleDragOver(e) {
-            if (e.preventDefault) {
-                e.preventDefault();
-            }
-            dropZone.classList.add('drag-over');
-            return false;
-        }
+        this.initializeGame();
+    }
 
-        function handleDragLeave(e) {
-            dropZone.classList.remove('drag-over');
-        }
+    async initializeGame() {
+        console.log('🎮 Inicializando juego Ordenar Frase');
+        await this.startNewSession();
+        await this.loadExercise();
+        this.startTimer();
+        this.gameActive = true;
+    }
 
-        function handleDrop(e) {
-            if (e.stopPropagation) {
-                e.stopPropagation();
-            }
-
-            dropZone.classList.remove('drag-over');
-
-            if (draggedElement && draggedElement.parentElement === wordsArea) {
-                sentenceArea.appendChild(draggedElement);
-                actualizarEstado();
-            }
-
-            return false;
-        }
-
-        // Manejo de clicks para dispositivos táctiles
-        function handleClick(e) {
-            const chip = e.target;
-            if (chip.parentElement === wordsArea) {
-                sentenceArea.appendChild(chip);
-            } else {
-                wordsArea.appendChild(chip);
-            }
-            actualizarEstado();
-        }
-
-        // Actualizar estado del ejercicio
-        function actualizarEstado() {
-            // Ocultar label si hay palabras
-            const label = dropZone.querySelector('.drop-zone-label');
-            if (sentenceArea.children.length > 0) {
-                label.style.display = 'none';
-            } else {
-                label.style.display = 'block';
-            }
-
-            // Habilitar/deshabilitar botón de verificar
-            checkButton.disabled = wordsArea.children.length > 0;
-        }
-
-        // Verificar el orden de las palabras
-        function verificarOrden() {
-            const palabrasUsuario = Array.from(sentenceArea.children)
-                .map(chip => chip.dataset.word)
-                .join(' ');
-
-            if (palabrasUsuario === fraseCorrecta) {
-                mostrarResultado(true, '¡Excelente! Has ordenado la frase correctamente.');
-                enviarResultado(true);
-            } else {
-                mostrarResultado(false, 'El orden no es correcto. ¡Inténtalo de nuevo!');
-            }
-        }
-
-        // Mostrar mensaje de resultado
-        function mostrarResultado(esCorrecta, mensaje) {
-            resultMessage.textContent = mensaje;
-            resultMessage.className = esCorrecta ? 'result-message success' : 'result-message error';
-            resultMessage.style.display = 'block';
-
-            if (esCorrecta) {
-                checkButton.innerHTML = '<i class="fas fa-trophy me-2"></i>¡Completado!';
-                checkButton.disabled = true;
-
-                // Deshabilitar drag and drop
-                document.querySelectorAll('.word-chip').forEach(chip => {
-                    chip.draggable = false;
-                    chip.style.cursor = 'default';
-                });
-            }
-        }
-
-        // Reiniciar ejercicio
-        function reiniciar() {
-            // Mover todas las palabras de vuelta al área superior
-            Array.from(sentenceArea.children).forEach(chip => {
-                wordsArea.appendChild(chip);
-            });
-
-            // Resetear UI
-            resultMessage.style.display = 'none';
-            checkButton.innerHTML = '<i class="fas fa-check me-2"></i>Verificar Orden';
-            checkButton.disabled = false;
-
-            // Habilitar drag and drop
-            document.querySelectorAll('.word-chip').forEach(chip => {
-                chip.draggable = true;
-                chip.style.cursor = 'move';
-            });
-
-            actualizarEstado();
-        }
-
-        // Enviar resultado al servidor
-        function enviarResultado(correcto) {
-            const datos = {
-                tipo: 'ordenar_frase',
-                nombre: 'Ordenar Frase - Nivel ' + {{ ejercicio.nivel }},
-                puntos: correcto ? puntos : 0,
-                precision: correcto ? 100 : 0,
-                tiempo_segundos: 0, // Podrías implementar un temporizador
-                datos_adicionales: {
-                    nivel: {{ ejercicio.nivel }},
-                    frase_correcta: fraseCorrecta
-                }
-            };
-
-            fetch('/api/ejercicios/completar', {
+    async startNewSession() {
+        try {
+            const response = await fetch('/api/exercise/start', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(datos)
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Resultado guardado:', data);
-            })
-            .catch(error => {
-                console.error('Error al guardar resultado:', error);
+                body: JSON.stringify({
+                    exercise_type: 'ordenar_frase',
+                    difficulty_level: {{ current_user.nivel_lectura if current_user else 1 }}
+                })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                this.sessionId = data.session_id;
+                
+                if (data.exercises && data.exercises.length > 0) {
+                    this.exerciseList = data.exercises;
+                    console.log('✅ Ejercicios cargados desde BD:', this.exerciseList.length);
+                } else {
+                    console.warn('⚠️ No hay ejercicios en BD, usando modo offline');
+                    this.generateOfflineExercises();
+                }
+            } else {
+                console.warn('⚠️ Error en API, usando modo offline');
+                this.generateOfflineExercises();
+            }
+        } catch (error) {
+            console.warn('⚠️ Modo offline activado:', error);
+            this.generateOfflineExercises();
+        }
+    }
+
+    generateOfflineExercises() {
+        // Ejercicios de ejemplo para modo offline
+        this.exerciseList = [
+            {
+                sentence: "El gato está en la casa",
+                words: ["gato", "casa", "está", "El", "en", "la"],
+                correct_order: ["El", "gato", "está", "en", "la", "casa"],
+                hint: "Empieza con 'El'"
+            },
+            {
+                sentence: "Me gusta leer libros",
+                words: ["libros", "gusta", "leer", "Me"],
+                correct_order: ["Me", "gusta", "leer", "libros"],
+                hint: "Empieza con 'Me'"
+            },
+            {
+                sentence: "La luna es muy brillante",
+                words: ["brillante", "luna", "es", "La", "muy"],
+                correct_order: ["La", "luna", "es", "muy", "brillante"],
+                hint: "Empieza con 'La'"
+            },
+            {
+                sentence: "Los niños juegan en el parque",
+                words: ["parque", "niños", "juegan", "Los", "en", "el"],
+                correct_order: ["Los", "niños", "juegan", "en", "el", "parque"],
+                hint: "Empieza con 'Los'"
+            },
+            {
+                sentence: "Mi mamá cocina muy bien",
+                words: ["cocina", "mamá", "bien", "Mi", "muy"],
+                correct_order: ["Mi", "mamá", "cocina", "muy", "bien"],
+                hint: "Empieza con 'Mi'"
+            },
+            {
+                sentence: "El perro corre por la calle",
+                words: ["calle", "perro", "corre", "El", "por", "la"],
+                correct_order: ["El", "perro", "corre", "por", "la", "calle"],
+                hint: "Empieza con 'El'"
+            },
+            {
+                sentence: "Las flores son muy bonitas",
+                words: ["bonitas", "flores", "son", "Las", "muy"],
+                correct_order: ["Las", "flores", "son", "muy", "bonitas"],
+                hint: "Empieza con 'Las'"
+            },
+            {
+                sentence: "Nosotros estudiamos todos los días",
+                words: ["días", "estudiamos", "todos", "Nosotros", "los"],
+                correct_order: ["Nosotros", "estudiamos", "todos", "los", "días"],
+                hint: "Empieza con 'Nosotros'"
+            }
+        ];
+    }
+
+    async loadExercise() {
+        if (this.currentIndex >= this.exerciseList.length) {
+            this.endGame();
+            return;
+        }
+
+        this.currentExercise = this.exerciseList[this.currentIndex];
+        this.currentOrder = [];
+        this.displayExercise();
+        this.updateProgress();
+    }
+
+    displayExercise() {
+        const scrambledWords = document.getElementById('scrambledWords');
+        const wordsArea = document.getElementById('wordsArea');
+        
+        // Limpiar área de palabras
+        wordsArea.innerHTML = '<div class="text-muted"><i class="fas fa-hand-pointer me-2"></i>Arrastra las palabras aquí para formar la frase</div>';
+        
+        // Mezclar palabras
+        const shuffledWords = [...this.currentExercise.words].sort(() => Math.random() - 0.5);
+        
+        // Crear chips de palabras
+        scrambledWords.innerHTML = '';
+        shuffledWords.forEach((word, index) => {
+            const wordChip = document.createElement('div');
+            wordChip.className = 'word-chip';
+            wordChip.draggable = true;
+            wordChip.textContent = word;
+            wordChip.setAttribute('data-word', word);
+            wordChip.setAttribute('data-index', index);
+            
+            // Eventos de arrastre
+            wordChip.addEventListener('dragstart', this.dragStart.bind(this));
+            wordChip.addEventListener('dragend', this.dragEnd.bind(this));
+            
+            // Evento click para móviles
+            wordChip.addEventListener('click', this.wordClick.bind(this));
+            
+            scrambledWords.appendChild(wordChip);
+        });
+
+        // Actualizar contador de pregunta
+        document.getElementById('currentQuestion').textContent = this.currentIndex + 1;
+    }
+
+    dragStart(e) {
+        this.draggedElement = e.target;
+        e.target.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/html', e.target.outerHTML);
+        e.dataTransfer.setData('text/plain', e.target.getAttribute('data-word'));
+    }
+
+    dragEnd(e) {
+        e.target.classList.remove('dragging');
+        this.draggedElement = null;
+    }
+
+    wordClick(e) {
+        // Alternativa para dispositivos táctiles
+        const word = e.target.getAttribute('data-word');
+        this.addWordToSentence(word, e.target);
+    }
+
+    addWordToSentence(word, element) {
+        const wordsArea = document.getElementById('wordsArea');
+        
+        // Si es la primera palabra, limpiar el mensaje
+        if (this.currentOrder.length === 0) {
+            wordsArea.innerHTML = '';
+        }
+        
+        // Agregar palabra al área
+        const wordChip = element.cloneNode(true);
+        wordChip.draggable = false;
+        wordChip.onclick = () => this.removeWordFromSentence(wordChip, word);
+        wordChip.style.cursor = 'pointer';
+        wordChip.title = 'Click para quitar';
+        
+        wordsArea.appendChild(wordChip);
+        
+        // Remover de palabras disponibles
+        element.remove();
+        
+        // Agregar al orden actual
+        this.currentOrder.push(word);
+        
+        // Auto-verificar si se completó la frase
+        if (this.currentOrder.length === this.currentExercise.correct_order.length) {
+            setTimeout(() => this.checkSentence(), 500);
+        }
+    }
+
+    removeWordFromSentence(element, word) {
+        const scrambledWords = document.getElementById('scrambledWords');
+        
+        // Crear nueva chip en palabras disponibles
+        const wordChip = document.createElement('div');
+        wordChip.className = 'word-chip';
+        wordChip.draggable = true;
+        wordChip.textContent = word;
+        wordChip.setAttribute('data-word', word);
+        
+        // Re-agregar eventos
+        wordChip.addEventListener('dragstart', this.dragStart.bind(this));
+        wordChip.addEventListener('dragend', this.dragEnd.bind(this));
+        wordChip.addEventListener('click', this.wordClick.bind(this));
+        
+        scrambledWords.appendChild(wordChip);
+        
+        // Remover del área de palabras
+        element.remove();
+        
+        // Remover del orden actual
+        const index = this.currentOrder.indexOf(word);
+        if (index > -1) {
+            this.currentOrder.splice(index, 1);
+        }
+        
+        // Si no quedan palabras, mostrar mensaje
+        const wordsArea = document.getElementById('wordsArea');
+        if (this.currentOrder.length === 0) {
+            wordsArea.innerHTML = '<div class="text-muted"><i class="fas fa-hand-pointer me-2"></i>Arrastra las palabras aquí para formar la frase</div>';
+        }
+    }
+
+    checkSentence() {
+        if (!this.gameActive) return;
+        
+        const isCorrect = JSON.stringify(this.currentOrder) === JSON.stringify(this.currentExercise.correct_order);
+        
+        if (isCorrect) {
+            this.correctAnswers++;
+            this.score += Math.max(20 - this.hintsUsed * 2, 10); // Menos puntos si usó pistas
+            
+            this.showFeedback('¡Perfecto! 🎉', 'success', true);
+            
+            // Animar palabras correctas
+            document.querySelectorAll('#wordsArea .word-chip').forEach(chip => {
+                chip.classList.add('correct-position');
+            });
+        } else {
+            this.showFeedback('No es correcto. ¡Inténtalo de nuevo! 🤔', 'error', false);
+            
+            // Animar palabras incorrectas
+            document.querySelectorAll('#wordsArea .word-chip').forEach(chip => {
+                chip.classList.add('incorrect-position');
+                setTimeout(() => chip.classList.remove('incorrect-position'), 600);
             });
         }
-    </script>
-</body>
-</html>
+
+        // Enviar respuesta al servidor
+        this.submitAnswer(this.currentOrder, isCorrect);
+
+        // Actualizar estadísticas
+        this.updateStats();
+
+        if (isCorrect) {
+            setTimeout(() => {
+                document.getElementById('feedbackContainer').style.display = 'block';
+            }, 1000);
+        }
+    }
+
+    async submitAnswer(userOrder, isCorrect) {
+        if (!this.sessionId) return;
+
+        try {
+            await fetch('/api/exercise/submit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    session_id: this.sessionId,
+                    exercise_id: this.currentIndex,
+                    answer: userOrder.join(' '),
+                    is_correct: isCorrect,
+                    time_taken: this.timeLimit - this.timeRemaining,
+                    hints_used: this.hintsUsed
+                })
+            });
+        } catch (error) {
+            console.warn('Error enviando respuesta:', error);
+        }
+    }
+
+    showFeedback(message, type, showCorrect = false) {
+        const feedbackMessage = document.getElementById('feedbackMessage');
+        const correctSentence = document.getElementById('correctSentence');
+        
+        feedbackMessage.innerHTML = `
+            <div class="alert alert-${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'info'}">
+                <h5>${message}</h5>
+            </div>
+        `;
+        
+        if (showCorrect) {
+            correctSentence.textContent = this.currentExercise.correct_order.join(' ');
+            correctSentence.style.display = 'block';
+        } else {
+            correctSentence.style.display = 'none';
+        }
+    }
+
+    getHint() {
+        if (!this.gameActive || this.hintsUsed >= 3) return;
+        
+        this.hintsUsed++;
+        document.getElementById('hintsUsed').textContent = this.hintsUsed;
+        
+        let hintMessage = '';
+        
+        if (this.hintsUsed === 1) {
+            hintMessage = this.currentExercise.hint || 'Piensa en el orden lógico de las palabras';
+        } else if (this.hintsUsed === 2) {
+            const nextWord = this.currentExercise.correct_order[this.currentOrder.length];
+            hintMessage = `La siguiente palabra es: "${nextWord}"`;
+            
+            // Resaltar la palabra en las opciones
+            const wordChips = document.querySelectorAll('#scrambledWords .word-chip');
+            wordChips.forEach(chip => {
+                if (chip.getAttribute('data-word') === nextWord) {
+                    chip.classList.add('hint-highlight');
+                    setTimeout(() => chip.classList.remove('hint-highlight'), 3000);
+                }
+            });
+        } else {
+            hintMessage = `Frase completa: "${this.currentExercise.correct_order.join(' ')}"`;
+        }
+        
+        this.showFeedback(hintMessage, 'info');
+        setTimeout(() => {
+            document.getElementById('feedbackContainer').style.display = 'none';
+        }, 3000);
+    }
+
+    nextSentence() {
+        document.getElementById('feedbackContainer').style.display = 'none';
+        this.currentIndex++;
+        this.hintsUsed = 0; // Resetear pistas para nueva frase
+        document.getElementById('hintsUsed').textContent = 0;
+        
+        if (this.currentIndex >= this.totalQuestions) {
+            this.endGame();
+        } else {
+            this.loadExercise();
+        }
+    }
+
+    resetExercise() {
+        // Mover todas las palabras de vuelta al área de palabras desordenadas
+        const wordsArea = document.getElementById('wordsArea');
+        const scrambledWords = document.getElementById('scrambledWords');
+        
+        const wordsInArea = wordsArea.querySelectorAll('.word-chip');
+        wordsInArea.forEach(chip => {
+            const word = chip.textContent;
+            const newChip = document.createElement('div');
+            newChip.className = 'word-chip';
+            newChip.draggable = true;
+            newChip.textContent = word;
+            newChip.setAttribute('data-word', word);
+            
+            // Re-agregar eventos
+            newChip.addEventListener('dragstart', this.dragStart.bind(this));
+            newChip.addEventListener('dragend', this.dragEnd.bind(this));
+            newChip.addEventListener('click', this.wordClick.bind(this));
+            
+            scrambledWords.appendChild(newChip);
+        });
+        
+        // Limpiar área de construcción
+        this.currentOrder = [];
+        wordsArea.innerHTML = '<div class="text-muted"><i class="fas fa-hand-pointer me-2"></i>Arrastra las palabras aquí para formar la frase</div>';
+    }
+
+    updateStats() {
+        document.getElementById('correctAnswers').textContent = this.correctAnswers;
+        document.getElementById('currentScore').textContent = this.score;
+        document.getElementById('hintsUsed').textContent = this.hintsUsed;
+    }
+
+    updateProgress() {
+        const progress = ((this.currentIndex + 1) / this.totalQuestions) * 100;
+        document.getElementById('progressFill').style.width = `${progress}%`;
+    }
+
+    startTimer() {
+        this.timer = setInterval(() => {
+            this.timeRemaining--;
+            document.getElementById('timeRemaining').textContent = this.timeRemaining;
+            
+            if (this.timeRemaining <= 0) {
+                this.endGame();
+            }
+        }, 1000);
+    }
+
+    endGame() {
+        this.gameActive = false;
+        clearInterval(this.timer);
+
+        const accuracy = (this.correctAnswers / this.totalQuestions) * 100;
+        
+        // Actualizar modal de resultados
+        document.getElementById('finalCorrect').textContent = this.correctAnswers;
+        document.getElementById('finalScore').textContent = this.score;
+        document.getElementById('finalAccuracy').textContent = `${accuracy.toFixed(1)}%`;
+        document.getElementById('finalHints').textContent = this.hintsUsed;
+
+        // Mensaje basado en rendimiento
+        let message, recommendation;
+        if (accuracy >= 90) {
+            message = '¡Excelente dominio de la gramática! 🏆';
+            recommendation = 'Tu comprensión de la estructura de oraciones es excepcional.';
+        } else if (accuracy >= 70) {
+            message = '¡Muy buen trabajo! 👏';
+            recommendation = 'Tienes una buena comprensión de cómo formar oraciones.';
+        } else if (accuracy >= 50) {
+            message = '¡Buen progreso! 💪';
+            recommendation = 'Sigue practicando para mejorar tu comprensión gramatical.';
+        } else {
+            message = 'Sigue intentando 📚';
+            recommendation = 'Te recomendamos practicar más con oraciones simples.';
+        }
+
+        document.getElementById('finalMessage').textContent = message;
+        document.getElementById('finalRecommendation').textContent = recommendation;
+
+        // Mostrar modal
+        const resultsModal = new bootstrap.Modal(document.getElementById('resultsModal'));
+        resultsModal.show();
+    }
+}
+
+// Funciones globales para drag & drop
+function allowDrop(ev) {
+    ev.preventDefault();
+    ev.currentTarget.classList.add('drag-over');
+}
+
+function drop(ev) {
+    ev.preventDefault();
+    ev.currentTarget.classList.remove('drag-over');
+    
+    const data = ev.dataTransfer.getData('text/plain');
+    const element = document.querySelector(`[data-word="${data}"]`);
+    
+    if (element && window.game) {
+        window.game.addWordToSentence(data, element);
+    }
+}
+
+// Funciones globales
+function checkSentence() {
+    if (window.game) window.game.checkSentence();
+}
+
+function getHint() {
+    if (window.game) window.game.getHint();
+}
+
+function resetExercise() {
+    if (window.game) window.game.resetExercise();
+}
+
+function nextSentence() {
+    if (window.game) window.game.nextSentence();
+}
+
+function restartExercise() {
+    location.reload();
+}
+
+function goToExercises() {
+    window.location.href = '/ejercicios';
+}
+
+// Inicializar juego cuando se carga la página
+document.addEventListener('DOMContentLoaded', function() {
+    window.game = new OrdenarFraseGame();
+});
+
+// Remover clase drag-over si se sale del área
+document.addEventListener('dragleave', function(e) {
+    if (e.target.id === 'wordsArea') {
+        e.target.classList.remove('drag-over');
+    }
+});
+</script>
+{% endblock %}

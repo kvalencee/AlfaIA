@@ -1,382 +1,1129 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ejercicio de Ortografía - AlfaIA</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <style>
-        body {
-            background: linear-gradient(135deg, #fd79a8 0%, #fdcb6e 100%);
-            color: white;
-            min-height: 100vh;
+{% extends "base.html" %}
+
+{% block title %}Ortografía - AlfaIA{% endblock %}
+
+{% block extra_css %}
+<style>
+    .exercise-container {
+        max-width: 900px;
+        margin: 2rem auto;
+        padding: 2rem;
+    }
+
+    .spelling-container {
+        text-align: center;
+        background: white;
+        border-radius: 20px;
+        padding: 3rem 2rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+    }
+
+    .word-presentation {
+        margin-bottom: 3rem;
+    }
+
+    .word-audio-section {
+        background: rgba(37, 99, 235, 0.05);
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border: 2px solid rgba(37, 99, 235, 0.1);
+    }
+
+    .word-display {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: var(--primary-color);
+        margin: 1rem 0;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+    }
+
+    .word-hidden {
+        filter: blur(8px);
+        transition: filter 0.3s ease;
+    }
+
+    .word-definition {
+        font-size: 1.1rem;
+        color: #6b7280;
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+        font-style: italic;
+    }
+
+    .audio-controls {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin: 1.5rem 0;
+        flex-wrap: wrap;
+    }
+
+    .audio-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 25px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .audio-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .audio-btn.playing {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        animation: pulse 1s infinite;
+    }
+
+    .spelling-input-area {
+        background: #f8fafc;
+        border-radius: 15px;
+        padding: 2rem;
+        margin: 2rem 0;
+        border: 2px solid #e5e7eb;
+    }
+
+    .spelling-input {
+        width: 100%;
+        max-width: 400px;
+        padding: 1rem 1.5rem;
+        font-size: 1.5rem;
+        text-align: center;
+        border: 3px solid #d1d5db;
+        border-radius: 15px;
+        background: white;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        transition: all 0.3s ease;
+    }
+
+    .spelling-input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 20px rgba(37, 99, 235, 0.2);
+        transform: scale(1.02);
+    }
+
+    .spelling-input.correct {
+        border-color: var(--success-color);
+        background: rgba(16, 185, 129, 0.05);
+        animation: correctBounce 0.8s ease;
+    }
+
+    .spelling-input.incorrect {
+        border-color: var(--danger-color);
+        background: rgba(239, 68, 68, 0.05);
+        animation: shake 0.6s ease;
+    }
+
+    .letter-hints {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin: 1.5rem 0;
+        flex-wrap: wrap;
+    }
+
+    .letter-hint {
+        width: 50px;
+        height: 50px;
+        border: 2px solid #d1d5db;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        font-weight: bold;
+        background: white;
+        transition: all 0.3s ease;
+    }
+
+    .letter-hint.revealed {
+        border-color: var(--primary-color);
+        background: rgba(37, 99, 235, 0.1);
+        color: var(--primary-color);
+        transform: scale(1.1);
+    }
+
+    .letter-hint.correct-position {
+        border-color: var(--success-color);
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--success-color);
+        animation: correctPulse 0.6s ease;
+    }
+
+    .exercise-stats {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 1rem;
+    }
+
+    .stat-item {
+        text-align: center;
+        padding: 1rem;
+        background: rgba(37, 99, 235, 0.05);
+        border-radius: 10px;
+        border: 1px solid rgba(37, 99, 235, 0.1);
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: var(--primary-color);
+        margin-bottom: 0.3rem;
+    }
+
+    .stat-label {
+        font-size: 0.8rem;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .control-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin: 2rem 0;
+        flex-wrap: wrap;
+    }
+
+    .control-btn {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .check-btn {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+    }
+
+    .check-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+    }
+
+    .hint-btn {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color: white;
+    }
+
+    .hint-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+    }
+
+    .skip-btn {
+        background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+        color: white;
+    }
+
+    .skip-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(107, 114, 128, 0.3);
+    }
+
+    .feedback-container {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        margin-top: 2rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        text-align: center;
+    }
+
+    .progress-bar-custom {
+        height: 8px;
+        border-radius: 10px;
+        background: #e5e7eb;
+        overflow: hidden;
+        margin-bottom: 1rem;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--primary-color), var(--success-color));
+        border-radius: 10px;
+        transition: width 0.5s ease;
+    }
+
+    .difficulty-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(99, 102, 241, 0.1);
+        color: #6366f1;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    .attempts-indicator {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin: 1rem 0;
+    }
+
+    .attempt-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #d1d5db;
+        transition: all 0.3s ease;
+    }
+
+    .attempt-dot.used {
+        background: var(--danger-color);
+    }
+
+    .attempt-dot.current {
+        background: var(--warning-color);
+        transform: scale(1.2);
+    }
+
+    @keyframes correctBounce {
+        0%, 20%, 53%, 80%, 100% { transform: translate3d(0,0,0) scale(1); }
+        40%, 43% { transform: translate3d(0,-8px,0) scale(1.05); }
+        70% { transform: translate3d(0,-4px,0) scale(1.02); }
+        90% { transform: translate3d(0,-2px,0) scale(1.01); }
+    }
+
+    @keyframes correctPulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.2); }
+    }
+
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+        20%, 40%, 60%, 80% { transform: translateX(5px); }
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .spelling-input {
+            font-size: 1.2rem;
+            max-width: 300px;
         }
-        .exercise-container {
-            background: rgba(255, 255, 255, 0.95);
-            color: #333;
-            border-radius: 20px;
-            padding: 30px;
-            margin: 20px 0;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-        }
-        .word-card {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            margin: 15px 0;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            border: 2px solid #e9ecef;
-            transition: all 0.3s ease;
-        }
-        .word-card:hover {
-            border-color: #fd79a8;
-            transform: translateY(-2px);
-        }
+
         .word-display {
             font-size: 2rem;
-            font-weight: bold;
-            text-align: center;
-            margin: 20px 0;
-            font-family: 'Courier New', monospace;
         }
-        .word-incorrect {
-            color: #e17055;
-            text-decoration: line-through;
+
+        .letter-hint {
+            width: 40px;
+            height: 40px;
+            font-size: 1.2rem;
         }
-        .word-input {
-            font-size: 1.5rem;
-            text-align: center;
-            border: 3px solid #fd79a8;
-            border-radius: 10px;
-            padding: 15px;
+
+        .control-buttons {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .control-btn {
             width: 100%;
-            font-family: 'Courier New', monospace;
+            max-width: 200px;
         }
-        .word-input:focus {
-            outline: none;
-            border-color: #e84393;
-            box-shadow: 0 0 0 0.2rem rgba(253, 121, 168, 0.25);
-        }
-        .word-input.correct {
-            border-color: #00b894;
-            background: #d4edda;
-        }
-        .word-input.incorrect {
-            border-color: #e17055;
-            background: #f8d7da;
-        }
-        .btn-modern {
-            background: linear-gradient(45deg, #fd79a8, #e84393);
-            border: none;
-            color: white;
-            padding: 12px 25px;
-            border-radius: 25px;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-            margin: 5px;
-        }
-        .btn-modern:hover {
-            background: linear-gradient(45deg, #e84393, #d63384);
-            transform: translateY(-2px);
-            color: white;
-            text-decoration: none;
-        }
-        .progress-custom {
-            height: 8px;
-            border-radius: 10px;
-            background: #e9ecef;
-        }
-        .progress-bar-custom {
-            background: linear-gradient(45deg, #fd79a8, #e84393);
-            border-radius: 10px;
-            transition: width 0.3s ease;
-        }
-        .results-container {
-            display: none;
-            text-align: center;
-            background: rgba(253, 121, 168, 0.1);
-            padding: 30px;
-            border-radius: 15px;
-            margin: 20px 0;
-            border: 2px solid #fd79a8;
-        }
-        .final-score {
-            font-size: 3rem;
-            font-weight: bold;
-            color: #f39c12;
-            margin: 20px 0;
-        }
-        .feedback {
-            margin-top: 10px;
-            font-weight: bold;
-            font-size: 0.9rem;
-        }
-        .feedback.correct {
-            color: #00b894;
-        }
-        .feedback.incorrect {
-            color: #e17055;
-        }
-    </style>
-</head>
-<body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark">
-        <div class="container">
-            <a class="navbar-brand" href="/">
-                <i class="fas fa-graduation-cap me-2"></i>AlfaIA
-            </a>
-            <div class="navbar-nav ms-auto">
-                <span class="navbar-text">Ejercicio de Ortografía</span>
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="exercise-container">
+    <!-- Estadísticas del ejercicio -->
+    <div class="exercise-stats">
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-value" id="currentQuestion">1</div>
+                <div class="stat-label">Palabra</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="correctAnswers">0</div>
+                <div class="stat-label">Correctas</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="currentScore">0</div>
+                <div class="stat-label">Puntos</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="timeRemaining">120</div>
+                <div class="stat-label">Tiempo</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="hintsUsed">0</div>
+                <div class="stat-label">Pistas</div>
             </div>
         </div>
-    </nav>
-
-    <div class="container mt-4">
-        <div class="row justify-content-center">
-            <div class="col-md-8">
-                <div class="exercise-container">
-                    <div class="text-center mb-4">
-                        <h2><i class="fas fa-spell-check me-2"></i>Ejercicio de Ortografía</h2>
-                        <p class="lead">Corrige las palabras escribiéndolas correctamente</p>
-                        <span class="badge bg-primary fs-6">Nivel {{ ejercicio.nivel }}</span>
-                        <span class="badge bg-success fs-6">{{ ejercicio.puntos_posibles }} puntos posibles</span>
-                    </div>
-
-                    <!-- Barra de progreso -->
-                    <div class="progress progress-custom mb-4">
-                        <div class="progress-bar progress-bar-custom" id="progressBar" style="width: 0%"></div>
-                    </div>
-
-                    <!-- Palabras para corregir -->
-                    <div id="wordsContainer">
-                        {% for palabra in ejercicio.palabras %}
-                        <div class="word-card" data-word-index="{{ loop.index0 }}">
-                            <div class="word-display word-incorrect">{{ palabra.incorrecta }}</div>
-                            <div class="text-center mb-3">
-                                <small class="text-muted">Escribe la palabra correcta:</small>
-                            </div>
-                            <input type="text"
-                                   class="word-input"
-                                   data-correct="{{ palabra.correcta }}"
-                                   data-word-index="{{ loop.index0 }}"
-                                   placeholder="Escribe aquí..."
-                                   onkeyup="checkWord({{ loop.index0 }})"
-                                   onblur="validateWord({{ loop.index0 }})">
-                            <div class="feedback" id="feedback-{{ loop.index0 }}"></div>
-                        </div>
-                        {% endfor %}
-                    </div>
-
-                    <!-- Botón para finalizar -->
-                    <div class="text-center mt-4" id="finishButton" style="display: none;">
-                        <button class="btn-modern" onclick="finishExercise()">
-                            <i class="fas fa-check me-2"></i>Finalizar Ejercicio
-                        </button>
-                    </div>
-
-                    <!-- Resultados -->
-                    <div class="results-container" id="resultsContainer">
-                        <h3><i class="fas fa-trophy me-2"></i>¡Ejercicio Completado!</h3>
-                        <div class="final-score" id="finalScore">0</div>
-                        <p id="resultMessage">¡Buen trabajo!</p>
-
-                        <div class="row text-center mt-4">
-                            <div class="col-md-4">
-                                <h5 id="correctWords">0</h5>
-                                <small>Palabras correctas</small>
-                            </div>
-                            <div class="col-md-4">
-                                <h5 id="totalWords">{{ ejercicio.palabras|length }}</h5>
-                                <small>Total de palabras</small>
-                            </div>
-                            <div class="col-md-4">
-                                <h5 id="accuracy">0%</h5>
-                                <small>Precisión</small>
-                            </div>
-                        </div>
-
-                        <div class="mt-4">
-                            <a href="/ejercicios/ortografia" class="btn-modern">
-                                <i class="fas fa-redo me-2"></i>Nuevo Ejercicio
-                            </a>
-                            <a href="/ejercicios" class="btn-modern">
-                                <i class="fas fa-book me-2"></i>Más Ejercicios
-                            </a>
-                        </div>
-                    </div>
-
-                    <!-- Botones de navegación -->
-                    <div class="text-center mt-4" id="navigationButtons">
-                        <a href="/ejercicios" class="btn-modern">
-                            <i class="fas fa-arrow-left me-2"></i>Volver a Ejercicios
-                        </a>
-                        <a href="/dashboard" class="btn-modern">
-                            <i class="fas fa-home me-2"></i>Dashboard
-                        </a>
-                    </div>
-                </div>
-            </div>
+        
+        <!-- Barra de progreso -->
+        <div class="progress-bar-custom">
+            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Datos del ejercicio
-        const exerciseData = {
-            words: {{ ejercicio.palabras | tojsonfilter }},
-            totalPoints: {{ ejercicio.puntos_posibles }},
-            level: {{ ejercicio.nivel }}
-        };
+    <!-- Contenedor principal del ejercicio -->
+    <div class="spelling-container">
+        <!-- Indicador de dificultad -->
+        <div class="difficulty-indicator" id="difficultyIndicator">
+            <i class="fas fa-star"></i>
+            <span>Nivel Básico</span>
+        </div>
 
-        // Variables del ejercicio
-        let answers = {};
-        let wordsCompleted = 0;
-        let correctWords = 0;
-        let exerciseCompleted = false;
+        <!-- Presentación de la palabra -->
+        <div class="word-presentation">
+            <div class="word-audio-section">
+                <!-- Definición -->
+                <div class="word-definition" id="wordDefinition">
+                    Escucha la palabra y escríbela correctamente
+                </div>
 
-        // Verificar palabra mientras se escribe
-        function checkWord(wordIndex) {
-            if (exerciseCompleted) return;
+                <!-- Palabra (oculta por defecto) -->
+                <div class="word-display word-hidden" id="wordDisplay">
+                    PALABRA
+                </div>
 
-            const input = document.querySelector(`[data-word-index="${wordIndex}"]`);
-            const userAnswer = input.value.trim().toLowerCase();
-            const correctAnswer = input.dataset.correct.toLowerCase();
-            const feedback = document.getElementById(`feedback-${wordIndex}`);
+                <!-- Controles de audio -->
+                <div class="audio-controls">
+                    <button class="audio-btn" onclick="playWordAudio()" id="playBtn">
+                        <i class="fas fa-play"></i> Escuchar
+                    </button>
+                    <button class="audio-btn" onclick="playSlowAudio()" id="slowBtn">
+                        <i class="fas fa-turtle"></i> Lento
+                    </button>
+                    <button class="audio-btn" onclick="showWord()" id="showBtn">
+                        <i class="fas fa-eye"></i> Ver Palabra
+                    </button>
+                </div>
+            </div>
 
-            // Limpiar clases anteriores
-            input.classList.remove('correct', 'incorrect');
-            feedback.textContent = '';
-            feedback.className = 'feedback';
+            <!-- Pistas de letras -->
+            <div class="letter-hints" id="letterHints">
+                <!-- Se llenarán dinámicamente -->
+            </div>
 
-            if (userAnswer && userAnswer === correctAnswer) {
-                input.classList.add('correct');
-                feedback.textContent = '✓ ¡Correcto!';
-                feedback.classList.add('correct');
+            <!-- Indicador de intentos -->
+            <div class="attempts-indicator" id="attemptsIndicator">
+                <div class="attempt-dot current"></div>
+                <div class="attempt-dot"></div>
+                <div class="attempt-dot"></div>
+            </div>
+        </div>
 
-                if (!answers[wordIndex] || !answers[wordIndex].isCorrect) {
-                    answers[wordIndex] = {
-                        userAnswer: input.value.trim(),
-                        correctAnswer: input.dataset.correct,
-                        isCorrect: true
-                    };
+        <!-- Área de entrada -->
+        <div class="spelling-input-area">
+            <input 
+                type="text" 
+                class="spelling-input" 
+                id="spellingInput" 
+                placeholder="Escribe la palabra aquí..."
+                autocomplete="off"
+                spellcheck="false"
+                onkeypress="handleKeyPress(event)"
+                oninput="handleInput()"
+            >
+        </div>
 
-                    if (!answers[wordIndex].counted) {
-                        wordsCompleted++;
-                        answers[wordIndex].counted = true;
-                    }
-                }
-            } else if (userAnswer) {
-                input.classList.add('incorrect');
-                feedback.textContent = '✗ Intenta de nuevo';
-                feedback.classList.add('incorrect');
-            }
+        <!-- Botones de control -->
+        <div class="control-buttons">
+            <button class="control-btn check-btn" onclick="checkSpelling()">
+                <i class="fas fa-check"></i> Verificar
+            </button>
+            <button class="control-btn hint-btn" onclick="getHint()">
+                <i class="fas fa-lightbulb"></i> Pista
+            </button>
+            <button class="control-btn skip-btn" onclick="skipWord()">
+                <i class="fas fa-forward"></i> Saltar
+            </button>
+        </div>
+    </div>
 
-            updateProgress();
-        }
+    <!-- Contenedor de retroalimentación -->
+    <div class="feedback-container" id="feedbackContainer" style="display: none;">
+        <div id="feedbackMessage"></div>
+        <button class="btn btn-primary mt-3" onclick="nextWord()">
+            <i class="fas fa-arrow-right me-2"></i>Siguiente Palabra
+        </button>
+    </div>
+</div>
 
-        // Validar palabra al perder el foco
-        function validateWord(wordIndex) {
-            if (exerciseCompleted) return;
+<!-- Modal de resultados finales -->
+<div class="modal fade" id="resultsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">¡Ejercicio de Ortografía Completado!</h5>
+            </div>
+            <div class="modal-body text-center">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="stat-item">
+                            <div class="stat-value" id="finalCorrect">0</div>
+                            <div class="stat-label">Palabras Correctas</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-item">
+                            <div class="stat-value" id="finalScore">0</div>
+                            <div class="stat-label">Puntos Totales</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-item">
+                            <div class="stat-value" id="finalAccuracy">0%</div>
+                            <div class="stat-label">Precisión</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-item">
+                            <div class="stat-value" id="finalDifficulty">Básico</div>
+                            <div class="stat-label">Nivel Alcanzado</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <h4 id="finalMessage">¡Buen trabajo!</h4>
+                    <p id="finalRecommendation"></p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="restartExercise()">
+                    <i class="fas fa-redo me-2"></i>Reintentar
+                </button>
+                <button type="button" class="btn btn-primary" onclick="goToExercises()">
+                    <i class="fas fa-list me-2"></i>Otros Ejercicios
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
 
-            const input = document.querySelector(`[data-word-index="${wordIndex}"]`);
-            const userAnswer = input.value.trim();
+{% block extra_js %}
+<script>
+class OrtografiaGame {
+    constructor() {
+        this.currentExercise = null;
+        this.exerciseList = [];
+        this.currentIndex = 0;
+        this.score = 0;
+        this.correctAnswers = 0;
+        this.hintsUsed = 0;
+        this.currentAttempts = 0;
+        this.maxAttempts = 3;
+        this.totalQuestions = 10;
+        this.timeLimit = 120;
+        this.timeRemaining = this.timeLimit;
+        this.timer = null;
+        this.gameActive = false;
+        this.sessionId = null;
+        this.wordVisible = false;
+        this.audioContext = null;
 
-            if (userAnswer && !answers[wordIndex]) {
-                answers[wordIndex] = {
-                    userAnswer: userAnswer,
-                    correctAnswer: input.dataset.correct,
-                    isCorrect: userAnswer.toLowerCase() === input.dataset.correct.toLowerCase(),
-                    counted: false
-                };
+        this.initializeGame();
+    }
 
-                if (answers[wordIndex].isCorrect && !answers[wordIndex].counted) {
-                    wordsCompleted++;
-                    answers[wordIndex].counted = true;
-                }
-            }
+    async initializeGame() {
+        console.log('🎮 Inicializando juego de Ortografía');
+        await this.startNewSession();
+        await this.loadExercise();
+        this.startTimer();
+        this.gameActive = true;
+        this.initializeAudio();
+    }
 
-            updateProgress();
-        }
+    async startNewSession() {
+        try {
+            const response = await fetch('/api/exercise/start', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    exercise_type: 'ortografia',
+                    difficulty_level: {{ current_user.nivel_escritura if current_user else 1 }}
+                })
+            });
 
-        // Actualizar progreso
-        function updateProgress() {
-            const progress = (wordsCompleted / exerciseData.words.length) * 100;
-            document.getElementById('progressBar').style.width = progress + '%';
-
-            if (wordsCompleted === exerciseData.words.length) {
-                document.getElementById('finishButton').style.display = 'block';
-            }
-        }
-
-        // Finalizar ejercicio
-        function finishExercise() {
-            if (exerciseCompleted) return;
-
-            exerciseCompleted = true;
-            correctWords = 0;
-
-            // Evaluar todas las respuestas
-            for (let i = 0; i < exerciseData.words.length; i++) {
-                const input = document.querySelector(`[data-word-index="${i}"]`);
-                input.disabled = true;
-
-                if (answers[i] && answers[i].isCorrect) {
-                    correctWords++;
-                    input.classList.add('correct');
+            if (response.ok) {
+                const data = await response.json();
+                this.sessionId = data.session_id;
+                
+                if (data.exercises && data.exercises.length > 0) {
+                    this.exerciseList = data.exercises;
+                    console.log('✅ Ejercicios cargados desde BD:', this.exerciseList.length);
                 } else {
-                    input.classList.add('incorrect');
-                    // Mostrar la respuesta correcta
-                    const feedback = document.getElementById(`feedback-${i}`);
-                    feedback.textContent = `Correcto: ${exerciseData.words[i].correcta}`;
-                    feedback.classList.add('incorrect');
+                    console.warn('⚠️ No hay ejercicios en BD, usando modo offline');
+                    this.generateOfflineExercises();
+                }
+            } else {
+                console.warn('⚠️ Error en API, usando modo offline');
+                this.generateOfflineExercises();
+            }
+        } catch (error) {
+            console.warn('⚠️ Modo offline activado:', error);
+            this.generateOfflineExercises();
+        }
+    }
+
+    generateOfflineExercises() {
+        // Ejercicios de ortografía organizados por dificultad
+        this.exerciseList = [
+            // Nivel Básico
+            { word: "CASA", definition: "Lugar donde vivimos", difficulty: "Básico", syllables: ["CA", "SA"] },
+            { word: "AGUA", definition: "Líquido vital para la vida", difficulty: "Básico", syllables: ["A", "GUA"] },
+            { word: "GATO", definition: "Animal doméstico que maúlla", difficulty: "Básico", syllables: ["GA", "TO"] },
+            
+            // Nivel Intermedio
+            { word: "ESCUELA", definition: "Lugar donde aprendemos", difficulty: "Intermedio", syllables: ["ES", "CUE", "LA"] },
+            { word: "FAMILIA", definition: "Grupo de personas que viven juntas", difficulty: "Intermedio", syllables: ["FA", "MI", "LIA"] },
+            { word: "VENTANA", definition: "Abertura en la pared para ver afuera", difficulty: "Intermedio", syllables: ["VEN", "TA", "NA"] },
+            
+            // Nivel Avanzado
+            { word: "BIBLIOTECA", definition: "Lugar con muchos libros", difficulty: "Avanzado", syllables: ["BI", "BLIO", "TE", "CA"] },
+            { word: "DINOSAURIO", definition: "Animal prehistórico muy grande", difficulty: "Avanzado", syllables: ["DI", "NO", "SAU", "RIO"] },
+            { word: "REFRIGERADOR", definition: "Aparato que mantiene fría la comida", difficulty: "Avanzado", syllables: ["RE", "FRI", "GE", "RA", "DOR"] },
+            { word: "COMPUTADORA", definition: "Máquina para trabajar y jugar", difficulty: "Avanzado", syllables: ["COM", "PU", "TA", "DO", "RA"] }
+        ];
+    }
+
+    initializeAudio() {
+        // Inicializar contexto de audio para síntesis de voz
+        try {
+            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (error) {
+            console.warn('Audio no disponible:', error);
+        }
+    }
+
+    async loadExercise() {
+        if (this.currentIndex >= this.exerciseList.length) {
+            this.endGame();
+            return;
+        }
+
+        this.currentExercise = this.exerciseList[this.currentIndex];
+        this.currentAttempts = 0;
+        this.wordVisible = false;
+        this.displayExercise();
+        this.updateProgress();
+    }
+
+    displayExercise() {
+        const wordDisplay = document.getElementById('wordDisplay');
+        const wordDefinition = document.getElementById('wordDefinition');
+        const difficultyIndicator = document.getElementById('difficultyIndicator');
+        const spellingInput = document.getElementById('spellingInput');
+        const letterHints = document.getElementById('letterHints');
+        
+        // Configurar palabra y definición
+        wordDisplay.textContent = this.currentExercise.word;
+        wordDisplay.classList.add('word-hidden');
+        wordDefinition.textContent = this.currentExercise.definition;
+        
+        // Configurar indicador de dificultad
+        const difficulty = this.currentExercise.difficulty || 'Básico';
+        difficultyIndicator.innerHTML = `
+            <i class="fas fa-star"></i>
+            <span>Nivel ${difficulty}</span>
+        `;
+        
+        // Limpiar input
+        spellingInput.value = '';
+        spellingInput.classList.remove('correct', 'incorrect');
+        
+        // Crear pistas de letras
+        this.createLetterHints();
+        
+        // Resetear intentos
+        this.updateAttemptsDisplay();
+        
+        // Actualizar contador
+        document.getElementById('currentQuestion').textContent = this.currentIndex + 1;
+        
+        // Focus en input
+        spellingInput.focus();
+    }
+
+    createLetterHints() {
+        const letterHints = document.getElementById('letterHints');
+        const word = this.currentExercise.word;
+        
+        letterHints.innerHTML = '';
+        
+        for (let i = 0; i < word.length; i++) {
+            const hint = document.createElement('div');
+            hint.className = 'letter-hint';
+            hint.setAttribute('data-index', i);
+            hint.textContent = '_';
+            letterHints.appendChild(hint);
+        }
+    }
+
+    handleKeyPress(event) {
+        if (event.key === 'Enter') {
+            this.checkSpelling();
+        }
+    }
+
+    handleInput() {
+        const input = document.getElementById('spellingInput');
+        const value = input.value.toUpperCase();
+        
+        // Limpiar clases de feedback
+        input.classList.remove('correct', 'incorrect');
+        
+        // Mostrar progreso en las pistas de letras
+        const letterHints = document.querySelectorAll('.letter-hint');
+        const word = this.currentExercise.word;
+        
+        letterHints.forEach((hint, index) => {
+            hint.classList.remove('correct-position');
+            if (index < value.length) {
+                if (value[index] === word[index]) {
+                    hint.textContent = value[index];
+                    hint.classList.add('correct-position');
+                } else {
+                    hint.textContent = value[index];
+                    hint.classList.remove('correct-position');
+                }
+            } else {
+                hint.textContent = '_';
+            }
+        });
+    }
+
+    checkSpelling() {
+        if (!this.gameActive) return;
+        
+        const input = document.getElementById('spellingInput');
+        const userWord = input.value.trim().toUpperCase();
+        const correctWord = this.currentExercise.word;
+        
+        if (!userWord) {
+            this.showFeedback('Por favor escribe una palabra', 'warning');
+            return;
+        }
+        
+        this.currentAttempts++;
+        
+        if (userWord === correctWord) {
+            // Respuesta correcta
+            input.classList.add('correct');
+            this.correctAnswers++;
+            
+            // Calcular puntos (menos puntos por más intentos y pistas)
+            let points = 20;
+            points -= (this.currentAttempts - 1) * 3; // -3 puntos por intento extra
+            points -= this.hintsUsed * 2; // -2 puntos por pista
+            points = Math.max(points, 5); // Mínimo 5 puntos
+            
+            this.score += points;
+            
+            this.showFeedback(`¡Perfecto! +${points} puntos 🎉`, 'success');
+            
+            // Mostrar todas las letras correctas
+            const letterHints = document.querySelectorAll('.letter-hint');
+            letterHints.forEach(hint => {
+                hint.classList.add('correct-position');
+            });
+            
+            setTimeout(() => {
+                document.getElementById('feedbackContainer').style.display = 'block';
+            }, 1500);
+            
+        } else {
+            // Respuesta incorrecta
+            input.classList.add('incorrect');
+            
+            if (this.currentAttempts >= this.maxAttempts) {
+                // Se acabaron los intentos
+                this.showFeedback(`La palabra correcta era: ${correctWord}`, 'error');
+                this.revealWord();
+                setTimeout(() => {
+                    document.getElementById('feedbackContainer').style.display = 'block';
+                }, 2000);
+            } else {
+                // Aún hay intentos
+                const remaining = this.maxAttempts - this.currentAttempts;
+                this.showFeedback(`Incorrecto. Te quedan ${remaining} intento${remaining > 1 ? 's' : ''}`, 'warning');
+                
+                // Limpiar input después de un momento
+                setTimeout(() => {
+                    input.value = '';
+                    input.classList.remove('incorrect');
+                    input.focus();
+                }, 1500);
+            }
+        }
+        
+        this.updateAttemptsDisplay();
+        this.updateStats();
+        
+        // Enviar respuesta al servidor
+        this.submitAnswer(userWord, userWord === correctWord);
+    }
+
+    async submitAnswer(userAnswer, isCorrect) {
+        if (!this.sessionId) return;
+
+        try {
+            await fetch('/api/exercise/submit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    session_id: this.sessionId,
+                    exercise_id: this.currentIndex,
+                    answer: userAnswer,
+                    is_correct: isCorrect,
+                    time_taken: this.timeLimit - this.timeRemaining,
+                    attempts_used: this.currentAttempts,
+                    hints_used: this.hintsUsed
+                })
+            });
+        } catch (error) {
+            console.warn('Error enviando respuesta:', error);
+        }
+    }
+
+    getHint() {
+        if (!this.gameActive || this.hintsUsed >= 3) return;
+        
+        this.hintsUsed++;
+        document.getElementById('hintsUsed').textContent = this.hintsUsed;
+        
+        const word = this.currentExercise.word;
+        const syllables = this.currentExercise.syllables || [];
+        let hintMessage = '';
+        
+        if (this.hintsUsed === 1) {
+            // Primera pista: número de letras y primera letra
+            hintMessage = `La palabra tiene ${word.length} letras y empieza con "${word[0]}"`;
+            
+            // Revelar primera letra
+            const firstHint = document.querySelector('.letter-hint[data-index="0"]');
+            if (firstHint) {
+                firstHint.textContent = word[0];
+                firstHint.classList.add('revealed');
+            }
+            
+        } else if (this.hintsUsed === 2) {
+            // Segunda pista: sílabas
+            if (syllables.length > 0) {
+                hintMessage = `La palabra se divide en sílabas: ${syllables.join(' - ')}`;
+            } else {
+                hintMessage = `La palabra termina con "${word[word.length - 1]}"`;
+                // Revelar última letra
+                const lastHint = document.querySelector(`.letter-hint[data-index="${word.length - 1}"]`);
+                if (lastHint) {
+                    lastHint.textContent = word[word.length - 1];
+                    lastHint.classList.add('revealed');
                 }
             }
-
-            showResults();
-        }
-
-        // Mostrar resultados
-        function showResults() {
-            const accuracy = Math.round((correctWords / exerciseData.words.length) * 100);
-            const score = Math.round((correctWords / exerciseData.words.length) * exerciseData.totalPoints);
-
-            document.getElementById('finalScore').textContent = score;
-            document.getElementById('correctWords').textContent = correctWords;
-            document.getElementById('accuracy').textContent = accuracy + '%';
-
-            let message = '';
-            if (accuracy === 100) {
-                message = '¡Perfecto! 🏆 ¡Excelente ortografía!';
-            } else if (accuracy >= 80) {
-                message = '¡Muy bien! 🌟 Tienes buena ortografía.';
-            } else if (accuracy >= 60) {
-                message = '¡Bien hecho! 👍 Sigue practicando.';
-            } else {
-                message = '¡Buen intento! 💪 La práctica mejora la ortografía.';
+            
+        } else {
+            // Tercera pista: revelar la mitad de las letras
+            hintMessage = 'Aquí tienes más letras de la palabra:';
+            const middleIndex = Math.floor(word.length / 2);
+            
+            for (let i = 0; i < word.length; i += 2) {
+                const hint = document.querySelector(`.letter-hint[data-index="${i}"]`);
+                if (hint && !hint.classList.contains('revealed')) {
+                    hint.textContent = word[i];
+                    hint.classList.add('revealed');
+                }
             }
-
-            document.getElementById('resultMessage').textContent = message;
-            document.getElementById('resultsContainer').style.display = 'block';
-            document.getElementById('finishButton').style.display = 'none';
-            document.getElementById('navigationButtons').style.display = 'none';
         }
+        
+        this.showFeedback(hintMessage, 'info');
+        setTimeout(() => {
+            document.getElementById('feedbackContainer').style.display = 'none';
+        }, 4000);
+    }
 
-        // Permitir Enter para continuar
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Enter' && wordsCompleted === exerciseData.words.length) {
-                finishExercise();
+    playWordAudio() {
+        // Síntesis de voz para pronunciar la palabra
+        if ('speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance(this.currentExercise.word);
+            utterance.lang = 'es-ES';
+            utterance.rate = 1;
+            utterance.pitch = 1;
+            
+            const playBtn = document.getElementById('playBtn');
+            playBtn.classList.add('playing');
+            
+            utterance.onend = () => {
+                playBtn.classList.remove('playing');
+            };
+            
+            speechSynthesis.speak(utterance);
+        } else {
+            this.showFeedback('Audio no disponible en este navegador', 'warning');
+        }
+    }
+
+    playSlowAudio() {
+        // Síntesis de voz lenta
+        if ('speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance(this.currentExercise.word);
+            utterance.lang = 'es-ES';
+            utterance.rate = 0.5; // Velocidad lenta
+            utterance.pitch = 1;
+            
+            const slowBtn = document.getElementById('slowBtn');
+            slowBtn.classList.add('playing');
+            
+            utterance.onend = () => {
+                slowBtn.classList.remove('playing');
+            };
+            
+            speechSynthesis.speak(utterance);
+        } else {
+            this.showFeedback('Audio no disponible en este navegador', 'warning');
+        }
+    }
+
+    showWord() {
+        if (this.wordVisible) return;
+        
+        const wordDisplay = document.getElementById('wordDisplay');
+        wordDisplay.classList.remove('word-hidden');
+        this.wordVisible = true;
+        
+        // Penalizar por ver la palabra
+        this.hintsUsed++;
+        document.getElementById('hintsUsed').textContent = this.hintsUsed;
+        
+        // Cambiar texto del botón
+        const showBtn = document.getElementById('showBtn');
+        showBtn.innerHTML = '<i class="fas fa-eye-slash"></i> Palabra Visible';
+        showBtn.disabled = true;
+        showBtn.style.opacity = '0.6';
+        
+        this.showFeedback('Palabra revelada (-2 puntos)', 'warning');
+        setTimeout(() => {
+            document.getElementById('feedbackContainer').style.display = 'none';
+        }, 2000);
+    }
+
+    revealWord() {
+        const wordDisplay = document.getElementById('wordDisplay');
+        wordDisplay.classList.remove('word-hidden');
+        
+        // Mostrar todas las letras en las pistas
+        const word = this.currentExercise.word;
+        const letterHints = document.querySelectorAll('.letter-hint');
+        
+        letterHints.forEach((hint, index) => {
+            hint.textContent = word[index];
+            hint.classList.add('revealed');
+        });
+    }
+
+    skipWord() {
+        if (!this.gameActive) return;
+        
+        this.showFeedback(`Palabra saltada: ${this.currentExercise.word}`, 'info');
+        this.revealWord();
+        
+        setTimeout(() => {
+            document.getElementById('feedbackContainer').style.display = 'block';
+        }, 1500);
+    }
+
+    updateAttemptsDisplay() {
+        const attemptsIndicator = document.getElementById('attemptsIndicator');
+        const dots = attemptsIndicator.querySelectorAll('.attempt-dot');
+        
+        dots.forEach((dot, index) => {
+            dot.classList.remove('used', 'current');
+            if (index < this.currentAttempts) {
+                dot.classList.add('used');
+            } else if (index === this.currentAttempts) {
+                dot.classList.add('current');
             }
         });
+    }
 
-        // Inicialización
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('✏️ Inicializando ejercicio de ortografía');
-            console.log('📊 Datos del ejercicio:', exerciseData);
-        });
-    </script>
-</body>
-</html>
+    showFeedback(message, type) {
+        const feedbackMessage = document.getElementById('feedbackMessage');
+        
+        let alertClass = 'alert-info';
+        if (type === 'success') alertClass = 'alert-success';
+        else if (type === 'error') alertClass = 'alert-danger';
+        else if (type === 'warning') alertClass = 'alert-warning';
+        
+        feedbackMessage.innerHTML = `
+            <div class="alert ${alertClass}">
+                <h5>${message}</h5>
+            </div>
+        `;
+    }
+
+    nextWord() {
+        document.getElementById('feedbackContainer').style.display = 'none';
+        this.currentIndex++;
+        this.hintsUsed = 0; // Reset pistas para nueva palabra
+        document.getElementById('hintsUsed').textContent = 0;
+        
+        if (this.currentIndex >= this.totalQuestions) {
+            this.endGame();
+        } else {
+            this.loadExercise();
+        }
+    }
+
+    updateStats() {
+        document.getElementById('correctAnswers').textContent = this.correctAnswers;
+        document.getElementById('currentScore').textContent = this.score;
+        document.getElementById('hintsUsed').textContent = this.hintsUsed;
+    }
+
+    updateProgress() {
+        const progress = ((this.currentIndex + 1) / this.totalQuestions) * 100;
+        document.getElementById('progressFill').style.width = `${progress}%`;
+    }
+
+    startTimer() {
+        this.timer = setInterval(() => {
+            this.timeRemaining--;
+            document.getElementById('timeRemaining').textContent = this.timeRemaining;
+            
+            if (this.timeRemaining <= 0) {
+                this.endGame();
+            }
+        }, 1000);
+    }
+
+    endGame() {
+        this.gameActive = false;
+        clearInterval(this.timer);
+
+        const accuracy = (this.correctAnswers / this.totalQuestions) * 100;
+        
+        // Determinar nivel alcanzado basado en rendimiento
+        let levelReached = 'Básico';
+        if (accuracy >= 80 && this.hintsUsed <= 5) {
+            levelReached = 'Avanzado';
+        } else if (accuracy >= 60 && this.hintsUsed <= 10) {
+            levelReached = 'Intermedio';
+        }
+        
+        // Actualizar modal de resultados
+        document.getElementById('finalCorrect').textContent = this.correctAnswers;
+        document.getElementById('finalScore').textContent = this.score;
+        document.getElementById('finalAccuracy').textContent = `${accuracy.toFixed(1)}%`;
+        document.getElementById('finalDifficulty').textContent = levelReached;
+
+        // Mensaje basado en rendimiento
+        let message, recommendation;
+        if (accuracy >= 90) {
+            message = '¡Excelente ortografía! 🏆';
+            recommendation = 'Tu dominio de la escritura es excepcional. ¡Sigue así!';
+        } else if (accuracy >= 70) {
+            message = '¡Muy buen trabajo! 👏';
+            recommendation = 'Tu ortografía está mejorando notablemente.';
+        } else if (accuracy >= 50) {
+            message = '¡Buen progreso! 💪';
+            recommendation = 'Sigue practicando para mejorar tu ortografía.';
+        } else {
+            message = 'Sigue intentando 📚';
+            recommendation = 'Te recomendamos practicar más con palabras básicas.';
+        }
+
+        document.getElementById('finalMessage').textContent = message;
+        document.getElementById('finalRecommendation').textContent = recommendation;
+
+        // Mostrar modal
+        const resultsModal = new bootstrap.Modal(document.getElementById('resultsModal'));
+        resultsModal.show();
+    }
+}
+
+// Funciones globales
+function handleKeyPress(event) {
+    if (window.game) window.game.handleKeyPress(event);
+}
+
+function handleInput() {
+    if (window.game) window.game.handleInput();
+}
+
+function checkSpelling() {
+    if (window.game) window.game.checkSpelling();
+}
+
+function getHint() {
+    if (window.game) window.game.getHint();
+}
+
+function skipWord() {
+    if (window.game) window.game.skipWord();
+}
+
+function playWordAudio() {
+    if (window.game) window.game.playWordAudio();
+}
+
+function playSlowAudio() {
+    if (window.game) window.game.playSlowAudio();
+}
+
+function showWord() {
+    if (window.game) window.game.showWord();
+}
+
+function nextWord() {
+    if (window.game) window.game.nextWord();
+}
+
+function restartExercise() {
+    location.reload();
+}
+
+function goToExercises() {
+    window.location.href = '/ejercicios';
+}
+
+// Inicializar juego cuando se carga la página
+document.addEventListener('DOMContentLoaded', function() {
+    window.game = new OrtografiaGame();
+});
+</script>
+{% endblock %}

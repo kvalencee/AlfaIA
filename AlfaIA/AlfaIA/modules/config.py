@@ -1,4 +1,4 @@
-# Configuración completa corregida
+# Configuración corregida - Base de datos unificada
 import os
 from typing import Dict, Any
 from dataclasses import dataclass
@@ -11,7 +11,6 @@ class DatabaseConfig:
     user: str
     password: str
     charset: str = 'utf8mb4'
-    autocommit: bool = False
     pool_size: int = 10
     pool_name: str = "alfaia_pool"
 
@@ -32,7 +31,7 @@ class TempConfig:
             'app.port': 5000,
             'database.host': 'localhost',
             'database.port': 3306,
-            'database.database': 'alfaia_db',
+            'database.database': 'alfaia_db',  # ← NOMBRE UNIFICADO
             'database.user': 'root',
             'database.password': os.getenv('DB_PASSWORD', 'tired2019'),
             'database.charset': 'utf8mb4',
@@ -51,7 +50,6 @@ class TempConfig:
             user=self.get('database.user'),
             password=self.get('database.password'),
             charset=self.get('database.charset'),
-            autocommit=False,
             pool_size=self.get('database.pool_size'),
             pool_name="alfaia_pool"
         )

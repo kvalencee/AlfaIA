@@ -4,85 +4,59 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - AlfaIA</title>
-
-    <!-- CSS Framework y Iconos -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
-            --primary: #4f46e5;
-            --primary-dark: #3730a3;
-            --secondary: #06b6d4;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --info: #3b82f6;
-            --light: #f8fafc;
-            --dark: #1e293b;
-            --gray-100: #f1f5f9;
-            --gray-200: #e2e8f0;
-            --gray-300: #cbd5e1;
-            --gray-400: #94a3b8;
-            --gray-500: #64748b;
-            --gray-600: #475569;
-            --gray-700: #334155;
-            --gray-800: #1e293b;
-            --gray-900: #0f172a;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+            --primary: #4a90e2;
+            --secondary: #50c878;
+            --accent: #ff6b6b;
+            --background: #f8f9fa;
+            --card-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            --border-radius: 12px;
         }
 
         body {
-            font-family: 'Inter', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            color: var(--gray-800);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar-custom {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            color: var(--primary) !important;
         }
 
         .dashboard-container {
             padding: 2rem 0;
-            min-height: 100vh;
         }
 
-        .header-section {
-            background: white;
-            border-radius: 20px;
+        .welcome-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: var(--border-radius);
             padding: 2rem;
             margin-bottom: 2rem;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: var(--card-shadow);
             backdrop-filter: blur(10px);
-            position: relative;
-            overflow: hidden;
         }
 
-        .header-section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--success));
-        }
-
-        .welcome-text {
-            font-size: 2rem;
+        .welcome-title {
+            font-size: 2.5rem;
             font-weight: 700;
-            color: var(--gray-800);
+            color: var(--primary);
             margin-bottom: 0.5rem;
         }
 
         .welcome-subtitle {
-            color: var(--gray-600);
+            color: #6c757d;
             font-size: 1.1rem;
-            margin-bottom: 1.5rem;
         }
 
         .stats-grid {
@@ -93,364 +67,186 @@
         }
 
         .stat-card {
-            background: white;
-            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: var(--border-radius);
             padding: 1.5rem;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-            border: 1px solid var(--gray-200);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: var(--accent-color);
+            box-shadow: var(--card-shadow);
+            text-align: center;
+            transition: transform 0.3s ease;
+            backdrop-filter: blur(10px);
         }
 
         .stat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            transform: translateY(-5px);
         }
 
-        .stat-card.exercises::before { background: var(--primary); }
-        .stat-card.time::before { background: var(--secondary); }
-        .stat-card.accuracy::before { background: var(--success); }
-        .stat-card.streak::before { background: var(--warning); }
-
         .stat-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
+            margin: 0 auto 1rem;
             font-size: 1.5rem;
             color: white;
-            margin-bottom: 1rem;
         }
 
-        .stat-icon.exercises { background: var(--primary); }
-        .stat-icon.time { background: var(--secondary); }
-        .stat-icon.accuracy { background: var(--success); }
-        .stat-icon.streak { background: var(--warning); }
+        .stat-icon.exercises { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .stat-icon.time { background: linear-gradient(135deg, #f093fb, #f5576c); }
+        .stat-icon.accuracy { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+        .stat-icon.streak { background: linear-gradient(135deg, #43e97b, #38f9d7); }
 
         .stat-value {
-            font-size: 2.5rem;
+            font-size: 2rem;
             font-weight: 700;
-            color: var(--gray-800);
-            line-height: 1;
+            color: var(--primary);
             margin-bottom: 0.5rem;
         }
 
         .stat-label {
-            color: var(--gray-600);
-            font-size: 0.9rem;
+            color: #6c757d;
             font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
 
-        .action-grid {
+        .actions-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 1.5rem;
             margin-bottom: 2rem;
         }
 
         .action-card {
-            background: white;
-            border-radius: 16px;
-            padding: 0;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-            border: 1px solid var(--gray-200);
-            transition: all 0.3s ease;
-            overflow: hidden;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--card-shadow);
             text-decoration: none;
             color: inherit;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            border: 2px solid transparent;
         }
 
         .action-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-            text-decoration: none;
+            transform: translateY(-5px);
+            border-color: var(--primary);
             color: inherit;
         }
 
         .action-card-header {
-            padding: 1.5rem;
-            background: linear-gradient(135deg, var(--card-gradient-from), var(--card-gradient-to));
-            color: white;
-            position: relative;
-        }
-
-        .action-card.reading .action-card-header {
-            --card-gradient-from: #667eea;
-            --card-gradient-to: #764ba2;
-        }
-
-        .action-card.exercises .action-card-header {
-            --card-gradient-from: #f093fb;
-            --card-gradient-to: #f5576c;
-        }
-
-        .action-card.pronunciation .action-card-header {
-            --card-gradient-from: #4facfe;
-            --card-gradient-to: #00f2fe;
-        }
-
-        .action-card.games .action-card-header {
-            --card-gradient-from: #43e97b;
-            --card-gradient-to: #38f9d7;
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
         }
 
         .action-card-icon {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-            opacity: 0.9;
-        }
-
-        .action-card-title {
-            font-size: 1.4rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-
-        .action-card-description {
-            opacity: 0.9;
-            font-size: 0.95rem;
-            line-height: 1.4;
-        }
-
-        .action-card-body {
-            padding: 1.5rem;
-        }
-
-        .level-info {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .level-badge {
-            background: var(--gray-100);
-            color: var(--gray-700);
-            padding: 0.3rem 0.8rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-
-        .progress-bar-container {
-            background: var(--gray-100);
-            border-radius: 10px;
-            height: 8px;
-            overflow: hidden;
-            margin-bottom: 0.5rem;
-        }
-
-        .progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, var(--progress-color-start), var(--progress-color-end));
-            border-radius: 10px;
-            transition: width 0.8s ease;
-        }
-
-        .progress-text {
-            font-size: 0.8rem;
-            color: var(--gray-600);
-            text-align: right;
-        }
-
-        .feedback-section {
-            background: white;
-            border-radius: 16px;
-            padding: 2rem;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-            border: 1px solid var(--gray-200);
-            margin-bottom: 2rem;
-        }
-
-        .feedback-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: var(--gray-800);
-            margin-bottom: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-        }
-
-        .feedback-message {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            padding: 1.5rem;
-            border-radius: 12px;
-            margin-bottom: 1.5rem;
-            font-size: 1.1rem;
-            text-align: center;
-            font-weight: 500;
-        }
-
-        .insights-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .insight-item {
-            background: var(--gray-50);
-            padding: 1rem;
-            border-radius: 8px;
-            border-left: 4px solid var(--primary);
-            font-size: 0.9rem;
-            color: var(--gray-700);
-        }
-
-        .recommendations {
-            background: var(--light);
-            padding: 1.5rem;
-            border-radius: 12px;
-            border: 1px solid var(--gray-200);
-        }
-
-        .recommendations h4 {
-            color: var(--gray-800);
-            margin-bottom: 1rem;
-            font-size: 1.1rem;
-            font-weight: 600;
-        }
-
-        .recommendation-item {
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-            padding: 0.8rem 0;
-            border-bottom: 1px solid var(--gray-200);
-            font-size: 0.9rem;
-            color: var(--gray-700);
-        }
-
-        .recommendation-item:last-child {
-            border-bottom: none;
-        }
-
-        .recommendation-icon {
-            color: var(--primary);
-            font-size: 1rem;
-        }
-
-        .quick-actions {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-            margin-top: 2rem;
-        }
-
-        .quick-action-btn {
-            background: white;
-            border: 2px solid var(--primary);
-            color: var(--primary);
-            padding: 0.8rem 1.5rem;
-            border-radius: 25px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .quick-action-btn:hover {
-            background: var(--primary);
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
-            text-decoration: none;
-        }
-
-        .floating-elements {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: -1;
-        }
-
-        .floating-element {
-            position: absolute;
-            background: rgba(255, 255, 255, 0.1);
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
-            animation: float 6s ease-in-out infinite;
-        }
-
-        .floating-element:nth-child(1) {
-            width: 80px;
-            height: 80px;
-            top: 20%;
-            left: 10%;
-            animation-delay: 0s;
-        }
-
-        .floating-element:nth-child(2) {
-            width: 60px;
-            height: 60px;
-            top: 60%;
-            right: 15%;
-            animation-delay: 2s;
-        }
-
-        .floating-element:nth-child(3) {
-            width: 100px;
-            height: 100px;
-            bottom: 20%;
-            left: 15%;
-            animation-delay: 4s;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(180deg); }
-        }
-
-        .navbar-custom {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 1rem 0;
-            margin-bottom: 2rem;
-        }
-
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: var(--primary);
             display: flex;
             align-items: center;
             justify-content: center;
+            margin-right: 1rem;
+            font-size: 1.2rem;
             color: white;
+        }
+
+        .action-card.reading .action-card-icon { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .action-card.pronunciation .action-card-icon { background: linear-gradient(135deg, #f093fb, #f5576c); }
+        .action-card.games .action-card-icon { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+
+        .action-card-title {
+            font-size: 1.3rem;
             font-weight: 600;
-            font-size: 1.1rem;
+            margin: 0;
         }
 
-        .pulse-animation {
-            animation: pulse 2s infinite;
+        .action-card-description {
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin: 0;
         }
 
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
+        .progress-bar-custom {
+            height: 8px;
+            border-radius: 4px;
+            background: #e9ecef;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .level-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: var(--secondary);
+            color: white;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .notifications-section,
+        .recommendations-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 1.5rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .section-title i {
+            margin-right: 0.5rem;
+        }
+
+        .notification-item,
+        .recommendation-item {
+            padding: 1rem;
+            border-left: 4px solid var(--primary);
+            background: #f8f9fa;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 1rem;
+        }
+
+        .notification-item:last-child,
+        .recommendation-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .db-status {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            z-index: 1000;
+        }
+
+        .db-connected {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .db-disconnected {
+            background: var(--accent);
+            color: white;
         }
 
         @media (max-width: 768px) {
@@ -458,87 +254,75 @@
                 padding: 1rem;
             }
 
-            .header-section {
-                padding: 1.5rem;
-                margin-bottom: 1.5rem;
-            }
-
-            .welcome-text {
-                font-size: 1.5rem;
+            .welcome-title {
+                font-size: 2rem;
             }
 
             .stats-grid {
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                gap: 1rem;
+                grid-template-columns: repeat(2, 1fr);
             }
 
-            .action-grid {
+            .actions-grid {
                 grid-template-columns: 1fr;
-                gap: 1rem;
-            }
-
-            .quick-actions {
-                justify-content: center;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Elementos flotantes de fondo -->
-    <div class="floating-elements">
-        <div class="floating-element"></div>
-        <div class="floating-element"></div>
-        <div class="floating-element"></div>
-    </div>
-
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-custom">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="/">
-                <i class="fas fa-graduation-cap text-primary me-2"></i>
-                AlfaIA
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="fas fa-graduation-cap me-2"></i>AlfaIA
             </a>
-
-            <div class="navbar-nav ms-auto">
-                <div class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
-                        <div class="user-avatar me-2">
-                            {{ user.nombre[0].upper() if user and user.nombre else 'U' }}
-                        </div>
-                        <span>{{ user.nombre if user else 'Usuario' }}</span>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <div class="navbar-nav me-auto">
+                    <a class="nav-link active" href="{{ url_for('dashboard') }}">
+                        <i class="fas fa-home me-1"></i>Dashboard
                     </a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="/perfil"><i class="fas fa-user me-2"></i>Mi Perfil</a></li>
-                        <li><a class="dropdown-item" href="/progreso"><i class="fas fa-chart-line me-2"></i>Mi Progreso</a></li>
-                        <li><a class="dropdown-item" href="/configuracion"><i class="fas fa-cog me-2"></i>Configuración</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="/logout"><i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión</a></li>
-                    </ul>
+                    <a class="nav-link" href="{{ url_for('ejercicios') }}">
+                        <i class="fas fa-dumbbell me-1"></i>Ejercicios
+                    </a>
+                    <a class="nav-link" href="{{ url_for('progreso') }}">
+                        <i class="fas fa-chart-line me-1"></i>Progreso
+                    </a>
+                    <a class="nav-link" href="{{ url_for('logros') }}">
+                        <i class="fas fa-trophy me-1"></i>Logros
+                    </a>
+                </div>
+                <div class="navbar-nav">
+                    <a class="nav-link" href="{{ url_for('configuracion') }}">
+                        <i class="fas fa-cog me-1"></i>{{ user.nombre if user else 'Usuario' }}
+                    </a>
+                    <a class="nav-link" href="{{ url_for('logout') }}">
+                        <i class="fas fa-sign-out-alt me-1"></i>Salir
+                    </a>
                 </div>
             </div>
         </div>
     </nav>
 
     <div class="container dashboard-container">
-        <!-- Header Section -->
-        <div class="header-section">
+        <!-- Welcome Section -->
+        <div class="welcome-section">
             <div class="row align-items-center">
                 <div class="col-md-8">
-                    <h1 class="welcome-text">
-                        ¡Bienvenido de vuelta, {{ user.nombre if user else 'Usuario' }}! 👋
+                    <h1 class="welcome-title">
+                        ¡Hola, {{ user.nombre if user else 'Usuario' }}! 👋
                     </h1>
                     <p class="welcome-subtitle">
                         Continuemos tu aventura de aprendizaje. Cada día es una nueva oportunidad para crecer.
                     </p>
                 </div>
                 <div class="col-md-4 text-end">
-                    <div class="d-flex align-items-center justify-content-end">
-                        <div class="text-center">
-                            <div class="fs-4 fw-bold text-primary">
-                                {{ progreso.estadisticas.puntos_totales if progreso else 0 }}
-                            </div>
-                            <small class="text-muted">Puntos Totales</small>
+                    <div class="text-center">
+                        <div class="fs-4 fw-bold text-primary">
+                            {{ stats.puntos_totales if stats else 0 }}
                         </div>
+                        <small class="text-muted">Puntos Totales</small>
                     </div>
                 </div>
             </div>
@@ -546,324 +330,255 @@
 
         <!-- Statistics Grid -->
         <div class="stats-grid">
-            <div class="stat-card exercises">
+            <div class="stat-card">
                 <div class="stat-icon exercises">
                     <i class="fas fa-tasks"></i>
                 </div>
-                <div class="stat-value">{{ progreso.estadisticas.ejercicios_completados if progreso else 0 }}</div>
+                <div class="stat-value">{{ stats.ejercicios_completados if stats else 0 }}</div>
                 <div class="stat-label">Ejercicios Completados</div>
             </div>
 
-            <div class="stat-card time">
+            <div class="stat-card">
                 <div class="stat-icon time">
                     <i class="fas fa-clock"></i>
                 </div>
-                <div class="stat-value">{{ progreso.estadisticas.tiempo_total_minutos if progreso else 0 }}</div>
+                <div class="stat-value">{{ stats.tiempo_total_minutos if stats else 0 }}</div>
                 <div class="stat-label">Minutos de Práctica</div>
             </div>
 
-            <div class="stat-card accuracy">
+            <div class="stat-card">
                 <div class="stat-icon accuracy">
                     <i class="fas fa-bullseye"></i>
                 </div>
-                <div class="stat-value">{{ "%.1f"|format(progreso.estadisticas.precision_promedio if progreso else 0) }}%</div>
+                <div class="stat-value">{{ "%.1f"|format(stats.precision_promedio if stats else 0) }}%</div>
                 <div class="stat-label">Precisión Promedio</div>
             </div>
 
-            <div class="stat-card streak">
+            <div class="stat-card">
                 <div class="stat-icon streak">
                     <i class="fas fa-fire"></i>
                 </div>
-                <div class="stat-value">{{ progreso.estadisticas.racha_dias if progreso else 0 }}</div>
+                <div class="stat-value">{{ stats.racha_dias_consecutivos if stats else 0 }}</div>
                 <div class="stat-label">Días de Racha</div>
             </div>
         </div>
 
-        <!-- Action Cards -->
-        <div class="action-grid">
-            <!-- Lectura -->
-            <a href="/lectura" class="action-card reading">
+        <!-- Quick Actions -->
+        <div class="actions-grid">
+            <!-- Reading -->
+            <a href="{{ url_for('ejercicios_lectura') }}" class="action-card reading">
                 <div class="action-card-header">
                     <div class="action-card-icon">
-                        <i class="fas fa-book-open"></i>
+                        <i class="fas fa-book-reader"></i>
                     </div>
-                    <h3 class="action-card-title">Lectura</h3>
-                    <p class="action-card-description">
-                        Mejora tu comprensión lectora con textos adaptados a tu nivel
-                    </p>
+                    <div>
+                        <h3 class="action-card-title">Lectura</h3>
+                        <p class="action-card-description">
+                            Mejora tu comprensión lectora
+                        </p>
+                    </div>
                 </div>
-                <div class="action-card-body">
-                    <div class="level-info">
-                        <span class="level-badge">
-                            Nivel {{ progreso.niveles.lectura.nivel if progreso else 1 }}
-                        </span>
-                    </div>
-                    <div class="progress-bar-container">
-                        <div class="progress-bar" style="width: {{ ((progreso.niveles.lectura.puntos if progreso else 0) / 100 * 100)|round }}%; --progress-color-start: #667eea; --progress-color-end: #764ba2;"></div>
-                    </div>
-                    <div class="progress-text">
-                        {{ progreso.niveles.lectura.puntos if progreso else 0 }}/100 puntos
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="level-badge">Nivel {{ user.nivel_lectura if user else 1 }}</span>
+                    <div class="flex-grow-1 ms-3">
+                        <div class="progress-bar-custom">
+                            <div class="progress-fill" style="width: {{ ((user.nivel_lectura if user else 1) / 5 * 100)|round }}%; background: linear-gradient(90deg, #667eea, #764ba2);"></div>
+                        </div>
                     </div>
                 </div>
             </a>
 
-            <!-- Ejercicios -->
-            <a href="/ejercicios" class="action-card exercises">
-                <div class="action-card-header">
-                    <div class="action-card-icon">
-                        <i class="fas fa-dumbbell"></i>
-                    </div>
-                    <h3 class="action-card-title">Ejercicios</h3>
-                    <p class="action-card-description">
-                        Practica con ejercicios interactivos de palabras y frases
-                    </p>
-                </div>
-                <div class="action-card-body">
-                    <div class="level-info">
-                        <span class="level-badge">
-                            Nivel {{ progreso.niveles.ejercicios.nivel if progreso else 1 }}
-                        </span>
-                    </div>
-                    <div class="progress-bar-container">
-                        <div class="progress-bar" style="width: {{ ((progreso.niveles.ejercicios.puntos if progreso else 0) / 100 * 100)|round }}%; --progress-color-start: #f093fb; --progress-color-end: #f5576c;"></div>
-                    </div>
-                    <div class="progress-text">
-                        {{ progreso.niveles.ejercicios.puntos if progreso else 0 }}/100 puntos
-                    </div>
-                </div>
-            </a>
-
-            <!-- Pronunciación -->
-            <a href="/pronunciacion" class="action-card pronunciation">
+            <!-- Pronunciation -->
+            <a href="{{ url_for('ejercicios_pronunciacion') }}" class="action-card pronunciation">
                 <div class="action-card-header">
                     <div class="action-card-icon">
                         <i class="fas fa-microphone"></i>
                     </div>
-                    <h3 class="action-card-title">Pronunciación</h3>
-                    <p class="action-card-description">
-                        Perfecciona tu pronunciación con ejercicios de voz
-                    </p>
+                    <div>
+                        <h3 class="action-card-title">Pronunciación</h3>
+                        <p class="action-card-description">
+                            Perfecciona tu pronunciación
+                        </p>
+                    </div>
                 </div>
-                <div class="action-card-body">
-                    <div class="level-info">
-                        <span class="level-badge">
-                            Nivel {{ progreso.niveles.pronunciacion.nivel if progreso else 1 }}
-                        </span>
-                        {% if not progreso or not progreso.niveles.pronunciacion.desbloqueado %}
-                        <span class="badge bg-warning">🔒 Bloqueado</span>
-                        {% endif %}
-                    </div>
-                    <div class="progress-bar-container">
-                        <div class="progress-bar" style="width: {{ ((progreso.niveles.pronunciacion.puntos if progreso else 0) / 100 * 100)|round }}%; --progress-color-start: #4facfe; --progress-color-end: #00f2fe;"></div>
-                    </div>
-                    <div class="progress-text">
-                        {{ progreso.niveles.pronunciacion.puntos if progreso else 0 }}/100 puntos
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="level-badge">Nivel {{ user.nivel_pronunciacion if user else 1 }}</span>
+                    <div class="flex-grow-1 ms-3">
+                        <div class="progress-bar-custom">
+                            <div class="progress-fill" style="width: {{ ((user.nivel_pronunciacion if user else 1) / 5 * 100)|round }}%; background: linear-gradient(90deg, #f093fb, #f5576c);"></div>
+                        </div>
                     </div>
                 </div>
             </a>
 
-            <!-- Juegos -->
-            <a href="/juegos" class="action-card games">
+            <!-- Games -->
+            <a href="{{ url_for('ejercicios') }}" class="action-card games">
                 <div class="action-card-header">
                     <div class="action-card-icon">
                         <i class="fas fa-gamepad"></i>
                     </div>
-                    <h3 class="action-card-title">Juegos</h3>
-                    <p class="action-card-description">
-                        Aprende mientras te diviertes con juegos educativos
-                    </p>
+                    <div>
+                        <h3 class="action-card-title">Ejercicios</h3>
+                        <p class="action-card-description">
+                            Aprende jugando y divirtiéndote
+                        </p>
+                    </div>
                 </div>
-                <div class="action-card-body">
-                    <div class="level-info">
-                        <span class="level-badge">Disponible</span>
-                    </div>
-                    <div style="padding: 1rem 0;">
-                        <small class="text-muted">
-                            <i class="fas fa-puzzle-piece me-1"></i> Memoria &nbsp;
-                            <i class="fas fa-question-circle me-1"></i> Trivia &nbsp;
-                            <i class="fas fa-spell-check me-1"></i> Ahorcado
-                        </small>
-                    </div>
+                <div class="text-muted small">
+                    <i class="fas fa-puzzle-piece me-1"></i> Memoria
+                    <i class="fas fa-question-circle me-1 ms-2"></i> Trivia
+                    <i class="fas fa-spell-check me-1 ms-2"></i> Ortografía
                 </div>
             </a>
         </div>
 
-        <!-- Feedback Section -->
-        {% if feedback %}
-        <div class="feedback-section">
-            <h2 class="feedback-title">
-                <i class="fas fa-chart-line text-primary"></i>
-                Tu Progreso Personalizado
-            </h2>
-
-            <div class="feedback-message pulse-animation">
-                {{ feedback.mensaje_principal }}
-            </div>
-
-            {% if feedback.insights %}
-            <div class="insights-grid">
-                {% for insight in feedback.insights %}
-                <div class="insight-item">
-                    <i class="fas fa-lightbulb me-2 text-warning"></i>
-                    {{ insight }}
+        <div class="row">
+            <!-- Notifications -->
+            {% if notifications and notifications|length > 0 %}
+            <div class="col-md-6">
+                <div class="notifications-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-bell"></i>
+                        Notificaciones
+                    </h3>
+                    {% for notification in notifications[:3] %}
+                    <div class="notification-item">
+                        <strong>{{ notification.titulo if notification.titulo else 'Notificación' }}</strong>
+                        <p class="mb-0">{{ notification.mensaje if notification.mensaje else notification.contenido }}</p>
+                        <small class="text-muted">{{ notification.fecha_creacion.strftime('%d/%m/%Y %H:%M') if notification.fecha_creacion else 'Reciente' }}</small>
+                    </div>
+                    {% endfor %}
+                    {% if notifications|length > 3 %}
+                    <div class="text-center mt-2">
+                        <button class="btn btn-outline-primary btn-sm" onclick="loadMoreNotifications()">
+                            Ver más notificaciones
+                        </button>
+                    </div>
+                    {% endif %}
                 </div>
-                {% endfor %}
             </div>
             {% endif %}
 
-            {% if feedback.recomendaciones %}
-            <div class="recommendations">
-                <h4><i class="fas fa-compass me-2"></i>Recomendaciones Personalizadas</h4>
-                {% for recomendacion in feedback.recomendaciones %}
-                <div class="recommendation-item">
-                    <i class="fas fa-arrow-right recommendation-icon"></i>
-                    {{ recomendacion }}
+            <!-- Recommendations -->
+            {% if recommended_exercises and recommended_exercises|length > 0 %}
+            <div class="col-md-6">
+                <div class="recommendations-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-lightbulb"></i>
+                        Recomendado para ti
+                    </h3>
+                    {% for exercise in recommended_exercises %}
+                    <div class="recommendation-item">
+                        <strong>{{ exercise.nombre }}</strong>
+                        <p class="mb-0">{{ exercise.descripcion if exercise.descripcion else 'Ejercicio recomendado' }}</p>
+                        <span class="badge bg-{{ 'success' if exercise.dificultad == 'facil' else 'warning' if exercise.dificultad == 'medio' else 'danger' }}">
+                            {{ exercise.dificultad|title }}
+                        </span>
+                    </div>
+                    {% endfor %}
                 </div>
-                {% endfor %}
             </div>
             {% endif %}
+        </div>
+
+        <!-- Recent Activity -->
+        {% if recent_activity and recent_activity|length > 0 %}
+        <div class="notifications-section">
+            <h3 class="section-title">
+                <i class="fas fa-history"></i>
+                Actividad Reciente
+            </h3>
+            {% for activity in recent_activity[:5] %}
+            <div class="notification-item">
+                <strong>{{ activity.descripcion if activity.descripcion else 'Actividad completada' }}</strong>
+                <p class="mb-0">{{ activity.detalle if activity.detalle else 'Ejercicio realizado exitosamente' }}</p>
+                <small class="text-muted">{{ activity.fecha.strftime('%d/%m/%Y %H:%M') if activity.fecha else 'Reciente' }}</small>
+            </div>
+            {% endfor %}
         </div>
         {% endif %}
-
-        <!-- Quick Actions -->
-        <div class="text-center">
-            <h3 class="mb-4">¿Qué quieres hacer hoy?</h3>
-            <div class="quick-actions">
-                <a href="/ejercicios/ordenar-frase" class="quick-action-btn">
-                    <i class="fas fa-sort-alpha-down"></i>
-                    Ordenar Frases
-                </a>
-                <a href="/ejercicios/completar-palabra" class="quick-action-btn">
-                    <i class="fas fa-spell-check"></i>
-                    Completar Palabras
-                </a>
-                <a href="/pronunciacion/vocales" class="quick-action-btn">
-                    <i class="fas fa-microphone"></i>
-                    Practicar Vocales
-                </a>
-                <a href="/juegos/memoria" class="quick-action-btn">
-                    <i class="fas fa-brain"></i>
-                    Juego de Memoria
-                </a>
-                <a href="/progreso" class="quick-action-btn">
-                    <i class="fas fa-chart-bar"></i>
-                    Ver Estadísticas
-                </a>
-            </div>
-        </div>
     </div>
 
-    <!-- Scripts -->
+    <!-- Database Status -->
+    <div class="db-status {{ 'db-connected' if DB_AVAILABLE else 'db-disconnected' }}">
+        <i class="fas fa-{{ 'database' if DB_AVAILABLE else 'exclamation-triangle' }} me-1"></i>
+        {{ 'Base de datos conectada' if DB_AVAILABLE else 'Modo demo' }}
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
     <script>
-        // Animaciones y efectos interactivos
-        document.addEventListener('DOMContentLoaded', function() {
-            // Animar las estadísticas al cargar
-            const statValues = document.querySelectorAll('.stat-value');
-            statValues.forEach(stat => {
-                const finalValue = parseInt(stat.textContent);
-                let currentValue = 0;
-                const increment = finalValue / 50;
-
-                const counter = setInterval(() => {
-                    currentValue += increment;
-                    if (currentValue >= finalValue) {
-                        stat.textContent = finalValue;
-                        clearInterval(counter);
-                    } else {
-                        stat.textContent = Math.floor(currentValue);
-                    }
-                }, 20);
-            });
-
-            // Efecto hover en las tarjetas de acción
-            const actionCards = document.querySelectorAll('.action-card');
-            actionCards.forEach(card => {
-                card.addEventListener('mouseenter', function() {
-                    this.style.transform = 'translateY(-8px) scale(1.02)';
-                });
-
-                card.addEventListener('mouseleave', function() {
-                    this.style.transform = 'translateY(0) scale(1)';
-                });
-            });
-
-            // Actualizar barras de progreso con animación
-            const progressBars = document.querySelectorAll('.progress-bar');
-            progressBars.forEach(bar => {
-                const width = bar.style.width;
-                bar.style.width = '0%';
-
-                setTimeout(() => {
-                    bar.style.width = width;
-                }, 500);
-            });
-
-            // Mostrar notificación de bienvenida si es usuario nuevo
-            {% if progreso and progreso.estadisticas.ejercicios_completados == 0 %}
-            setTimeout(() => {
-                if (confirm('¡Bienvenido a AlfaIA! ¿Te gustaría comenzar con un ejercicio rápido?')) {
-                    window.location.href = '/ejercicios/ordenar-frase?nivel=1';
-                }
-            }, 2000);
-            {% endif %}
-
-            // Verificar logros desbloqueados
-            verificarLogros();
-        });
-
-        function verificarLogros() {
-            // Verificar si hay nuevos logros disponibles
-            fetch('/api/progreso')
+        // Actualizar estadísticas en tiempo real
+        function updateStats() {
+            fetch('/api/user/stats')
                 .then(response => response.json())
                 .then(data => {
-                    if (data.success && data.data.logros_pendientes) {
-                        mostrarNotificacionLogro(data.data.logros_pendientes);
+                    if (data.success) {
+                        // Actualizar valores en la interfaz si es necesario
+                        console.log('Estadísticas actualizadas');
                     }
                 })
-                .catch(error => console.log('Error verificando logros:', error));
+                .catch(error => console.log('Error updating stats:', error));
         }
 
-        function mostrarNotificacionLogro(logros) {
-            // Mostrar notificación de logro desbloqueado
-            logros.forEach(logro => {
-                const notification = document.createElement('div');
-                notification.className = 'alert alert-success position-fixed';
-                notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
-                notification.innerHTML = `
-                    <div class="d-flex align-items-center">
-                        <i class="fas fa-trophy text-warning me-2 fs-4"></i>
-                        <div>
-                            <strong>¡Logro Desbloqueado!</strong><br>
-                            <small>${logro.descripcion}</small>
-                        </div>
+        // Cargar más notificaciones
+        function loadMoreNotifications() {
+            fetch('/api/notifications?limit=10')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Implementar modal o expandir lista
+                        console.log('Notificaciones cargadas:', data.notifications);
+                    }
+                })
+                .catch(error => console.log('Error loading notifications:', error));
+        }
+
+        // Verificar nuevos logros
+        function checkAchievements() {
+            fetch('/api/user/progress')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.progress && data.progress.nuevos_logros) {
+                        showAchievementModal(data.progress.nuevos_logros);
+                    }
+                })
+                .catch(error => console.log('Error checking achievements:', error));
+        }
+
+        // Mostrar modal de logros
+        function showAchievementModal(achievements) {
+            achievements.forEach(achievement => {
+                const toast = document.createElement('div');
+                toast.className = 'toast position-fixed top-0 end-0 m-3';
+                toast.style.zIndex = '9999';
+                toast.innerHTML = `
+                    <div class="toast-header bg-warning text-dark">
+                        <i class="fas fa-trophy me-2"></i>
+                        <strong class="me-auto">¡Logro desbloqueado!</strong>
+                    </div>
+                    <div class="toast-body">
+                        ${achievement.descripcion}
                     </div>
                 `;
 
-                document.body.appendChild(notification);
+                document.body.appendChild(toast);
+                const bsToast = new bootstrap.Toast(toast);
+                bsToast.show();
 
                 setTimeout(() => {
-                    notification.remove();
+                    document.body.removeChild(toast);
                 }, 5000);
             });
         }
 
-        // Función para actualizar el progreso en tiempo real
-        function actualizarProgreso() {
-            fetch('/api/progreso')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Actualizar estadísticas en tiempo real si es necesario
-                        console.log('Progreso actualizado');
-                    }
-                })
-                .catch(error => console.log('Error actualizando progreso:', error));
-        }
+        // Inicializar dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStats();
+            checkAchievements();
 
-        // Actualizar progreso cada 5 minutos
-        setInterval(actualizarProgreso, 300000);
+            // Actualizar cada 5 minutos
+            setInterval(updateStats, 300000);
+        });
     </script>
 </body>
 </html>

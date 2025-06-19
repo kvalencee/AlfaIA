@@ -4,72 +4,43 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iniciar Sesión - AlfaIA</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
-            --primary: #4f46e5;
-            --primary-dark: #3730a3;
-            --secondary: #06b6d4;
-            --accent: #f59e0b;
-            --success: #10b981;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --info: #3b82f6;
-            --light: #f8fafc;
-            --dark: #1e293b;
-            --gray-50: #f9fafb;
-            --gray-100: #f3f4f6;
-            --gray-200: #e5e7eb;
-            --gray-300: #d1d5db;
-            --gray-400: #9ca3af;
-            --gray-500: #6b7280;
-            --gray-600: #4b5563;
-            --gray-700: #374151;
-            --gray-800: #1f2937;
-            --gray-900: #111827;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+            --primary: #4a90e2;
+            --secondary: #50c878;
+            --accent: #ff6b6b;
+            --warning: #ffa726;
+            --info: #29b6f6;
+            --background: #f8f9fa;
+            --card-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            --border-radius: 16px;
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-            background-size: 400% 400%;
-            animation: gradientShift 15s ease infinite;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 1rem;
-        }
-
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+            padding: 2rem 0;
         }
 
         .login-container {
             width: 100%;
-            max-width: 420px;
-            position: relative;
+            max-width: 450px;
+            padding: 0 1rem;
         }
 
         .login-card {
             background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
+            border-radius: var(--border-radius);
+            padding: 3rem 2.5rem;
+            box-shadow: var(--card-shadow);
+            backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 24px;
-            padding: 2.5rem;
-            box-shadow:
-                0 25px 50px -12px rgba(0, 0, 0, 0.25),
-                0 0 0 1px rgba(255, 255, 255, 0.1);
             position: relative;
             overflow: hidden;
         }
@@ -81,97 +52,73 @@
             left: 0;
             right: 0;
             height: 4px;
-            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
-            border-radius: 24px 24px 0 0;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
         }
 
-        .brand-section {
+        .login-header {
             text-align: center;
-            margin-bottom: 2rem;
+            margin-bottom: 2.5rem;
         }
 
-        .brand-logo {
+        .login-logo {
             width: 80px;
             height: 80px;
             background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border-radius: 20px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 1rem;
-            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3);
-            animation: logoFloat 3s ease-in-out infinite;
-        }
-
-        @keyframes logoFloat {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-5px); }
-        }
-
-        .brand-logo i {
+            margin: 0 auto 1.5rem;
             font-size: 2rem;
             color: white;
+            box-shadow: 0 4px 20px rgba(74, 144, 226, 0.3);
         }
 
-        .brand-title {
+        .login-title {
             font-size: 2rem;
             font-weight: 700;
-            color: var(--dark);
+            color: var(--primary);
             margin-bottom: 0.5rem;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
         }
 
-        .brand-subtitle {
-            font-size: 0.95rem;
-            color: var(--gray-600);
-            font-weight: 400;
+        .login-subtitle {
+            color: #6c757d;
+            font-size: 1rem;
         }
 
         .form-group {
             margin-bottom: 1.5rem;
+            position: relative;
         }
 
         .form-label {
-            display: block;
-            font-size: 0.875rem;
             font-weight: 600;
-            color: var(--gray-700);
+            color: #495057;
             margin-bottom: 0.5rem;
+            font-size: 0.9rem;
         }
 
-        .input-group {
-            position: relative;
+        .form-control {
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 0.75rem 1rem 0.75rem 3rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
+            background: white;
         }
 
         .input-icon {
             position: absolute;
             left: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--gray-400);
-            font-size: 1.1rem;
-            z-index: 10;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 0.875rem 1rem 0.875rem 3rem;
-            border: 2px solid var(--gray-200);
-            border-radius: 12px;
-            font-size: 0.95rem;
-            background: var(--gray-50);
-            color: var(--gray-800);
-            transition: all 0.3s ease;
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: var(--primary);
-            background: white;
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+            top: 2.2rem;
+            color: #6c757d;
+            transition: color 0.3s ease;
         }
 
         .form-control:focus + .input-icon {
@@ -181,14 +128,9 @@
         .password-toggle {
             position: absolute;
             right: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            color: var(--gray-400);
+            top: 2.2rem;
             cursor: pointer;
-            font-size: 1.1rem;
-            z-index: 10;
+            color: #6c757d;
             transition: color 0.3s ease;
         }
 
@@ -197,66 +139,36 @@
         }
 
         .form-check {
-            display: flex;
-            align-items: center;
-            margin-bottom: 1.5rem;
-        }
-
-        .form-check-input {
-            width: 1.125rem;
-            height: 1.125rem;
-            margin-right: 0.75rem;
-            border: 2px solid var(--gray-300);
-            border-radius: 4px;
-            background: white;
-            cursor: pointer;
+            margin: 1.5rem 0;
         }
 
         .form-check-input:checked {
-            background: var(--primary);
+            background-color: var(--primary);
             border-color: var(--primary);
         }
 
         .form-check-label {
-            font-size: 0.875rem;
-            color: var(--gray-600);
-            cursor: pointer;
-            user-select: none;
+            font-size: 0.9rem;
+            color: #495057;
         }
 
         .btn-login {
             width: 100%;
-            padding: 0.875rem;
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
             border: none;
             border-radius: 12px;
-            font-size: 1rem;
+            padding: 0.875rem 1.5rem;
             font-weight: 600;
-            cursor: pointer;
+            font-size: 1.1rem;
+            color: white;
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
         }
 
-        .btn-login::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: left 0.5s ease;
-        }
-
         .btn-login:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.4);
-        }
-
-        .btn-login:hover::before {
-            left: 100%;
+            box-shadow: 0 8px 25px rgba(74, 144, 226, 0.4);
         }
 
         .btn-login:active {
@@ -267,109 +179,153 @@
             pointer-events: none;
         }
 
-        .divider {
-            display: flex;
-            align-items: center;
-            margin: 1.5rem 0;
+        .btn-login .spinner {
+            display: none;
         }
 
-        .divider::before,
-        .divider::after {
+        .btn-login.loading .spinner {
+            display: inline-block;
+        }
+
+        .btn-login.loading .btn-text {
+            display: none;
+        }
+
+        .divider {
+            text-align: center;
+            margin: 2rem 0;
+            position: relative;
+        }
+
+        .divider::before {
             content: '';
-            flex: 1;
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
             height: 1px;
-            background: var(--gray-200);
+            background: #e9ecef;
         }
 
         .divider span {
-            padding: 0 1rem;
-            font-size: 0.875rem;
-            color: var(--gray-500);
             background: rgba(255, 255, 255, 0.95);
+            padding: 0 1rem;
+            color: #6c757d;
+            font-size: 0.9rem;
         }
 
-        .demo-credentials {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(6, 182, 212, 0.1));
-            border: 1px solid rgba(16, 185, 129, 0.2);
+        .demo-info {
+            background: linear-gradient(135deg, rgba(74, 144, 226, 0.1), rgba(80, 200, 120, 0.1));
+            border: 1px solid rgba(74, 144, 226, 0.2);
             border-radius: 12px;
             padding: 1rem;
             margin-bottom: 1.5rem;
+            text-align: center;
         }
 
-        .demo-credentials h6 {
-            font-size: 0.875rem;
+        .demo-info .demo-title {
             font-weight: 600;
-            color: var(--success);
+            color: var(--primary);
             margin-bottom: 0.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
         }
 
-        .demo-credentials p {
-            font-size: 0.8125rem;
-            color: var(--gray-600);
-            margin: 0;
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        .demo-info .demo-credentials {
+            font-family: 'Courier New', monospace;
+            background: rgba(255, 255, 255, 0.5);
+            padding: 0.5rem;
+            border-radius: 6px;
+            margin: 0.5rem 0;
+        }
+
+        .quick-login {
+            background: rgba(80, 200, 120, 0.1);
+            border: 1px solid var(--secondary);
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            color: var(--secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-block;
+            margin-top: 0.5rem;
+        }
+
+        .quick-login:hover {
+            background: var(--secondary);
+            color: white;
+            text-decoration: none;
         }
 
         .register-link {
             text-align: center;
-            margin-top: 1.5rem;
+            margin-top: 2rem;
             padding-top: 1.5rem;
-            border-top: 1px solid var(--gray-200);
-        }
-
-        .register-link p {
-            font-size: 0.875rem;
-            color: var(--gray-600);
-            margin-bottom: 0.5rem;
+            border-top: 1px solid #e9ecef;
         }
 
         .register-link a {
             color: var(--primary);
             text-decoration: none;
-            font-weight: 600;
+            font-weight: 500;
             transition: color 0.3s ease;
         }
 
         .register-link a:hover {
-            color: var(--primary-dark);
+            color: var(--secondary);
+        }
+
+        .status-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-connected {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .status-disconnected {
+            background: var(--accent);
+            color: white;
         }
 
         .alert {
-            border: none;
             border-radius: 12px;
-            padding: 1rem;
+            border: none;
             margin-bottom: 1.5rem;
-            font-size: 0.875rem;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .alert-success {
-            background: rgba(16, 185, 129, 0.1);
-            color: var(--success);
-            border: 1px solid rgba(16, 185, 129, 0.2);
         }
 
         .alert-danger {
-            background: rgba(239, 68, 68, 0.1);
-            color: var(--danger);
-            border: 1px solid rgba(239, 68, 68, 0.2);
+            background: rgba(255, 107, 107, 0.1);
+            color: #721c24;
+            border-left: 4px solid var(--accent);
         }
 
         .alert-warning {
-            background: rgba(245, 158, 11, 0.1);
-            color: var(--warning);
-            border: 1px solid rgba(245, 158, 11, 0.2);
+            background: rgba(255, 167, 38, 0.1);
+            color: #856404;
+            border-left: 4px solid var(--warning);
         }
 
         .alert-info {
-            background: rgba(59, 130, 246, 0.1);
-            color: var(--info);
-            border: 1px solid rgba(59, 130, 246, 0.2);
+            background: rgba(41, 182, 246, 0.1);
+            color: #0c5460;
+            border-left: 4px solid var(--info);
+        }
+
+        .alert-success {
+            background: rgba(80, 200, 120, 0.1);
+            color: #155724;
+            border-left: 4px solid var(--secondary);
         }
 
         .floating-shapes {
@@ -380,7 +336,6 @@
             height: 100%;
             pointer-events: none;
             z-index: -1;
-            overflow: hidden;
         }
 
         .shape {
@@ -390,277 +345,345 @@
         }
 
         .shape:nth-child(1) {
-            top: 20%;
+            top: 10%;
             left: 10%;
+            width: 80px;
+            height: 80px;
+            background: var(--primary);
+            border-radius: 50%;
             animation-delay: 0s;
         }
 
         .shape:nth-child(2) {
-            top: 60%;
-            left: 80%;
-            animation-delay: 5s;
+            top: 70%;
+            right: 10%;
+            width: 60px;
+            height: 60px;
+            background: var(--secondary);
+            border-radius: 30%;
+            animation-delay: 7s;
         }
 
         .shape:nth-child(3) {
-            top: 80%;
+            bottom: 20%;
             left: 20%;
-            animation-delay: 10s;
+            width: 100px;
+            height: 100px;
+            background: var(--accent);
+            border-radius: 20%;
+            animation-delay: 14s;
         }
 
         @keyframes float {
-            0% {
-                transform: translateY(0px) rotate(0deg);
+            0%, 100% {
+                transform: translateY(0) rotate(0deg);
             }
-            33% {
-                transform: translateY(-20px) rotate(120deg);
+            25% {
+                transform: translateY(-20px) rotate(90deg);
             }
-            66% {
-                transform: translateY(20px) rotate(240deg);
+            50% {
+                transform: translateY(-10px) rotate(180deg);
             }
-            100% {
-                transform: translateY(0px) rotate(360deg);
+            75% {
+                transform: translateY(-30px) rotate(270deg);
             }
         }
 
-        @media (max-width: 768px) {
-            body {
-                padding: 0.5rem;
-            }
-
+        @media (max-width: 576px) {
             .login-card {
                 padding: 2rem 1.5rem;
+                margin: 1rem;
             }
 
-            .brand-title {
-                font-size: 1.75rem;
+            .login-title {
+                font-size: 1.5rem;
             }
-        }
 
-        /* Animations */
-        .login-card {
-            animation: slideUp 0.6s ease-out;
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
+            .login-logo {
+                width: 60px;
+                height: 60px;
+                font-size: 1.5rem;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Floating Decorative Shapes -->
+    <!-- Floating shapes decoration -->
     <div class="floating-shapes">
-        <div class="shape">
-            <i class="fas fa-graduation-cap" style="font-size: 3rem; color: var(--primary);"></i>
-        </div>
-        <div class="shape">
-            <i class="fas fa-book" style="font-size: 2.5rem; color: var(--secondary);"></i>
-        </div>
-        <div class="shape">
-            <i class="fas fa-lightbulb" style="font-size: 2rem; color: var(--accent);"></i>
-        </div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
     </div>
 
     <div class="login-container">
         <div class="login-card">
-            <!-- Brand Section -->
-            <div class="brand-section">
-                <div class="brand-logo">
-                    <i class="fas fa-brain"></i>
+            <!-- Header -->
+            <div class="login-header">
+                <div class="login-logo">
+                    <i class="fas fa-graduation-cap"></i>
                 </div>
-                <h1 class="brand-title">AlfaIA</h1>
-                <p class="brand-subtitle">Sistema Inteligente de Aprendizaje</p>
+                <h1 class="login-title">AlfaIA</h1>
+                <p class="login-subtitle">Sistema de Alfabetización con Inteligencia Artificial</p>
             </div>
 
-            <!-- Flash Messages -->
+            <!-- Mensajes Flash -->
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                     {% for category, message in messages %}
-                        <div class="alert alert-{{ 'danger' if category == 'error' else category }}">
-                            <i class="fas fa-{{ 'exclamation-triangle' if category == 'error' else 'info-circle' if category == 'info' else 'check-circle' if category == 'success' else 'exclamation-triangle' }}"></i>
-                            {{ message }}
-                        </div>
+                    <div class="alert alert-{{ 'danger' if category == 'error' else category }}" role="alert">
+                        <i class="fas fa-{{ 'exclamation-triangle' if category == 'error' or category == 'warning' else 'info-circle' if category == 'info' else 'check-circle' }} me-2"></i>
+                        {{ message }}
+                    </div>
                     {% endfor %}
                 {% endif %}
             {% endwith %}
 
-            <!-- Demo Mode Alert -->
-            {% if not db_available %}
-            <div class="alert alert-info">
-                <i class="fas fa-info-circle"></i>
-                <div>
-                    <strong>Modo Demo Activado</strong><br>
-                    <small>Base de datos no disponible - Funcionalidad limitada</small>
+            <!-- Demo Info -->
+            {% if not DB_AVAILABLE %}
+            <div class="demo-info">
+                <div class="demo-title">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Modo Demo Activo
                 </div>
+                <p class="mb-2">La base de datos no está conectada. Usa las credenciales de demo:</p>
+                <div class="demo-credentials">
+                    Usuario: <strong>demo_user</strong><br>
+                    Contraseña: <strong>demo123</strong>
+                </div>
+                <a href="#" class="quick-login" onclick="quickDemo()">
+                    <i class="fas fa-rocket me-1"></i>Acceso Rápido Demo
+                </a>
+            </div>
+            {% else %}
+            <div class="demo-info">
+                <div class="demo-title">
+                    <i class="fas fa-database me-2"></i>
+                    Sistema Conectado
+                </div>
+                <p class="mb-2">Base de datos activa. Usa tus credenciales o las de demo:</p>
+                <div class="demo-credentials">
+                    Usuario Demo: <strong>demo_user</strong><br>
+                    Contraseña: <strong>demo123</strong>
+                </div>
+                <a href="#" class="quick-login" onclick="quickDemo()">
+                    <i class="fas fa-user-graduate me-1"></i>Probar con Demo
+                </a>
             </div>
             {% endif %}
 
-            <!-- Demo Credentials -->
-            <div class="demo-credentials">
-                <h6>
-                    <i class="fas fa-key"></i>
-                    Credenciales de Prueba
-                </h6>
-                <p><strong>Usuario:</strong> demo_user</p>
-                <p><strong>Contraseña:</strong> demo123</p>
-            </div>
-
             <!-- Login Form -->
-            <form method="POST" action="{{ url_for('login') }}" id="loginForm">
+            <form id="loginForm" method="POST" action="{{ url_for('login') }}">
                 <div class="form-group">
-                    <label class="form-label" for="username">Usuario o Email</label>
-                    <div class="input-group">
-                        <input type="text"
-                               class="form-control"
-                               id="username"
-                               name="username"
-                               placeholder="Ingresa tu usuario o email"
-                               value="demo_user"
-                               required
-                               autocomplete="username">
-                        <i class="fas fa-user input-icon"></i>
-                    </div>
+                    <label for="username" class="form-label">Usuario</label>
+                    <input type="text"
+                           class="form-control"
+                           id="username"
+                           name="username"
+                           placeholder="Ingresa tu nombre de usuario"
+                           value="{{ request.form.username if request.form else '' }}"
+                           required>
+                    <i class="fas fa-user input-icon"></i>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label" for="password">Contraseña</label>
-                    <div class="input-group">
-                        <input type="password"
-                               class="form-control"
-                               id="password"
-                               name="password"
-                               placeholder="Ingresa tu contraseña"
-                               value="demo123"
-                               required
-                               autocomplete="current-password">
-                        <i class="fas fa-lock input-icon"></i>
-                        <button type="button" class="password-toggle" onclick="togglePassword()">
-                            <i class="fas fa-eye" id="toggleIcon"></i>
-                        </button>
-                    </div>
+                    <label for="password" class="form-label">Contraseña</label>
+                    <input type="password"
+                           class="form-control"
+                           id="password"
+                           name="password"
+                           placeholder="Ingresa tu contraseña"
+                           required>
+                    <i class="fas fa-lock input-icon"></i>
+                    <i class="fas fa-eye password-toggle" onclick="togglePassword()"></i>
                 </div>
 
                 <div class="form-check">
-                    <input type="checkbox" class="form-check-input" id="remember_me" name="remember_me">
-                    <label class="form-check-label" for="remember_me">
-                        Recordar mi sesión
+                    <input class="form-check-input" type="checkbox" id="remember" name="remember">
+                    <label class="form-check-label" for="remember">
+                        Recordar mis datos
                     </label>
                 </div>
 
-                <button type="submit" class="btn-login" id="loginButton">
-                    <span id="loginText">
-                        <i class="fas fa-sign-in-alt"></i>
-                        Iniciar Sesión
+                <button type="submit" class="btn btn-login" id="loginBtn">
+                    <span class="btn-text">
+                        <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
                     </span>
-                    <span id="loadingText" style="display: none;">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        Iniciando sesión...
+                    <span class="spinner">
+                        <i class="fas fa-spinner fa-spin me-2"></i>Verificando...
                     </span>
                 </button>
             </form>
 
+            <!-- Divider -->
+            <div class="divider">
+                <span>¿Primera vez aquí?</span>
+            </div>
+
             <!-- Register Link -->
-            {% if db_available %}
             <div class="register-link">
-                <p>¿No tienes cuenta?</p>
-                <a href="{{ url_for('register') }}">
-                    <i class="fas fa-user-plus"></i>
-                    Crear cuenta nueva
+                <p class="mb-2">¿No tienes una cuenta?</p>
+                <a href="{{ url_for('register') if url_for else '#' }}">
+                    <i class="fas fa-user-plus me-2"></i>Crear cuenta nueva
                 </a>
             </div>
-            {% endif %}
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Status Indicator -->
+    <div class="status-indicator {{ 'status-connected' if DB_AVAILABLE else 'status-disconnected' }}">
+        <i class="fas fa-{{ 'database' if DB_AVAILABLE else 'exclamation-triangle' }}"></i>
+        <span>{{ 'Base de datos conectada' if DB_AVAILABLE else 'Modo demo' }}</span>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Toggle password visibility
         function togglePassword() {
-            const passwordField = document.getElementById('password');
-            const toggleIcon = document.getElementById('toggleIcon');
+            const passwordInput = document.getElementById('password');
+            const toggleIcon = document.querySelector('.password-toggle');
 
-            if (passwordField.type === 'password') {
-                passwordField.type = 'text';
-                toggleIcon.className = 'fas fa-eye-slash';
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
             } else {
-                passwordField.type = 'password';
-                toggleIcon.className = 'fas fa-eye';
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
             }
+        }
+
+        // Quick demo login
+        function quickDemo() {
+            document.getElementById('username').value = 'demo_user';
+            document.getElementById('password').value = 'demo123';
+
+            // Animate fill
+            const usernameField = document.getElementById('username');
+            const passwordField = document.getElementById('password');
+
+            usernameField.style.transition = 'all 0.3s ease';
+            passwordField.style.transition = 'all 0.3s ease';
+
+            usernameField.style.background = 'rgba(80, 200, 120, 0.1)';
+            passwordField.style.background = 'rgba(80, 200, 120, 0.1)';
+
+            setTimeout(() => {
+                usernameField.style.background = '';
+                passwordField.style.background = '';
+            }, 1000);
         }
 
         // Form submission handling
         document.getElementById('loginForm').addEventListener('submit', function(e) {
-            const loginButton = document.getElementById('loginButton');
-            const loginText = document.getElementById('loginText');
-            const loadingText = document.getElementById('loadingText');
+            const loginBtn = document.getElementById('loginBtn');
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
 
-            loginButton.classList.add('loading');
-            loginText.style.display = 'none';
-            loadingText.style.display = 'block';
+            // Basic validation
+            if (!username || !password) {
+                e.preventDefault();
+                showAlert('warning', 'Por favor, completa todos los campos.');
+                return;
+            }
+
+            // Show loading state
+            loginBtn.classList.add('loading');
+
+            // Re-enable after 10 seconds to prevent stuck state
+            setTimeout(() => {
+                loginBtn.classList.remove('loading');
+            }, 10000);
         });
 
-        // Auto-fill demo credentials if empty
-        document.addEventListener('DOMContentLoaded', function() {
-            const usernameField = document.getElementById('username');
-            const passwordField = document.getElementById('password');
-
-            if (!usernameField.value) {
-                usernameField.value = 'demo_user';
-            }
-            if (!passwordField.value) {
-                passwordField.value = 'demo123';
-            }
-        });
-
-        // Enhanced form validation and UX
-        const inputs = document.querySelectorAll('.form-control');
-        inputs.forEach(input => {
+        // Focus effects for inputs
+        document.querySelectorAll('.form-control').forEach(input => {
             input.addEventListener('focus', function() {
-                this.parentElement.style.transform = 'scale(1.02)';
-                this.parentElement.style.transition = 'transform 0.2s ease';
+                this.parentElement.querySelector('.input-icon').style.color = 'var(--primary)';
             });
 
             input.addEventListener('blur', function() {
-                this.parentElement.style.transform = 'scale(1)';
+                if (!this.value) {
+                    this.parentElement.querySelector('.input-icon').style.color = '#6c757d';
+                }
             });
+        });
 
-            input.addEventListener('input', function() {
-                if (this.value.length > 0) {
-                    this.classList.add('has-value');
-                } else {
-                    this.classList.remove('has-value');
+        // Show alert function
+        function showAlert(type, message) {
+            // Remove existing alerts
+            document.querySelectorAll('.dynamic-alert').forEach(alert => alert.remove());
+
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} dynamic-alert`;
+            alertDiv.innerHTML = `
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                ${message}
+            `;
+
+            const form = document.getElementById('loginForm');
+            form.parentNode.insertBefore(alertDiv, form);
+
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+
+        // Auto-focus on username field
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('username').focus();
+
+            // Add enter key navigation
+            document.getElementById('username').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    document.getElementById('password').focus();
                 }
             });
         });
 
         // Keyboard shortcuts
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && e.ctrlKey) {
-                document.getElementById('loginForm').submit();
+            // Ctrl+D for quick demo
+            if (e.ctrlKey && e.key === 'd') {
+                e.preventDefault();
+                quickDemo();
+            }
+
+            // Escape to clear form
+            if (e.key === 'Escape') {
+                document.getElementById('loginForm').reset();
+                document.getElementById('username').focus();
             }
         });
 
-        // Error handling for network issues
-        window.addEventListener('error', function(e) {
-            console.error('Error:', e.error);
-        });
+        // Connection status check
+        function checkConnectionStatus() {
+            fetch('/health')
+                .then(response => response.json())
+                .then(data => {
+                    const statusIndicator = document.querySelector('.status-indicator');
+                    const statusIcon = statusIndicator.querySelector('i');
+                    const statusText = statusIndicator.querySelector('span');
 
-        // Accessibility improvements
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Tab') {
-                document.body.classList.add('using-keyboard');
-            }
-        });
+                    if (data.status === 'healthy' && data.database) {
+                        statusIndicator.className = 'status-indicator status-connected';
+                        statusIcon.className = 'fas fa-database';
+                        statusText.textContent = 'Base de datos conectada';
+                    } else {
+                        statusIndicator.className = 'status-indicator status-disconnected';
+                        statusIcon.className = 'fas fa-exclamation-triangle';
+                        statusText.textContent = 'Modo demo';
+                    }
+                })
+                .catch(error => {
+                    console.log('Error checking status:', error);
+                });
+        }
 
-        document.addEventListener('mousedown', function() {
-            document.body.classList.remove('using-keyboard');
-        });
+        // Check connection every 30 seconds
+        setInterval(checkConnectionStatus, 30000);
     </script>
 </body>
 </html>

@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logros - AlfaIA</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4a90e2;
+            --secondary: #50c878;
+            --accent: #ff6b6b;
+            --warning: #ffa726;
+            --info: #29b6f6;
+            --gold: #ffd700;
+            --silver: #c0c0c0;
+            --bronze: #cd7f32;
+            --background: #f8f9fa;
+            --card-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            --border-radius: 12px;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar-custom {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            color: var(--primary) !important;
+        }
+
+        .achievements-container {
+            padding: 2rem 0;
+        }
+
+        .achievements-header {
+            text-align: center;
+            padding: 3rem 2rem;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: var(--border-radius);
+            margin-bottom: 3rem;
+            box-shadow: var(--card-shadow);
+            backdrop-filter: blur(10px);
+        }
+
+        .achievements-title {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .achievements-subtitle {
+            font-size: 1.2rem;
+            color: #6c757d;
+        }
+
+        .achievements-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--card-shadow);
+            text-align: center;
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .stat-icon.total { background: linear-gradient(135deg, var(--gold), #ff6b6b); }
+        .stat-icon.unlocked { background: linear-gradient(135deg, var(--secondary), #43e97b); }
+        .stat-icon.rare { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .stat-icon.points { background: linear-gradient(135deg, var(--warning), #ff9800); }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-weight: 500;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .section-title i {
+            margin-right: 1rem;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .achievement-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            box-shadow: var(--card-shadow);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .achievement-card.unlocked {
+            border: 2px solid var(--gold);
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 255, 255, 0.95));
+        }
+
+        .achievement-card.locked {
+            opacity: 0.6;
+            filter: grayscale(50%);
+        }
+
+        .achievement-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .achievement-header {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .achievement-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+
+        .achievement-icon.comun {
+            background: linear-gradient(135deg, var(--bronze), #8b4513);
+            color: white;
+        }
+
+        .achievement-icon.raro {
+            background: linear-gradient(135deg, var(--silver), #778899);
+            color: white;
+        }
+
+        .achievement-icon.epico {
+            background: linear-gradient(135deg, var(--gold), #ffa500);
+            color: white;
+        }
+
+        .achievement-icon.legendario {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { box-shadow: 0 0 10px rgba(255, 107, 107, 0.5); }
+            to { box-shadow: 0 0 20px rgba(255, 107, 107, 0.8); }
+        }
+
+        .achievement-content {
+            flex-grow: 1;
+        }
+
+        .achievement-name {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .achievement-description {
+            color: #6c757d;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .achievement-progress {
+            margin-bottom: 1rem;
+        }
+
+        .progress-bar-custom {
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .progress-text {
+            font-size: 0.9rem;
+            color: #6c757d;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .achievement-rewards {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 1rem;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .achievement-points {
+            font-weight: 600;
+            color: var(--warning);
+        }
+
+        .achievement-date {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+
+        .rarity-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .rarity-comun { background: var(--bronze); }
+        .rarity-raro { background: var(--silver); }
+        .rarity-epico { background: var(--gold); }
+        .rarity-legendario { background: linear-gradient(135deg, #ff6b6b, #ee5a24); }
+
+        .unlock-animation {
+            animation: unlockPulse 1s ease-in-out;
+        }
+
+        @keyframes unlockPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .filter-tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 25px;
+            padding: 0.5rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .filter-tab {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.7);
+            border-radius: 20px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .filter-tab.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .filter-tab:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .db-status {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            z-index: 1000;
+        }
+
+        .db-connected {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .db-disconnected {
+            background: var(--accent);
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .achievements-container {
+                padding: 1rem;
+            }
+
+            .achievements-header {
+                padding: 2rem 1rem;
+            }
+
+            .achievements-title {
+                font-size: 2rem;
+            }
+
+            .achievements-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .filter-tabs {
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-custom">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="fas fa-graduation-cap me-2"></i>AlfaIA
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <div class="navbar-nav me-auto">
+                    <a class="nav-link" href="{{ url_for('dashboard') }}">
+                        <i class="fas fa-home me-1"></i>Dashboard
+                    </a>
+                    <a class="nav-link" href="{{ url_for('ejercicios') }}">
+                        <i class="fas fa-dumbbell me-1"></i>Ejercicios
+                    </a>
+                    <a class="nav-link" href="{{ url_for('progreso') }}">
+                        <i class="fas fa-chart-line me-1"></i>Progreso
+                    </a>
+                    <a class="nav-link active" href="{{ url_for('logros') }}">
+                        <i class="fas fa-trophy me-1"></i>Logros
+                    </a>
+                </div>
+                <div class="navbar-nav">
+                    <a class="nav-link" href="{{ url_for('configuracion') }}">
+                        <i class="fas fa-cog me-1"></i>{{ user.nombre if user else 'Usuario' }}
+                    </a>
+                    <a class="nav-link" href="{{ url_for('logout') }}">
+                        <i class="fas fa-sign-out-alt me-1"></i>Salir
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container achievements-container">
+        <!-- Header de logros -->
+        <div class="achievements-header">
+            <h1 class="achievements-title">
+                <i class="fas fa-trophy me-3"></i>
+                Salón de la Fama
+            </h1>
+            <p class="achievements-subtitle">
+                Celebra tus logros y desbloquea nuevos desafíos en tu viaje de aprendizaje
+            </p>
+        </div>
+
+        <!-- Estadísticas de logros -->
+        <div class="achievements-stats">
+            <div class="stat-card">
+                <div class="stat-icon total">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <div class="stat-value">{{ (user_achievements|length if user_achievements else 0) + (available_achievements|length if available_achievements else 0) }}</div>
+                <div class="stat-label">Logros Totales</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon unlocked">
+                    <i class="fas fa-unlock"></i>
+                </div>
+                <div class="stat-value">{{ user_achievements|length if user_achievements else 0 }}</div>
+                <div class="stat-label">Desbloqueados</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon rare">
+                    <i class="fas fa-gem"></i>
+                </div>
+                <div class="stat-value">
+                    {% set rare_count = 0 %}
+                    {% if user_achievements %}
+                        {% for achievement in user_achievements %}
+                            {% if achievement.get('rareza') in ['epico', 'legendario'] %}
+                                {% set rare_count = rare_count + 1 %}
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                    {{ rare_count }}
+                </div>
+                <div class="stat-label">Logros Raros</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon points">
+                    <i class="fas fa-star"></i>
+                </div>
+                <div class="stat-value">
+                    {% set total_points = 0 %}
+                    {% if user_achievements %}
+                        {% for achievement in user_achievements %}
+                            {% set total_points = total_points + (achievement.get('puntos_recompensa', 0) or 0) %}
+                        {% endfor %}
+                    {% endif %}
+                    {{ total_points }}
+                </div>
+                <div class="stat-label">Puntos de Logros</div>
+            </div>
+        </div>
+
+        <!-- Filtros de logros -->
+        <div class="filter-tabs">
+            <button class="filter-tab active" onclick="filterAchievements('all')">
+                <i class="fas fa-list me-1"></i>Todos
+            </button>
+            <button class="filter-tab" onclick="filterAchievements('unlocked')">
+                <i class="fas fa-unlock me-1"></i>Desbloqueados
+            </button>
+            <button class="filter-tab" onclick="filterAchievements('locked')">
+                <i class="fas fa-lock me-1"></i>Bloqueados
+            </button>
+            <button class="filter-tab" onclick="filterAchievements('rare')">
+                <i class="fas fa-gem me-1"></i>Raros
+            </button>
+        </div>
+
+        <!-- Logros desbloqueados -->
+        {% if user_achievements and user_achievements|length > 0 %}
+        <div class="section-title">
+            <i class="fas fa-unlock-alt"></i> Logros Desbloqueados
+        </div>
+        <div class="achievements-grid" id="unlockedAchievements">
+            {% for achievement in user_achievements %}
+            <div class="achievement-card unlocked" data-filter="unlocked {{ 'rare' if achievement.get('rareza') in ['epico', 'legendario'] else 'common' }}">
+                <div class="rarity-badge rarity-{{ achievement.get('rareza', 'comun') }}">
+                    {{ achievement.get('rareza', 'comun')|title }}
+                </div>
+
+                <div class="achievement-header">
+                    <div class="achievement-icon {{ achievement.get('rareza', 'comun') }}">
+                        {{ achievement.get('icono', '🏆') }}
+                    </div>
+                    <div class="achievement-content">
+                        <h4 class="achievement-name">{{ achievement.get('nombre_logro', 'Logro Sin Nombre') }}</h4>
+                        <p class="achievement-description">{{ achievement.get('descripcion', 'Descripción no disponible') }}</p>
+                    </div>
+                </div>
+
+                <div class="achievement-rewards">
+                    <span class="achievement-points">
+                        <i class="fas fa-star me-1"></i>{{ achievement.get('puntos_recompensa', 0) }} puntos
+                    </span>
+                    <span class="achievement-date">
+                        <i class="fas fa-calendar me-1"></i>
+                        {% if achievement.get('fecha_obtenido') %}
+                            {{ achievement.fecha_obtenido.strftime('%d/%m/%Y') if achievement.fecha_obtenido.strftime else achievement.fecha_obtenido }}
+                        {% else %}
+                            Reciente
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Logros disponibles -->
+        {% if available_achievements and available_achievements|length > 0 %}
+        <div class="section-title">
+            <i class="fas fa-target"></i> Próximos Desafíos
+        </div>
+        <div class="achievements-grid" id="availableAchievements">
+            {% for achievement in available_achievements %}
+            <div class="achievement-card locked" data-filter="locked {{ 'rare' if achievement.get('rareza') in ['epico', 'legendario'] else 'common' }}">
+                <div class="rarity-badge rarity-{{ achievement.get('rareza', 'comun') }}">
+                    {{ achievement.get('rareza', 'comun')|title }}
+                </div>
+
+                <div class="achievement-header">
+                    <div class="achievement-icon {{ achievement.get('rareza', 'comun') }}">
+                        {{ achievement.get('icono', '🔒') }}
+                    </div>
+                    <div class="achievement-content">
+                        <h4 class="achievement-name">{{ achievement.get('nombre_logro', 'Logro Misterioso') }}</h4>
+                        <p class="achievement-description">{{ achievement.get('descripcion', 'Descripción oculta') }}</p>
+                    </div>
+                </div>
+
+                {% if achievement.get('criterios') %}
+                <div class="achievement-progress">
+                    <div class="progress-bar-custom">
+                        <div class="progress-fill" style="width: {{ achievement.get('progreso_actual', 0) }}%"></div>
+                    </div>
+                    <div class="progress-text">
+                        <span>Progreso: {{ achievement.get('progreso_actual', 0) }}%</span>
+                        <span>{{ achievement.criterios }}</span>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="achievement-rewards">
+                    <span class="achievement-points">
+                        <i class="fas fa-star me-1"></i>{{ achievement.get('puntos_recompensa', 0) }} puntos
+                    </span>
+                    <span class="achievement-date text-muted">
+                        <i class="fas fa-lock me-1"></i>Bloqueado
+                    </span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Estado vacío -->
+        {% if (not user_achievements or user_achievements|length == 0) and (not available_achievements or available_achievements|length == 0) %}
+        <div class="empty-state">
+            <i class="fas fa-trophy"></i>
+            <h3>¡Comienza tu aventura!</h3>
+            <p>Completa ejercicios para desbloquear tus primeros logros</p>
+            <a href="{{ url_for('ejercicios') }}" class="btn btn-primary btn-lg mt-3">
+                <i class="fas fa-play me-2"></i>Comenzar a Practicar
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Database Status -->
+    <div class="db-status {{ 'db-connected' if DB_AVAILABLE else 'db-disconnected' }}">
+        <i class="fas fa-{{ 'database' if DB_AVAILABLE else 'exclamation-triangle' }} me-1"></i>
+        {{ 'Base de datos conectada' if DB_AVAILABLE else 'Modo demo' }}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Filtrar logros
+        function filterAchievements(filter) {
+            // Actualizar tabs activos
+            document.querySelectorAll('.filter-tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Filtrar cards
+            const cards = document.querySelectorAll('.achievement-card');
+            cards.forEach(card => {
+                const cardFilters = card.dataset.filter;
+
+                if (filter === 'all' || cardFilters.includes(filter)) {
+                    card.style.display = 'block';
+                    card.style.opacity = '1';
+                } else {
+                    card.style.display = 'none';
+                    card.style.opacity = '0';
+                }
+            });
+        }
+
+        // Verificar nuevos logros
+        function checkNewAchievements() {
+            fetch('/api/user/progress')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.progress && data.progress.nuevos_logros) {
+                        showNewAchievements(data.progress.nuevos_logros);
+                    }
+                })
+                .catch(error => console.log('Error checking achievements:', error));
+        }
+
+        // Mostrar notificación de nuevos logros
+        function showNewAchievements(achievements) {
+            achievements.forEach((achievement, index) => {
+                setTimeout(() => {
+                    showAchievementToast(achievement);
+                }, index * 1000);
+            });
+        }
+
+        // Mostrar toast de logro
+        function showAchievementToast(achievement) {
+            const toast = document.createElement('div');
+            toast.className = 'toast position-fixed top-0 end-0 m-3';
+            toast.style.zIndex = '9999';
+            toast.innerHTML = `
+                <div class="toast-header bg-warning text-dark">
+                    <strong class="me-auto">
+                        <i class="fas fa-trophy me-2"></i>¡Logro Desbloqueado!
+                    </strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+                </div>
+                <div class="toast-body">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3 fs-3">${achievement.icono || '🏆'}</div>
+                        <div>
+                            <strong>${achievement.nombre_logro}</strong><br>
+                            <small>${achievement.descripcion}</small><br>
+                            <span class="text-warning">
+                                <i class="fas fa-star me-1"></i>${achievement.puntos_recompensa || 0} puntos
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(toast);
+            const bsToast = new bootstrap.Toast(toast, {
+                autohide: true,
+                delay: 5000
+            });
+            bsToast.show();
+
+            // Reproducir sonido de logro (opcional)
+            playAchievementSound();
+
+            toast.addEventListener('hidden.bs.toast', () => {
+                document.body.removeChild(toast);
+            });
+        }
+
+        // Reproducir sonido de logro
+        function playAchievementSound() {
+            // Crear contexto de audio para sonido de logro
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime); // C5
+                oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1); // E5
+                oscillator.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.2); // G5
+
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.5);
+
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.5);
+            } catch (error) {
+                console.log('Audio not available');
+            }
+        }
+
+        // Actualizar progreso de logros
+        function updateAchievementProgress() {
+            fetch('/api/user/progress')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.progress && data.progress.logros_progreso) {
+                        // Actualizar barras de progreso
+                        Object.entries(data.progress.logros_progreso).forEach(([achievementId, progress]) => {
+                            const progressBar = document.querySelector(`[data-achievement-id="${achievementId}"] .progress-fill`);
+                            if (progressBar) {
+                                progressBar.style.width = `${progress}%`;
+                            }
+                        });
+                    }
+                })
+                .catch(error => console.log('Error updating achievement progress:', error));
+        }
+
+        // Animación de entrada para logros desbloqueados
+        function animateUnlockedAchievements() {
+            const unlockedCards = document.querySelectorAll('.achievement-card.unlocked');
+            unlockedCards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.classList.add('unlock-animation');
+                }, index * 100);
+            });
+        }
+
+        // Inicializar página
+        document.addEventListener('DOMContentLoaded', function() {
+            animateUnlockedAchievements();
+            checkNewAchievements();
+            updateAchievementProgress();
+
+            // Verificar nuevos logros cada 30 segundos
+            setInterval(checkNewAchievements, 30000);
+
+            // Actualizar progreso cada 60 segundos
+            setInterval(updateAchievementProgress, 60000);
+        });
+    </script>
+</body>
+</html>
